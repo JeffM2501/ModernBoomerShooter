@@ -25,53 +25,44 @@ Use this as a starting point or replace it with your code.
 #include "raylib.h"
 #include "raymath.h"
 
-#include "game.h"   // an external header in this project
-#include "lib.h"	// an external header in the static lib project
-
-
-void GameInit()
+namespace App
 {
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
-    InitWindow(InitalWidth, InitalHeight, "Example");
-    SetTargetFPS(144);
+    void Init()
+    {
+        SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
+        InitWindow(1280, 800, "ModernBoomerShooter");
+        SetTargetFPS(144);
+    }
 
-    // load resources
+    void NewFrame()
+    {
+        BeginDrawing();
+        ClearBackground(DARKGRAY);
+
+        DrawText("Hello Raylib!", 10, 10, 20, WHITE);
+
+        EndDrawing();
+    }
+
+    void Cleanup()
+    {
+        CloseWindow();
+    }
+
+    bool Quit()
+    {
+        return WindowShouldClose();
+    }
 }
-
-void GameCleanup()
-{
-    // unload resources
-
-    CloseWindow();
-}
-
-bool GameUpdate()
-{
-    return true;
-}
-
-void GameDraw()
-{
-    BeginDrawing();
-    ClearBackground(DARKGRAY);
-
-    DrawText("Hello Raylib!", 10, 10, 20, GetTextColor());
-
-    EndDrawing();
-}
-
 int main()
 {
-    GameInit();
+    App::Init();
 
-    while (!WindowShouldClose())
+    while (!App::Quit())
     {
-        if (!GameUpdate())
-            break;
-
-        GameDraw();
+        App::NewFrame();
     }
-    GameCleanup();
+    App::Cleanup();
 
     return 0;
 }
