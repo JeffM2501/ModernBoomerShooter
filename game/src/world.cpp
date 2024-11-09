@@ -3,6 +3,9 @@
 #include "system.h"
 #include "game_object.h"
 
+// systems
+#include "systems/input_system.h"
+
 World::World()
 {
     RootObject = std::make_unique<GameObject>(this);
@@ -10,13 +13,13 @@ World::World()
 
 void World::RegisterSystem(SystemStage stage, std::unique_ptr<System> system)
 {
-    if (Systems.find(system->GetGUID()) == Systems.end())
+    if (Systems.find(system->GetGUID()) != Systems.end())
         return;
 
     switch (stage)
     {
     case SystemStage::PreUpdate:
-        PreRenderSystems.push_back(system.get());
+        PreUpdateSystems.push_back(system.get());
         break;
     case SystemStage::Update:
         UpdateSystems.push_back(system.get());
@@ -39,6 +42,15 @@ void World::RegisterSystem(SystemStage stage, std::unique_ptr<System> system)
     }
 
     Systems.insert_or_assign(system->GetGUID(), std::move(system));
+}
+
+System* World::GetSystem(size_t systemId)
+{
+    auto itr = Systems.find(systemId);
+    if (itr == Systems.end())
+        return nullptr;
+
+    return itr->second.get();
 }
 
 void World::Init()
@@ -85,7 +97,7 @@ bool World::Update()
 
     // async don't get an update
 
-    return false;
+    return Run;
 }
 
 void World::RenderScene()
@@ -106,6 +118,7 @@ void World::RenderOverlay()
 void World::SetupSystems()
 {
     // register standard systems
+    RegisterSystem<InputSystem>(SystemStage::PreUpdate);
 }
 
 GameObject* World::AddObject()

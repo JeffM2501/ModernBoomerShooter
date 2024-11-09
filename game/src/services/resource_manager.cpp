@@ -1,0 +1,106 @@
+#include "services/resource_manager.h"
+
+#include <unordered_map>
+#include <string>"
+
+#include "raylib.h";
+
+ResoureInfo::~ResoureInfo()
+{
+    UnloadFileData(DataBuffer);
+}
+
+namespace ResourceManager
+{
+    std::hash<std::string_view> StringHasher;
+    std::unordered_map<size_t, std::shared_ptr<ResoureInfo>> OpenResources;
+
+    bool SearchAndSetResourceDir(const char* folderName)
+    {
+        // check the working dir
+        if (DirectoryExists(folderName))
+        {
+            ChangeDirectory(TextFormat("%s/%s", GetWorkingDirectory(), folderName));
+            return true;
+        }
+
+        const char* appDir = GetApplicationDirectory();
+
+        // check the applicationDir
+        const char* dir = TextFormat("%s%s", appDir, folderName);
+        if (DirectoryExists(dir))
+        {
+            ChangeDirectory(dir);
+            return true;
+        }
+
+        // check one up from the app dir
+        dir = TextFormat("%s../%s", appDir, folderName);
+        if (DirectoryExists(dir))
+        {
+            ChangeDirectory(dir);
+            return true;
+        }
+
+        // check two up from the app dir
+        dir = TextFormat("%s../../%s", appDir, folderName);
+        if (DirectoryExists(dir))
+        {
+            ChangeDirectory(dir);
+            return true;
+        }
+
+        // check three up from the app dir
+        dir = TextFormat("%s../../../%s", appDir, folderName);
+        if (DirectoryExists(dir))
+        {
+            ChangeDirectory(dir);
+            return true;
+        }
+
+        return false;
+    }
+
+    void Init(std::string_view rootFolder)
+    {
+        SearchAndSetResourceDir(rootFolder.data());
+
+        // TODO, handle reading from packages here, like reading an archive
+    }
+
+    void Cleanup()
+    {
+        OpenResources.clear();
+    }
+
+    std::shared_ptr<ResoureInfo> OpenResource(std::string_view filePath)
+    {
+        size_t pathHash = StringHasher(filePath);
+
+        auto itr = OpenResources.find(pathHash);
+        if (itr != OpenResources.end())
+            return itr->second;
+
+        int size = 0;
+        uint8_t* buffer = LoadFileData(filePath.data(), &size);
+
+        if (!buffer)
+            return nullptr;
+
+        std::shared_ptr<ResoureInfo> file = std::make_shared<ResoureInfo>();
+
+        file->NameHash = pathHash;
+        file->DataBuffer = buffer;
+        file->DataSize = size;
+
+        OpenResources.insert_or_assign(pathHash, file);
+        return file;
+    }
+
+    void ReleaseResource(std::shared_ptr<ResoureInfo> resource)
+    {
+        auto itr = OpenResources.find(resource->NameHash);
+        if (itr != OpenResources.end())
+            OpenResources.erase(itr);
+    }
+};

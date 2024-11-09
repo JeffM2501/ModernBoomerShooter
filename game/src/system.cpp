@@ -16,9 +16,9 @@ void System::Setup()
     OnSetup();
 }
 
-bool System::Update()
+void System::Update()
 {
-    return OnUpdate();
+    OnUpdate();
 }
 
 void System::AddObject(GameObject* object)

@@ -1,4 +1,20 @@
 #include "game_object.h"
+#include "world.h"
+#include "system.h"
+
+
+GameObject::~GameObject()
+{
+    if (!WorldPtr)
+        return;
+
+    for (auto guid : LinkedSystems)
+    {
+        auto* system = WorldPtr->GetSystem(guid);
+        if (system)
+            system->RemoveObject(this);
+    }
+}
 
 GameObject* GameObject::AddChild()
 {
@@ -25,4 +41,20 @@ World* GameObject::GetWorld()
 const World* GameObject::GetWorld() const
 {
     return WorldPtr;
+}
+
+void GameObject::AddToSystem(size_t systemGUID)
+{
+    if (!WorldPtr)
+        return;
+
+    if (LinkedSystems.find(systemGUID) != LinkedSystems.end())
+        return;
+
+    auto* system = WorldPtr->GetSystem(systemGUID);
+    if (!system)
+        return;
+
+    system->AddObject(this);
+    LinkedSystems.insert(systemGUID);
 }

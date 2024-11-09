@@ -8,7 +8,6 @@
 #include "game_object.h"
 #include "system.h"
 
-
 enum class SystemStage
 {
     PreUpdate,
@@ -29,18 +28,22 @@ public:
     template<class T>
     inline void RegisterSystem(SystemStage stage)
     {
-        RegisterSystem(stage, std::move(std::make_unique<T>()));
+        RegisterSystem(stage, std::move(std::make_unique<T>(this)));
     }
+
+    System* GetSystem(size_t systemId);
 
     void Init();
     void Cleanup();
 
     bool Update();
 
-   void RenderScene();
-   void RenderOverlay();
+    void RenderScene();
+    void RenderOverlay();
 
     GameObject* AddObject();
+
+    void Quit() { Run = false; }
 
 protected:
     std::vector<System*> PreUpdateSystems;
@@ -51,9 +54,11 @@ protected:
     std::vector<System*> RenderSystems;
     std::vector<System*> PostRenderSystems;
 
-    std::unordered_map<uint64_t, std::unique_ptr<System>> Systems;
+    std::unordered_map<size_t, std::unique_ptr<System>> Systems;
 
     std::unique_ptr<GameObject> RootObject;
+
+    bool Run = true;
 
 protected:
     void SetupSystems();
