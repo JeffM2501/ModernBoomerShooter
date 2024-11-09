@@ -6,6 +6,8 @@
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
 
+#include "systems/input_system.h"
+
 namespace App
 {
     World GameWorld;
@@ -13,6 +15,10 @@ namespace App
     bool Run = false;
 
     Texture TestTexture;
+
+    Vector2  TestPos = { 0 };
+
+    InputSystem* Input = nullptr;
 
     void Init()
     {
@@ -25,8 +31,10 @@ namespace App
         TextureManager::Init();
 
         TestTexture = TextureManager::GetTexture("test.png");
-
+      
         GameWorld.Init();
+
+        Input = GameWorld.GetSystem<InputSystem>();
     }
 
     void NewFrame()
@@ -36,14 +44,17 @@ namespace App
         if (!Run)
             return;
 
+        TestPos.y -= Input->GetActionValue(Actions::Forward);
+        TestPos.x += Input->GetActionValue(Actions::Sideways);
+
         BeginDrawing();
         ClearBackground(BLACK);
 
         GameWorld.RenderScene();
 
-        DrawTexture(TestTexture, 0, 0, WHITE);
+        DrawTexture(TestTexture, TestPos.x, TestPos.y, WHITE);
 
-        DrawText("Hello Raylib!", 10, 10, 20, WHITE);
+        DrawText(TextFormat("Used Memory %d", TextureManager::GetUsedVRAM()), 10, 600, 20, WHITE);
 
         GameWorld.RenderOverlay();
         EndDrawing();

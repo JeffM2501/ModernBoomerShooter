@@ -33,6 +33,12 @@ public:
 
     System* GetSystem(size_t systemId);
 
+    template<class T>
+    inline T* GetSystem()
+    {
+        return static_cast<T*>(GetSystem(T::GUID()));
+    }
+
     void Init();
     void Cleanup();
 
