@@ -17,8 +17,11 @@ public:
     void AddObject(GameObject* object);
     void RemoveObject(GameObject* object);
 
+    virtual uint64_t GetGUID() = 0;
+
 protected:
     virtual void OnInit() {}
+    virtual void OnSetup() {}
     virtual void OnCleaup() {}
     virtual bool OnUpdate() { return false; }
 

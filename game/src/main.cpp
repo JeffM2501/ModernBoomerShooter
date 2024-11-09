@@ -25,33 +25,49 @@ Use this as a starting point or replace it with your code.
 #include "raylib.h"
 #include "raymath.h"
 
+#include "world.h"
+
 namespace App
 {
+    World GameWorld;
+
+    bool Run = false;
+
     void Init()
     {
+        Run = true;
         SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
         InitWindow(1280, 800, "ModernBoomerShooter");
         SetTargetFPS(144);
+
+        GameWorld.Init();
     }
 
     void NewFrame()
     {
+        Run = !GameWorld.Update() && !WindowShouldClose();
+
+        if (!Run)
+            return;
+
         BeginDrawing();
-        ClearBackground(DARKGRAY);
+        GameWorld.RenderScene();
 
         DrawText("Hello Raylib!", 10, 10, 20, WHITE);
 
+        GameWorld.RenderOverlay();
         EndDrawing();
     }
 
     void Cleanup()
     {
+        GameWorld.Cleanup();
         CloseWindow();
     }
 
     bool Quit()
     {
-        return WindowShouldClose();
+        return !Run;
     }
 }
 int main()
