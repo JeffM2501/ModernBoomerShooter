@@ -1,0 +1,45 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "example.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "D:/Projects/RaycasterPro/resources/textures/defaultTiles.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "example.tmx": {
+            "scale": 0.33,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 1093.939393939394,
+                "y": 403.030303030303
+            }
+        }
+    },
+    "last.imagePath": "D:/Projects/RaycasterPro/resources/textures",
+    "map.height": 64,
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 64,
+    "map.tileWidth": 64,
+    "map.width": 64,
+    "openFiles": [
+        "D:/Projects/RaycasterPro/resources/textures/defaultTiles.tsx",
+        "example.tmx"
+    ],
+    "project": "test_map.tiled-project",
+    "property.type": "string",
+    "recentFiles": [
+        "D:/Projects/RaycasterPro/resources/textures/defaultTiles.tsx",
+        "example.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 64,
+        "width": 64
+    }
+}

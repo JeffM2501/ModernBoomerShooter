@@ -5,6 +5,7 @@
 
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
+#include "services/game_time.h"
 
 #include "systems/input_system.h"
 
@@ -14,12 +15,6 @@ namespace App
 
     bool Run = false;
 
-    Texture TestTexture;
-
-    Vector2  TestPos = { 0 };
-
-    InputSystem* Input = nullptr;
-
     void Init()
     {
         Run = true;
@@ -27,14 +22,10 @@ namespace App
         InitWindow(1280, 800, "ModernBoomerShooter");
         SetTargetFPS(144);
 
+        GameTime::ComputeNominalFPS();
         ResourceManager::Init("resources");
         TextureManager::Init();
-
-        TestTexture = TextureManager::GetTexture("test.png");
-      
         GameWorld.Init();
-
-        Input = GameWorld.GetSystem<InputSystem>();
     }
 
     void NewFrame()
@@ -44,18 +35,10 @@ namespace App
         if (!Run)
             return;
 
-        TestPos.y -= Input->GetActionValue(Actions::Forward);
-        TestPos.x += Input->GetActionValue(Actions::Sideways);
-
         BeginDrawing();
         ClearBackground(BLACK);
 
         GameWorld.RenderScene();
-
-        DrawTexture(TestTexture, TestPos.x, TestPos.y, WHITE);
-
-        DrawText(TextFormat("Used Memory %d", TextureManager::GetUsedVRAM()), 10, 600, 20, WHITE);
-
         GameWorld.RenderOverlay();
         EndDrawing();
     }

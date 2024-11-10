@@ -1,9 +1,9 @@
 #include "services/resource_manager.h"
 
 #include <unordered_map>
-#include <string>"
+#include <string>
 
-#include "raylib.h";
+#include "raylib.h"
 
 ResoureInfo::~ResoureInfo()
 {
@@ -100,6 +100,13 @@ namespace ResourceManager
     void ReleaseResource(std::shared_ptr<ResoureInfo> resource)
     {
         auto itr = OpenResources.find(resource->NameHash);
+        if (itr != OpenResources.end())
+            OpenResources.erase(itr);
+    }
+
+    void ReleaseResource(const char* resourceName)
+    {
+        auto itr = OpenResources.find(StringHasher(resourceName));
         if (itr != OpenResources.end())
             OpenResources.erase(itr);
     }

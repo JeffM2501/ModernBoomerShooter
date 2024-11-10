@@ -5,6 +5,12 @@
 
 // systems
 #include "systems/input_system.h"
+#include "systems/scene_render_system.h"
+#include "systems/overlay_render_system.h"
+#include "systems/menu_render_system.h"
+#include "systems/player_management_system.h"
+
+#include "map/map_reader.h"
 
 World::World()
 {
@@ -61,7 +67,17 @@ void World::Init()
     {
         system->Init();
     }
+    Load("maps/example.tmx");
+}
 
+void World::Load(std::string_view map)
+{
+    ReadWorldTMX(map.data(), *this);
+    Reset();
+}
+
+void World::Reset()
+{
     for (auto& [id, system] : Systems)
     {
         system->Setup();
@@ -119,6 +135,13 @@ void World::SetupSystems()
 {
     // register standard systems
     RegisterSystem<InputSystem>(SystemStage::PreUpdate);
+
+    RegisterSystem<PlayerManagementSystem>(SystemStage::Update);
+
+    RegisterSystem<SceneRenderSystem>(SystemStage::Render);
+
+    RegisterSystem<OverlayRenderSystem>(SystemStage::PostRender);
+    RegisterSystem<MenuRenderSystem>(SystemStage::PostRender);
 }
 
 GameObject* World::AddObject()

@@ -41,5 +41,6 @@ project (workspaceName)
     includedirs { "./" }
     includedirs { "src" }
     includedirs { "include" }
-    
+    includedirs { "src/external/tmxlite/include" }
+	
     link_raylib()

@@ -7,6 +7,7 @@
 
 #include "game_object.h"
 #include "system.h"
+#include "map/map.h"
 
 enum class SystemStage
 {
@@ -17,6 +18,14 @@ enum class SystemStage
     PreRender,
     Render,
     PostRender,
+};
+
+enum class WorldState
+{
+    Empty,
+    Loading,
+    Playing,
+    Closing,
 };
 
 class World
@@ -42,6 +51,10 @@ public:
     void Init();
     void Cleanup();
 
+    void Reset();
+
+    void Load(std::string_view map);
+
     bool Update();
 
     void RenderScene();
@@ -50,6 +63,12 @@ public:
     GameObject* AddObject();
 
     void Quit() { Run = false; }
+
+    WorldState& GetState() { return State; }
+    const WorldState& GetState() const { return State; }
+
+    Map& GetMap() { return WorldMap; }
+    const Map& GetMap() const { return WorldMap; }
 
 protected:
     std::vector<System*> PreUpdateSystems;
@@ -65,6 +84,9 @@ protected:
     std::unique_ptr<GameObject> RootObject;
 
     bool Run = true;
+
+    WorldState State = WorldState::Empty;
+    Map WorldMap;
 
 protected:
     void SetupSystems();

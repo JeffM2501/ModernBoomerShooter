@@ -181,8 +181,8 @@ void InputSystem::OnInit()
     AddAxisAction(Actions::Forward, KEY_W, KEY_S, -1, -1, GAMEPAD_AXIS_LEFT_Y);
     AddAxisAction(Actions::Sideways, KEY_D, KEY_A, -1, -1, GAMEPAD_AXIS_RIGHT_X);
 
-    AddAxisAction(Actions::Yaw, KEY_NULL, KEY_NULL, 0, 1, GAMEPAD_AXIS_LEFT_X, 100);
-    AddAxisAction(Actions::Pitch, KEY_NULL, KEY_NULL, 1, 1, GAMEPAD_AXIS_RIGHT_Y, 100);
+    AddAxisAction(Actions::Yaw, KEY_NULL, KEY_NULL, 0, -0.25f, GAMEPAD_AXIS_LEFT_X, 100);
+    AddAxisAction(Actions::Pitch, KEY_NULL, KEY_NULL, 1, 0.25f, GAMEPAD_AXIS_RIGHT_Y, 100);
 
     AddButtonAction(Actions::Fire, KEY_SPACE, 0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }

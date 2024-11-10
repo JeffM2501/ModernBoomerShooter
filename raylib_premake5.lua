@@ -119,6 +119,7 @@ project "raylib"
 
     filter "action:vs*"
         defines{"_WINSOCK_DEPRECATED_NO_WARNINGS", "_CRT_SECURE_NO_WARNINGS"}
+        disablewarnings{"4005"}
         characterset ("MBCS")
         buildoptions { "/Zc:__cplusplus" }
     filter{}

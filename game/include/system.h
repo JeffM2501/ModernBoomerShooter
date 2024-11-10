@@ -13,6 +13,10 @@ using SystemHash = std::hash<std::string_view>;
     static size_t GUID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
     size_t GetGUID() const override {return T::GUID();} 
 
+#define DEFINE_SYSTM_NO_CONSTRUCTOR(T) \
+    static size_t GUID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
+    size_t GetGUID() const override {return T::GUID();} 
+
 class System
 {
 public:
