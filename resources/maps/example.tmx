@@ -137,10 +137,10 @@
 12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12
 </data>
  </layer>
- <objectgroup id="4" name="Objects">
-  <object id="1" name="Spawn1" type="Spawn" x="1630.3" y="790.909">
+ <objectgroup id="4" name="Objects" class="objects">
+  <object id="1" name="Spawn1" type="spawn" x="1630.3" y="790.909">
    <properties>
-    <property name="Facing" type="float" value="0"/>
+    <property name="facing" type="float" value="0"/>
    </properties>
    <point/>
   </object>

@@ -2,6 +2,9 @@
 
 #include "services/game_time.h"
 #include "systems/input_system.h"
+#include "components/spawn_point_component.h"
+#include "components/transform_component.h"
+
 #include "world.h"
 
 void PlayerManagementSystem::OnSetup()
@@ -13,9 +16,21 @@ void PlayerManagementSystem::OnSetup()
 
     PlayerPos = Vector3Zeros;
     PlayerFacing = Vector3UnitZ;
-
     PlayerYaw = 0;
     PlayerPitch = 0;
+
+    if (Spawn)
+    {
+        TransformComponent& transform = Spawn->GetOwner()->MustGetComponent<TransformComponent>();
+        PlayerPitch = transform.Facing;
+        PlayerPos = transform.Position;
+    }
+}
+
+void PlayerManagementSystem::OnAddObject(GameObject* object)
+{
+    if (object->HasComponent<SpawnPointComponent>())
+        Spawn = object->GetComponent<SpawnPointComponent>();
 }
 
 void PlayerManagementSystem::OnUpdate()

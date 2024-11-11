@@ -5,8 +5,12 @@
 #include "services/texture_manager.h"
 #include "services/resource_manager.h"
 
+#include "components/spawn_point_component.h"
+#include "components/transform_component.h"
+
 #include "tmxlite/Map.hpp"
 #include "tmxlite/TileLayer.hpp"
+#include "tmxlite/ObjectGroup.hpp"
 #include "tmxlite/FileReader.hpp"
 
 void* ReadXMLDataCallback(const char* filePath, size_t& size)
@@ -105,6 +109,32 @@ void ReadWorldTMX(const char* fileName, World& world)
                     map.Cells[i].Tiles[1] = chunk[i].ID - 1;
                 }
             }
+        }
+        else if (layer->getClass() == "objects")
+        {
+            tmx::ObjectGroup& objectLayer = layer->getLayerAs<tmx::ObjectGroup>();
+
+            for (auto& object : objectLayer.getObjects())
+            {
+                if (object.getClass() == "spawn")
+                {
+                    auto* spawn = world.AddObject();
+                    auto* transform = spawn->AddComponent<TransformComponent>();
+                    transform->Position.x = object.getPosition().x / float(tmxMap.getTileSize().x);
+                    transform->Position.y = object.getPosition().y / float(tmxMap.getTileSize().y);
+
+                    for (auto& prop : object.getProperties())
+                    {
+                        if (prop.getName() == "facing")
+                        {
+                            transform->Facing = prop.getFloatValue();
+                        }
+                    }
+
+                    spawn->AddComponent<SpawnPointComponent>();
+                }
+            }
+
         }
     }
 

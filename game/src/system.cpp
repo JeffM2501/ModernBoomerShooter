@@ -24,6 +24,7 @@ void System::Update()
 void System::AddObject(GameObject* object)
 {
     Objects.push_back(object);
+    OnAddObject(object);
 }
 
 void System::RemoveObject(GameObject* object)

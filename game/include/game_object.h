@@ -32,7 +32,14 @@ public:
         if (itr != Components.end())
             return reinterpret_cast<T*>(itr->second.get());
 
-        Components.emplace(T::TypeID(), std::move(T::Create(this))).second.get();
+
+        auto comp = T::Create(this);
+        T* ptr = static_cast<T*>(comp.get());
+
+        Components.try_emplace(T::TypeID(), std::move(comp));
+
+        ptr->OnAddedToObject();
+        return ptr;
     }
 
     template<class T>
@@ -48,7 +55,19 @@ public:
         if (itr == Components.end())
             return nullptr;
 
-        return reinterpret_cast<T*>(itr.second().get());
+        auto& comp = itr->second;
+        return static_cast<T*>(comp.get());
+    }
+
+    template<class T>
+    inline T& MustGetComponent()
+    {
+        auto itr = Components.find(T::TypeID());
+        if (itr == Components.end())
+            return *AddComponent<T>();
+
+        auto& comp = itr->second;
+        return *static_cast<T*>(comp.get());
     }
 
     void AddToSystem(size_t systemGUID);

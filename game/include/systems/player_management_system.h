@@ -4,6 +4,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
+class SpawnPointComponent;
+
 class PlayerManagementSystem : public System
 {
 public:
@@ -18,10 +20,13 @@ public:
 protected:
     void OnSetup() override;
     void OnUpdate() override;
+    void OnAddObject(GameObject* object) override;
 
 protected:
     class InputSystem* Input = nullptr;
 
     float PlayerFowardSpeed = 15;
     float PlayerSideStepSpeed = 8;
+
+    SpawnPointComponent* Spawn = nullptr;
 };
