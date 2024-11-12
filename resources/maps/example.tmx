@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="64" tileheight="64" infinite="0" nextlayerid="5" nextobjectid="19">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="64" tileheight="64" infinite="0" nextlayerid="7" nextobjectid="25">
  <properties>
   <property name="ambient_direction_angle" type="float" value="-33.03"/>
   <property name="extereor_ambient_level" type="float" value="1"/>
@@ -340,4 +340,18 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="6" name="LightZones" class="lightzone">
+  <object id="20" type="zone" x="960" y="256" width="192" height="320">
+   <properties>
+    <property name="ambient_level" type="float" value="1"/>
+   </properties>
+  </object>
+  <object id="22" type="zone" x="320" y="512" width="256" height="576">
+   <properties>
+    <property name="ambient_level" type="float" value="0.5"/>
+    <property name="ambient_variance_factor" type="float" value="0.25"/>
+    <property name="ambient_variance_mode" value="sine"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

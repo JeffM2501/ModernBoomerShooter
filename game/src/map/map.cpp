@@ -19,6 +19,12 @@ bool Map::IsCellSolid(int x, int y)
     return state == MapCellState::Wall || state == MapCellState::Invalid;
 }
 
+bool Map::IsCellCapped(int x, int y)
+{
+    auto cell = GetCell(x, y);
+    return (cell.State == MapCellState::Wall || cell.State == MapCellState::Invalid) || (cell.State == MapCellState::Empty && cell.Tiles[1] != MapCellInvalidTile);
+}
+
 void Map::Clear()
 {
     Cells.clear();

@@ -20,7 +20,6 @@ public:
 
 private:
     void RenderCell(int x, int y);
-    void RenderCell2(int x, int y);
 private:
     float EyeHeight = 1;
 

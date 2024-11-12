@@ -52,5 +52,6 @@ struct Map
 
     MapCell GetCell(int x, int y);
     bool IsCellSolid(int x, int y);
+    bool IsCellCapped(int x, int y);
     void Clear();
 };
