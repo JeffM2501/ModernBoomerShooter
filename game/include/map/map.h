@@ -32,6 +32,15 @@ struct MapCell  //32 bits
     uint8_t Flags = 0;
 };
 
+struct LightingInfo
+{
+    std::string SkyboxTextureName;
+
+    float ExteriorAmbientLevel = 1;
+    float InteriorAmbientLevel = 0.75f;
+    float AmbientAngle = 45;
+};
+
 struct Map
 {
     std::vector<MapCell> Cells;
@@ -39,7 +48,7 @@ struct Map
     Texture Tilemap = { 0 };
     std::vector<Rectangle> TileSourceRects;
 
-    std::string SkyboxTextureName;
+    LightingInfo LightInfo;
 
     MapCell GetCell(int x, int y);
     bool IsCellSolid(int x, int y);

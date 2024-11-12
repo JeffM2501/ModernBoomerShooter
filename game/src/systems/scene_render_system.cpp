@@ -27,7 +27,7 @@ void SceneRenderSystem::OnSetup()
 
     PlayerManager = WorldPtr->GetSystem<PlayerManagementSystem>();
 
-    std::string skyboxName = WorldPtr->GetMap().SkyboxTextureName;
+    std::string skyboxName = WorldPtr->GetMap().LightInfo.SkyboxTextureName;
     if (skyboxName.empty())
         skyboxName = TableManager::GetTable(BootstrapTable)->GetField("default_skybox").data();
 

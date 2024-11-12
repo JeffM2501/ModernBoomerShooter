@@ -1,7 +1,7 @@
 #pragma once
 
 #include "map/map.h"
-#include "rcamera.h"
+#include "raylib.h"
 
 class MapRenderer
 {
@@ -25,5 +25,9 @@ private:
     float EyeHeight = 1;
 
     float MapScale = 2;
+
+    Color WallColors[4] = { WHITE, Color{128,128,128,255}, Color{196,196,196,255} , Color{200,200,200,255} };
+    Color ExtereorColor = RAYWHITE;
+    Color IntereorColor = LIGHTGRAY;
 };
 

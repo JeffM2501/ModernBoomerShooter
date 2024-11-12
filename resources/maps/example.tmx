@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="64" tileheight="64" infinite="0" nextlayerid="5" nextobjectid="19">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="64" tileheight="64" infinite="0" nextlayerid="5" nextobjectid="19">
  <properties>
-  <property name="ambient_direction_angle" type="float" value="33.03"/>
+  <property name="ambient_direction_angle" type="float" value="-33.03"/>
   <property name="extereor_ambient_level" type="float" value="1"/>
   <property name="interior_ambient_level" type="float" value="0.75"/>
   <property name="skybox" value="textures/skybox_night.png"/>

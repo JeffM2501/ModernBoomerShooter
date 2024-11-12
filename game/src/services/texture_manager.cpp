@@ -182,6 +182,12 @@ namespace TextureManager
         }
 
         LoadedTextures.clear();
+
+        for (auto& [hash, shader] : LoadedShaders)
+        {
+            UnloadShader(shader);
+        }
+        LoadedShaders.clear();
     }
 
     size_t GetUsedVRAM()

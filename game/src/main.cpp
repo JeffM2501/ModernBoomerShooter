@@ -59,6 +59,7 @@ namespace App
         GameWorld.Cleanup();
         TextureManager::Cleanup();
         ResourceManager::Cleanup();
+        TableManager::Cleanup();
         CloseWindow();
     }
 
