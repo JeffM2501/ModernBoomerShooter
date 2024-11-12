@@ -2,7 +2,6 @@
 #include "services/resource_manager.h"
 #include "services/table_manager.h"
 
-
 #include <unordered_map>
 
 namespace TextureManager
