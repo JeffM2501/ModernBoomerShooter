@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <string>
 
 #include "raylib.h"
 
@@ -37,6 +38,8 @@ struct Map
     MapCoordinate Size;
     Texture Tilemap = { 0 };
     std::vector<Rectangle> TileSourceRects;
+
+    std::string SkyboxTextureName;
 
     MapCell GetCell(int x, int y);
     bool IsCellSolid(int x, int y);

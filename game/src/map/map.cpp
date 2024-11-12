@@ -15,7 +15,8 @@ MapCell Map::GetCell(int x, int y)
 
 bool Map::IsCellSolid(int x, int y)
 {
-    return GetCell(x, y).State == MapCellState::Wall;
+    auto state = GetCell(x, y).State;
+    return state == MapCellState::Wall || state == MapCellState::Invalid;
 }
 
 void Map::Clear()

@@ -25,8 +25,8 @@ protected:
 protected:
     class InputSystem* Input = nullptr;
 
-    float PlayerFowardSpeed = 15;
-    float PlayerSideStepSpeed = 8;
+    float PlayerFowardSpeed = 8;
+    float PlayerSideStepSpeed = 4;
 
     SpawnPointComponent* Spawn = nullptr;
 };

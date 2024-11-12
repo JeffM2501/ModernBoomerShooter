@@ -126,7 +126,6 @@ namespace TextureManager
         if (!ShaderTable || !ShaderTable->HasField(shaderName))
             return LoadShader(nullptr, nullptr);
 
-
         auto shaderFiles = ShaderTable->SplitField(shaderName, ";");
         std::string vertShader;
         std::string fragShader;

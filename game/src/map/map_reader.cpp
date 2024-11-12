@@ -46,7 +46,7 @@ void ReadWorldTMX(const char* fileName, World& world)
 
     map.Cells.resize(tmxMap.getTileCount().x * tmxMap.getTileCount().y);
 
-    for (auto tileset : tmxMap.getTilesets())
+    for (auto& tileset : tmxMap.getTilesets())
     {
         map.Tilemap = TextureManager::GetTexture(tileset.getImagePath());
         map.TileSourceRects.clear();
@@ -61,6 +61,14 @@ void ReadWorldTMX(const char* fileName, World& world)
 
             map.TileSourceRects.push_back(tileRect);
         }
+    }
+
+    map.SkyboxTextureName.clear();
+
+    for (auto& property : tmxMap.getProperties())
+    {
+        if (property.getName() == "skybox")
+            map.SkyboxTextureName = property.getStringValue();
     }
 
     for (auto& layer : tmxMap.getLayers())
