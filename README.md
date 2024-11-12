@@ -10,6 +10,43 @@ This is an OpenGL Wolfenstein3d like system using raylib.
 * Resource and Texture Management
 * Fake lighting and Ambient Occlusion
 
+# Code Design
+
+## App
+Holds the main app, very lightweight.
+
+## World
+Holds the map, game objects, and systems
+
+## Map
+Cube based level, read from Tiled TMX files
+
+## Systems
+Things that need to be updated in some specific order. Tracked by a hash ID so they can be found by other things.
+* Input/Action System
+* Player Management System
+* Rendering System
+
+## Services
+Global thigns that manage stuff, but don't need an update. 
+* Texture Manager
+* Resource Manager
+* Table Manager
+* Game Time
+
+## Game Objects
+Entities in the game, have components, can register with systems for simple ECS-like operations
+
+## Components
+Data attached to components, can register with systems, for simple ECS-like operations
+
+## Resources
+Any file read by the game at runtime, managed by resource manager
+
+## Tables
+Simple key/value pairs for storing generic resource data. All data is initally read from the bootstrap table and it's dependencies.
+
+
 # License
 Copyright (c) 2020-2024 Jeffery Myers
 
