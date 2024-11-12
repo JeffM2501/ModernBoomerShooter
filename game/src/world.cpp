@@ -67,12 +67,15 @@ void World::Init()
     {
         system->Init();
     }
-    Load("maps/example.tmx");
 }
 
 void World::Load(std::string_view map)
 {
-    ReadWorldTMX(map.data(), *this);
+    WorldMap.Clear();
+
+    if (!map.empty())
+        ReadWorldTMX(map.data(), *this);
+
     Reset();
 }
 

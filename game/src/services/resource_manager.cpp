@@ -12,7 +12,7 @@ ResoureInfo::~ResoureInfo()
 
 namespace ResourceManager
 {
-    std::hash<std::string_view> StringHasher;
+    static std::hash<std::string_view> StringHasher;
     std::unordered_map<size_t, std::shared_ptr<ResoureInfo>> OpenResources;
 
     bool SearchAndSetResourceDir(const char* folderName)
@@ -73,7 +73,7 @@ namespace ResourceManager
         OpenResources.clear();
     }
 
-    std::shared_ptr<ResoureInfo> OpenResource(std::string_view filePath)
+    std::shared_ptr<ResoureInfo> OpenResource(std::string_view filePath, bool asText)
     {
         size_t pathHash = StringHasher(filePath);
 
@@ -82,7 +82,18 @@ namespace ResourceManager
             return itr->second;
 
         int size = 0;
-        uint8_t* buffer = LoadFileData(filePath.data(), &size);
+        uint8_t* buffer = nullptr;
+        
+        if (asText)
+        {
+            buffer = (uint8_t*)LoadFileText(filePath.data());
+            if (buffer)
+                size = (int)strlen((char*)buffer);
+        }
+        else
+        {
+            buffer = LoadFileData(filePath.data(), &size);
+        }
 
         if (!buffer)
             return nullptr;
@@ -99,6 +110,9 @@ namespace ResourceManager
 
     void ReleaseResource(std::shared_ptr<ResoureInfo> resource)
     {
+        if (!resource)
+            return;
+
         auto itr = OpenResources.find(resource->NameHash);
         if (itr != OpenResources.end())
             OpenResources.erase(itr);

@@ -1,5 +1,7 @@
 #include "services/texture_manager.h"
 #include "services/resource_manager.h"
+#include "services/table_manager.h"
+
 
 #include <unordered_map>
 
@@ -14,11 +16,16 @@ namespace TextureManager
         size_t ImageSize = 0;
     };
 
-    std::unordered_map<size_t, TextureRecord> LoadedTextures;
+    static std::unordered_map<size_t, TextureRecord> LoadedTextures;
+
+    static bool PreloadShaders = true;
+    static std::unordered_map<size_t, Shader> LoadedShaders;
 
     static std::hash<std::string_view> StringHasher;
 
-    TextureRecord DefaultTexture;
+    static TextureRecord DefaultTexture;
+
+    static const Table* ShaderTable = nullptr;
 
     void LoadTextureRecord(TextureRecord& record, Image& image)
     {
@@ -37,6 +44,34 @@ namespace TextureManager
         UsedVRam += record.ImageSize;
     }
 
+    Shader FindShader(std::string_view key, std::string_view vertex, std::string_view fragment)
+    {
+        size_t hash = StringHasher(key);
+
+        auto itr = LoadedShaders.find(hash);
+        if (itr != LoadedShaders.end())
+            return itr->second;
+
+        auto vertexResource = ResourceManager::OpenResource(vertex, true);
+        auto fragmentResource = ResourceManager::OpenResource(fragment, true);
+
+        const char* vertexText = nullptr;
+        if (vertexResource)
+            vertexText = (char*)(vertexResource->DataBuffer);
+
+        const char* fragmentText = nullptr;
+        if (fragmentResource)
+            fragmentText = (char*)(fragmentResource->DataBuffer);
+
+        Shader shader = LoadShaderFromMemory(vertexText, fragmentText);
+
+        ResourceManager::ReleaseResource(vertexResource);
+        ResourceManager::ReleaseResource(fragmentResource);
+
+        LoadedShaders.insert_or_assign(hash, shader);
+        return shader;
+    }
+
     void Init()
     {
         auto defaultImage = GenImageChecked(128, 128, 8, 8, DARKGRAY, GRAY);
@@ -47,6 +82,61 @@ namespace TextureManager
 
         LoadTextureRecord(DefaultTexture, defaultImage);
         UnloadImage(defaultImage);
+
+        auto* bootstrapTable = TableManager::GetTable(BootstrapTable);
+        
+        if (bootstrapTable->HasField("shader_manifest"))
+        {
+            ShaderTable = TableManager::GetTable(bootstrapTable->GetField("shader_manifest"));
+        }
+
+        if (ShaderTable && PreloadShaders)
+        {
+            for (const auto& [key, files] : *ShaderTable)
+            { 
+                if (key.empty())
+                    continue;
+
+                size_t hash = StringHasher(key);
+
+                auto shaderFiles = ShaderTable->SplitField(key, ":");
+                if (shaderFiles.empty())
+                    continue;
+                
+                std::string fragShader = shaderFiles[0];
+                std::string vertShader;
+                if (shaderFiles.size() > 1)
+                    vertShader = shaderFiles[1];
+
+                FindShader(key, vertShader, fragShader);
+            }
+        }
+    }
+
+    Shader GetShader(std::string_view name)
+    {
+        size_t hash = StringHasher(name);
+        
+        auto itr = LoadedShaders.find(hash);
+        if (itr != LoadedShaders.end())
+            return itr->second;
+
+        std::string shaderName(name);
+
+        if (!ShaderTable || !ShaderTable->HasField(shaderName))
+            return LoadShader(nullptr, nullptr);
+
+
+        auto shaderFiles = ShaderTable->SplitField(shaderName, ";");
+        std::string vertShader;
+        std::string fragShader;
+
+        if (shaderFiles.size() > 0)
+            fragShader = shaderFiles[0];
+        if (shaderFiles.size() > 1)
+            vertShader = shaderFiles[1];
+
+        return FindShader(shaderName, vertShader, fragShader);
     }
 
     void Cleanup()

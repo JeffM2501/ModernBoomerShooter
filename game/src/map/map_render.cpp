@@ -222,9 +222,7 @@ void MapRenderer::Render()
 
 void MapRenderer::SetViewpoint(Vector3 position, float yaw, float pitch)
 {
-    pitch = 0;
-
-    Vector3 forward = Vector3RotateByAxisAngle(Vector3UnitY, Vector3UnitX, pitch * DEG2RAD);
+    Vector3 forward = Vector3RotateByAxisAngle(Vector3UnitY, Vector3UnitX, -pitch * DEG2RAD);
     forward = Vector3RotateByAxisAngle(forward, Vector3UnitZ, yaw * DEG2RAD);
     Viepoint.position = (position * MapScale) + (Vector3UnitZ * EyeHeight);
     Viepoint.target = Viepoint.position + forward;

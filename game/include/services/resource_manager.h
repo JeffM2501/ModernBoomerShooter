@@ -18,7 +18,7 @@ namespace ResourceManager
     void Init(std::string_view rootFolder);
     void Cleanup();
 
-    std::shared_ptr<ResoureInfo> OpenResource(std::string_view filePath);
+    std::shared_ptr<ResoureInfo> OpenResource(std::string_view filePath, bool asText = false);
 
     void ReleaseResource(std::shared_ptr<ResoureInfo> resource);
     void ReleaseResource(const char* resourceName);

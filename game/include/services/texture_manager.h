@@ -11,5 +11,7 @@ namespace TextureManager
     Texture2D GetTexture(std::string_view name);
     void UnloadAll();
 
+    Shader GetShader(std::string_view name);
+
     size_t GetUsedVRAM();
 };

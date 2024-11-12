@@ -5,6 +5,7 @@
 
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
+#include "services/table_manager.h"
 #include "services/game_time.h"
 
 #include "systems/input_system.h"
@@ -26,6 +27,16 @@ namespace App
         ResourceManager::Init("resources");
         TextureManager::Init();
         GameWorld.Init();
+
+        auto* table = TableManager::GetTable(BootstrapTable);
+
+        if (!table)
+        {
+            Run = false;
+            TraceLog(LOG_FATAL, "Unable to locate bootstrap table at %s, exiting", BootstrapTable);
+        }
+
+        GameWorld.Load(table->GetField("boot_level"));
     }
 
     void NewFrame()

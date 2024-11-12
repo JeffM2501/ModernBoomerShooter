@@ -1,0 +1,3 @@
+shader_manifest;shaders/manifest.table
+boot_level;maps/example.tmx
+default_skybox;textures/skybox.png
