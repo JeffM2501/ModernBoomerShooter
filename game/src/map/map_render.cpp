@@ -86,24 +86,29 @@ void MapRenderer::RenderCell(int x, int y)
     int AO4 = GetVertexAO(WorldMap.IsCellSolid(x, y - 1), WorldMap.IsCellSolid(x - 1, y - 1), WorldMap.IsCellSolid(x - 1, y));
     int AO4Covered = GetVertexAO(WorldMap.IsCellCapped(x, y - 1), WorldMap.IsCellCapped(x - 1, y - 1), WorldMap.IsCellCapped(x - 1, y));
 
-
-    float interiorTint = IntereorColor;
+    // resolve zone color
+    float baseColor = DefaultIntereorZoneLevel;
     
     if (cell.LightZone != MapCellInvalidLightZone)
     {
-        interiorTint = WorldMap.LightZones[cell.LightZone].CurrenSequenceValue;
+        baseColor = WorldMap.LightZones[cell.LightZone].CurrenSequenceValue;
+    }
+    else
+    {
+        if (!WorldMap.IsCellCapped(x, y))
+            baseColor = DefaultExteriorZoneLevel;
+        else
+            baseColor = DefaultIntereorZoneLevel;
     }
 
-    Color floorColor = ScaleColor3(WHITE, interiorTint);
+    Color floorColor = ScaleColor3(WHITE, baseColor);
 
-    Color ceilingColor = ScaleColor3(WHITE, interiorTint * 0.75f);
-
-    Color exteriorFloorColor = ScaleColor3(WHITE, ExtereorColor);
-
-    // floor
+      // floor
     if (cell.Tiles[0] != MapCellInvalidTile)
     {
         rlNormal3f(0, 0, 1);
+
+        Color exteriorFloorColor = ScaleColor3(WHITE, DefaultExteriorZoneLevel);
 
         tint = floorColor;
         if (AO4Covered == 0)
@@ -141,6 +146,7 @@ void MapRenderer::RenderCell(int x, int y)
     // ceiling
     if (cell.Tiles[1] != MapCellInvalidTile)
     {
+        Color ceilingColor = ScaleColor3(WHITE, baseColor * 0.75f);
         tileUv = WorldMap.TileSourceRects[cell.Tiles[1]];
 
         tint = ceilingColor;
@@ -296,8 +302,8 @@ void MapRenderer::Reset()
         WallColors[1] = fabsf(lightVec.y) * 0.75f;
     }
 
-    ExtereorColor = WorldMap.LightInfo.ExteriorAmbientLevel;
-    IntereorColor = WorldMap.LightInfo.InteriorAmbientLevel;
+    DefaultExteriorZoneLevel = WorldMap.LightInfo.ExteriorAmbientLevel;
+    DefaultIntereorZoneLevel = WorldMap.LightInfo.InteriorAmbientLevel;
 }
 
 void MapRenderer::Render()
