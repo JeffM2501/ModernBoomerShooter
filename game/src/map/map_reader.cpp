@@ -161,6 +161,9 @@ Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rec
     outRect.width = rect.width / float(map.getTileSize().x);
     outRect.height = rect.height / float(map.getTileSize().y);
 
+
+    outRect.y -= outRect.height;
+
     return outRect;
 }
 
@@ -256,7 +259,14 @@ void ReadWorldTMX(const char* fileName, World& world)
                     zone.SequenceValues = LightUtils::ParseLightSequence(sequenceTable->GetField(sequence));
             }
 
-            FindProperty("ambient_level", object.getProperties(), zone.AmbinentLevel);
+            FindProperty("max_level", object.getProperties(), zone.MaxLevel);
+            FindProperty("min_level", object.getProperties(), zone.MinLevel);
+            
+            if (FindProperty("sequence_lenght", object.getProperties(), zone.SequenceLenght))
+            {
+                zone.SequenceFrameTime = zone.SequenceLenght / zone.SequenceValues.size();
+            }
+            
 
             auto bounds = ConvertObjectAABBToRect(tmxMap, object.getAABB());
 
@@ -267,6 +277,8 @@ void ReadWorldTMX(const char* fileName, World& world)
                     map.GetCellRef(x, y).LightZone = uint8_t(map.LightZones.size());
                 }
             }
+
+            zone.Reset();
 
             map.LightZones.push_back(zone);
         },

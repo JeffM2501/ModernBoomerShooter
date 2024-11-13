@@ -46,9 +46,19 @@ struct LightingInfo
 
 struct LightZoneInfo
 {
-    float AmbinentLevel = 1;
+    float MaxLevel = 1;
+    float MinLevel = 0.25f;
     float SequenceLenght = 1;
     std::vector<float> SequenceValues;
+    
+    size_t CurrentSequenceIndex = 0;
+    float CurrentSequenceParam = 0;
+    float SequenceFrameTime = 0.1f;
+
+    float CurrenSequenceValue = 1;
+    void Advance();
+
+    void Reset();
 };
 
 struct Map

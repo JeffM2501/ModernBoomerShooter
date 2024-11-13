@@ -73,6 +73,9 @@ void SceneRenderSystem::OnUpdate()
     if (!WorldPtr || WorldPtr->GetState() != WorldState::Playing)
         return;
 
+    for (auto& zone : WorldPtr->GetMap().LightZones)
+        zone.Advance();
+
     if (PlayerManager)
         Render.SetViewpoint(PlayerManager->PlayerPos, PlayerManager->PlayerYaw, PlayerManager->PlayerPitch);
 

@@ -20,13 +20,14 @@ public:
 
 private:
     void RenderCell(int x, int y);
+
 private:
     float EyeHeight = 1;
 
     float MapScale = 2;
 
-    Color WallColors[4] = { WHITE, Color{128,128,128,255}, Color{196,196,196,255} , Color{200,200,200,255} };
-    Color ExtereorColor = RAYWHITE;
-    Color IntereorColor = LIGHTGRAY;
+    float WallColors[4] = { 1, 0.4f, 0.75f , 0.8f };
+    float ExtereorColor = 0.95f;
+    float IntereorColor = 0.8f;
 };
 

@@ -9,7 +9,7 @@ namespace LightUtils
     {
         std::vector<float> results;
 
-        float range = int('z') - int('a');
+        float range = int('m') - int('a');
         for (const char c : text)
         {
             results.push_back((c - 'a') / range);

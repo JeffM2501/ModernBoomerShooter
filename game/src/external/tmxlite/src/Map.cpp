@@ -366,3 +366,4 @@ bool Map::reset()
 
     return false;
 }
+

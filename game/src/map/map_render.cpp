@@ -13,7 +13,6 @@ void MapRenderer::SetEyeHeight(float height)
     EyeHeight = height;
 }
 
-
 void rlVertex3if(int x, int y, float z)
 {
     rlVertex3f(float(x), float(y), z);
@@ -87,38 +86,52 @@ void MapRenderer::RenderCell(int x, int y)
     int AO4 = GetVertexAO(WorldMap.IsCellSolid(x, y - 1), WorldMap.IsCellSolid(x - 1, y - 1), WorldMap.IsCellSolid(x - 1, y));
     int AO4Covered = GetVertexAO(WorldMap.IsCellCapped(x, y - 1), WorldMap.IsCellCapped(x - 1, y - 1), WorldMap.IsCellCapped(x - 1, y));
 
+
+    float interiorTint = IntereorColor;
+    
+    if (cell.LightZone != MapCellInvalidLightZone)
+    {
+        interiorTint = WorldMap.LightZones[cell.LightZone].CurrenSequenceValue;
+    }
+
+    Color floorColor = ScaleColor3(WHITE, interiorTint);
+
+    Color ceilingColor = ScaleColor3(WHITE, interiorTint * 0.75f);
+
+    Color exteriorFloorColor = ScaleColor3(WHITE, ExtereorColor);
+
     // floor
     if (cell.Tiles[0] != MapCellInvalidTile)
     {
         rlNormal3f(0, 0, 1);
 
-        tint = IntereorColor;
+        tint = floorColor;
         if (AO4Covered == 0)
-            tint = ExtereorColor;
+            tint = exteriorFloorColor;
 
         rlColor4ubScaled(tint, AO4);
         rlTexCoord2f(tileUv.x, tileUv.height);
         rlVertex3f(xMin, yMin, 0);
 
-        tint = IntereorColor;
+        tint = floorColor;
         if (AO3Covered == 0)
-            tint = ExtereorColor;
+            tint = exteriorFloorColor;
 
         rlColor4ubScaled(tint, AO3);
         rlTexCoord2f(tileUv.width, tileUv.height);
         rlVertex3f(xMax, yMin, 0);
 
-        tint = IntereorColor;
+        tint = floorColor;
         if (AO2Covered == 0)
-            tint = ExtereorColor;
+            tint = exteriorFloorColor;
 
         rlColor4ubScaled(tint, AO2);
         rlTexCoord2f(tileUv.width, tileUv.y);
         rlVertex3f(xMax, yMax, 0);
 
-        tint = IntereorColor;
+        tint = floorColor;
         if (AO1Covered == 0)
-            tint = ExtereorColor;
+            tint = exteriorFloorColor;
 
         rlColor4ubScaled(tint, AO1);
         rlTexCoord2f(tileUv.x, tileUv.y);
@@ -130,7 +143,7 @@ void MapRenderer::RenderCell(int x, int y)
     {
         tileUv = WorldMap.TileSourceRects[cell.Tiles[1]];
 
-        tint = ScaleColor3(IntereorColor, 0.75f);
+        tint = ceilingColor;
         rlColor4ub(tint.r, tint.g, tint.b, 255);
         rlNormal3f(0, 0, -1);
 
@@ -155,7 +168,7 @@ void MapRenderer::RenderCell(int x, int y)
     {
         tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x,y+1).Tiles[0]];
 
-        tint = WallColors[0];
+        tint = ScaleColor3(floorColor, WallColors[0]);
 
         rlColor4ub(tint.r, tint.g, tint.b, 255);
         rlNormal3f(0, -1, 0);
@@ -181,7 +194,7 @@ void MapRenderer::RenderCell(int x, int y)
     {
         tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x, y - 1).Tiles[0]];
 
-        tint = WallColors[1];
+        tint = ScaleColor3(floorColor, WallColors[1]);
         rlColor4ub(tint.r, tint.g, tint.b, 255);
         rlNormal3f(0, 1, 0);
 
@@ -207,7 +220,7 @@ void MapRenderer::RenderCell(int x, int y)
         tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x + 1, y).Tiles[0]];
 
         //  FaceCount++;
-        tint = WallColors[2];
+        tint = ScaleColor3(floorColor, WallColors[2]);
         rlColor4ub(tint.r, tint.g, tint.b, 255);
         rlNormal3f(-1, 0, 0);
 
@@ -231,7 +244,7 @@ void MapRenderer::RenderCell(int x, int y)
     if (WorldMap.IsCellSolid(x - 1, y))
     {
         tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x - 1, y).Tiles[0]];
-        tint = WallColors[3];
+        tint = ScaleColor3(floorColor, WallColors[3]);
         rlColor4ub(tint.r, tint.g, tint.b, 255);
         rlNormal3f(1, 0, 0);
 
@@ -263,28 +276,28 @@ void MapRenderer::Reset()
 
     if (lightVec.x > 0)
     {
-        WallColors[3] = ScaleColor3(WHITE, lightVec.x);
-        WallColors[2] = ScaleColor3(WHITE, lightVec.x * 0.75f);
+        WallColors[3] = lightVec.x;
+        WallColors[2] = lightVec.x * 0.75f;
     }
     else
     {
-        WallColors[2] = ScaleColor3(WHITE, fabsf(lightVec.x));
-        WallColors[3] = ScaleColor3(WHITE, fabsf(lightVec.x) * 0.75f);
+        WallColors[2] = fabsf(lightVec.x);
+        WallColors[3] = fabsf(lightVec.x) * 0.75f;
     }
 
     if (lightVec.y > 0)
     {
-        WallColors[1] = ScaleColor3(WHITE, lightVec.y);
-        WallColors[0] = ScaleColor3(WHITE, lightVec.y * 0.75f);
+        WallColors[1] = lightVec.y;
+        WallColors[0] = lightVec.y * 0.75f;
     }
     else
     {
-        WallColors[0] = ScaleColor3(WHITE, fabsf(lightVec.y));
-        WallColors[1] = ScaleColor3(WHITE, fabsf(lightVec.y) * 0.75f);
+        WallColors[0] = fabsf(lightVec.y);
+        WallColors[1] = fabsf(lightVec.y) * 0.75f;
     }
 
-    ExtereorColor = ScaleColor3(WHITE, WorldMap.LightInfo.ExteriorAmbientLevel);
-    IntereorColor = ScaleColor3(WHITE, WorldMap.LightInfo.InteriorAmbientLevel);
+    ExtereorColor = WorldMap.LightInfo.ExteriorAmbientLevel;
+    IntereorColor = WorldMap.LightInfo.InteriorAmbientLevel;
 }
 
 void MapRenderer::Render()
