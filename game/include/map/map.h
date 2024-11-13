@@ -23,13 +23,16 @@ enum class MapCellState : uint8_t
     Invalid = 0xFF
 };
 
-static uint8_t MapCellInvalidTile = 0xff;
+static constexpr uint8_t MapCellInvalidTile = 0xff;
+static constexpr uint8_t MapCellInvalidLightZone = 0xff;
 
-struct MapCell  //32 bits
+struct MapCell  //pad to 64 bits
 {
     MapCellState State = MapCellState::Empty;
     uint8_t Tiles[2] = { MapCellInvalidTile, MapCellInvalidTile };
     uint8_t Flags = 0;
+
+    uint8_t LightZone = MapCellInvalidLightZone;
 };
 
 struct LightingInfo
@@ -41,6 +44,13 @@ struct LightingInfo
     float AmbientAngle = 45;
 };
 
+struct LightZoneInfo
+{
+    float AmbinentLevel = 1;
+    float SequenceLenght = 1;
+    std::vector<float> SequenceValues;
+};
+
 struct Map
 {
     std::vector<MapCell> Cells;
@@ -50,7 +60,10 @@ struct Map
 
     LightingInfo LightInfo;
 
-    MapCell GetCell(int x, int y);
+    std::vector<LightZoneInfo> LightZones;
+
+    MapCell GetCell(int x, int y) const;
+    MapCell &GetCellRef(int x, int y);
     bool IsCellSolid(int x, int y);
     bool IsCellCapped(int x, int y);
     void Clear();

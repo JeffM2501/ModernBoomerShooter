@@ -349,8 +349,7 @@
   <object id="22" type="zone" x="320" y="512" width="256" height="576">
    <properties>
     <property name="ambient_level" type="float" value="0.5"/>
-    <property name="ambient_variance_factor" type="float" value="0.25"/>
-    <property name="ambient_variance_mode" value="sine"/>
+    <property name="light_sequence" value="flourecent_flicker"/>
    </properties>
   </object>
  </objectgroup>

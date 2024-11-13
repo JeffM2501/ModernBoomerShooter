@@ -4,9 +4,12 @@
 
 #include "services/texture_manager.h"
 #include "services/resource_manager.h"
+#include "services/table_manager.h"
 
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
+
+#include "utilities/light_utils.h"
 
 #include "tmxlite/Map.hpp"
 #include "tmxlite/TileLayer.hpp"
@@ -108,7 +111,7 @@ bool FindProperty(std::string_view name, const std::vector<tmx::Property>& prope
 {
     for (auto& property : properties)
     {
-        if (property.getType() == tmx::Property::Type::String)
+        if (property.getType() != tmx::Property::Type::String)
             continue;
 
         if (property.getName() == name)
@@ -125,7 +128,7 @@ bool FindProperty(std::string_view name, const std::vector<tmx::Property>& prope
 {
     for (auto& property : properties)
     {
-        if (property.getType() == tmx::Property::Type::Float)
+        if (property.getType() != tmx::Property::Type::Float)
             continue;
 
         if (property.getName() == name)
@@ -147,6 +150,18 @@ void SetObjectTransform(const tmx::Map& map, const tmx::Object& object, Transfor
     transform->Position.y = map.getTileCount().y - (object.getPosition().y / float(map.getTileSize().y));
 
     FindProperty("facing", object.getProperties(), transform->Facing);
+}
+
+Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rect)
+{
+    Rectangle outRect;
+    outRect.x = rect.left / float(map.getTileSize().x);
+    outRect.y = map.getTileCount().y - (rect.top / float(map.getTileSize().y));
+
+    outRect.width = rect.width / float(map.getTileSize().x);
+    outRect.height = rect.height / float(map.getTileSize().y);
+
+    return outRect;
 }
 
 void ReadWorldTMX(const char* fileName, World& world)
@@ -226,6 +241,36 @@ void ReadWorldTMX(const char* fileName, World& world)
             spawn->AddComponent<SpawnPointComponent>();
         },
         "spawn");
+
+    auto sequenceTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("light_sequences");
+
+    map.LightZones.clear();
+
+    DoForEachObjectInLayer(world, tmxMap, "lightzone", [&world, &map, &tmxMap, sequenceTable](const tmx::Object& object)
+        {
+            LightZoneInfo zone;
+            if (sequenceTable)
+            {
+                std::string sequence;
+                if (FindProperty("light_sequence", object.getProperties(), sequence))
+                    zone.SequenceValues = LightUtils::ParseLightSequence(sequenceTable->GetField(sequence));
+            }
+
+            FindProperty("ambient_level", object.getProperties(), zone.AmbinentLevel);
+
+            auto bounds = ConvertObjectAABBToRect(tmxMap, object.getAABB());
+
+            for (int y = int(bounds.y); y < int(bounds.y + bounds.height); y++)
+            {
+                for (int x = int(bounds.x); x < int(bounds.x + bounds.width); x++)
+                {
+                    map.GetCellRef(x, y).LightZone = uint8_t(map.LightZones.size());
+                }
+            }
+
+            map.LightZones.push_back(zone);
+        },
+        "zone");
 
     tmx::ClearTMXFileReadCallback();
     tmx::SetAllowRelativePaths(false);

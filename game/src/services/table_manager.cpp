@@ -33,6 +33,11 @@ std::string_view Table::GetField(const std::string& key) const
     return itr->second;
 }
 
+const Table* Table::GetFieldAsTable(const std::string& key) const
+{
+    return TableManager::GetTable(GetField(key));
+}
+
 std::vector<std::string> Table::SplitField(const std::string& key, std::string_view deliminator) const
 {
     auto itr = find(key);

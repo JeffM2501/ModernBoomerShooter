@@ -2,9 +2,20 @@
 
 MapCell InvalidCell = { MapCellState::Invalid };
 
-MapCell Map::GetCell(int x, int y)
+MapCell Map::GetCell(int x, int y) const
 {
     if (x < 0 || x>= Size.X)
+        return InvalidCell;
+
+    if (y < 0 || y >= Size.Y)
+        return InvalidCell;
+
+    return Cells[y * Size.X + x];
+}
+
+MapCell& Map::GetCellRef(int x, int y)
+{
+    if (x < 0 || x >= Size.X)
         return InvalidCell;
 
     if (y < 0 || y >= Size.Y)

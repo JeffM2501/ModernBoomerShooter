@@ -13,9 +13,11 @@ class Table : public std::map<std::string, std::string>
 public:
     bool HasField(const std::string& key) const;
     std::string_view GetField(const std::string& key) const;
+    const Table* GetFieldAsTable(const std::string& key) const;
 
     std::vector<std::string> SplitField(const std::string& key, std::string_view deliminator) const;
 };
+
 
 namespace TableManager
 {

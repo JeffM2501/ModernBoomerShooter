@@ -84,10 +84,7 @@ namespace TextureManager
 
         auto* bootstrapTable = TableManager::GetTable(BootstrapTable);
         
-        if (bootstrapTable->HasField("shader_manifest"))
-        {
-            ShaderTable = TableManager::GetTable(bootstrapTable->GetField("shader_manifest"));
-        }
+        ShaderTable = bootstrapTable->GetFieldAsTable("shader_manifest");
 
         if (ShaderTable && PreloadShaders)
         {
