@@ -8,6 +8,7 @@
 #include "game_object.h"
 #include "system.h"
 #include "map/map.h"
+#include "map/raycaster.h"
 
 enum class SystemStage
 {
@@ -70,6 +71,8 @@ public:
     Map& GetMap() { return WorldMap; }
     const Map& GetMap() const { return WorldMap; }
 
+    Raycaster& GetRaycaster() { return WorldRaycaster; }
+
 protected:
     std::vector<System*> PreUpdateSystems;
     std::vector<System*> UpdateSystems;
@@ -87,6 +90,7 @@ protected:
 
     WorldState State = WorldState::Empty;
     Map WorldMap;
+    Raycaster WorldRaycaster;
 
 protected:
     void SetupSystems();

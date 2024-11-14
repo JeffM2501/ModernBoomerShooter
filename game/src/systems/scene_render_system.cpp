@@ -15,7 +15,7 @@
 
 SceneRenderSystem::SceneRenderSystem(World* world)
     : System(world)
-    , Render(world->GetMap())
+    , Render(world->GetMap(), world->GetRaycaster())
 {
     Render.Reset();
 }
@@ -68,6 +68,13 @@ void SceneRenderSystem::OnSetup()
     SkyboxMaterial.shader = SkyboxShader;
 }
 
+float GetFOVX(float fovY)
+{
+    float aspectRatio = GetScreenWidth() / (float)GetScreenHeight();
+
+    return 2.0f * atanf(tanf(fovY * DEG2RAD * 0.5f) * aspectRatio) * RAD2DEG;
+}
+
 void SceneRenderSystem::OnUpdate()
 {
     if (!WorldPtr || WorldPtr->GetState() != WorldState::Playing)
@@ -78,6 +85,10 @@ void SceneRenderSystem::OnUpdate()
 
     if (PlayerManager)
         Render.SetViewpoint(PlayerManager->PlayerPos, PlayerManager->PlayerYaw, PlayerManager->PlayerPitch);
+
+    WorldPtr->GetRaycaster().SetOutputSize(GetScreenWidth(), GetFOVX(Render.Viepoint.fovy));
+
+    WorldPtr->GetRaycaster().StartFrame(PlayerManager->PlayerPos, PlayerManager->PlayerFacing);
 
     if (IsTextureValid(SkyboxTexture))
     {

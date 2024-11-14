@@ -74,7 +74,14 @@ struct Map
 
     MapCell GetCell(int x, int y) const;
     MapCell &GetCellRef(int x, int y);
-    bool IsCellSolid(int x, int y);
-    bool IsCellCapped(int x, int y);
+    bool IsCellSolid(int x, int y) const;
+    bool IsCellCapped(int x, int y) const;
     void Clear();
+
+    inline size_t GetCellIndex(int x, int y) const { return y * Size.X + x; }
+
+    bool MoveEntity(Vector3& position, Vector3& desiredMotion, float radius);
+
+private:
+    void PointNearesGridPoint(int x, int y, const Vector3 point, Vector3* nearest, Vector3* normal);
 };

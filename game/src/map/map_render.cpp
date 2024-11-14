@@ -1,9 +1,12 @@
 #include "map/map_render.h"
+#include "map/raycaster.h"
+
 #include "raymath.h"
 #include "rlgl.h"
 
-MapRenderer::MapRenderer(Map& map)
+MapRenderer::MapRenderer(Map& map, Raycaster& caster)
     : WorldMap(map)
+    , WorldRaycaster(caster)
 {
     Reset();
 }
@@ -335,15 +338,28 @@ void MapRenderer::Render()
 
     DrawSphere(Vector3Zeros, baseArrowRadius * 1.5f, WHITE);
 
+    static bool cull = true;
+
     // todo, get the PVS
     {
         rlSetTexture(WorldMap.Tilemap.id);
         rlBegin(RL_QUADS);
-        for (int y = 0; y < WorldMap.Size.Y; y++)
+
+        if (cull)
         {
-            for (int x = 0; x < WorldMap.Size.X; x++)
+            for (auto cell : WorldRaycaster.GetHitCelList())
             {
-                RenderCell(x, y);
+                RenderCell(cell.X, cell.Y);
+            }
+        }
+        else
+        {
+            for (int y = 0; y < WorldMap.Size.Y; y++)
+            {
+                for (int x = 0; x < WorldMap.Size.X; x++)
+                {
+                    RenderCell(x, y);
+                }
             }
         }
         rlEnd();

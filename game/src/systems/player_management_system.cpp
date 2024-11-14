@@ -69,6 +69,8 @@ void PlayerManagementSystem::OnUpdate()
 
     sideways *= (PlayerSideStepSpeed * GameTime::Scale(Input->GetActionValue(Actions::Sideways)));
 
-    PlayerPos += forward + sideways;
+    Vector3 motion = forward + sideways;
+
+    WorldPtr->GetMap().MoveEntity(PlayerPos, motion, 0.25f);
 }
 

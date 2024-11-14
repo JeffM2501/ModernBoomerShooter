@@ -3,13 +3,16 @@
 #include "map/map.h"
 #include "raylib.h"
 
+class Raycaster;
+
 class MapRenderer
 {
 public:
     Camera3D Viepoint = { 0 };
     Map& WorldMap;
+    Raycaster& WorldRaycaster;
 
-    MapRenderer(Map& map);
+    MapRenderer(Map& map, Raycaster& caster);
     void Reset();
 
     void Render();
@@ -22,9 +25,9 @@ private:
     void RenderCell(int x, int y);
 
 private:
-    float EyeHeight = 1;
+    float EyeHeight = 0.5f;
 
-    float MapScale = 2;
+    float MapScale = 1;
 
     float WallColors[4] = { 1, 0.4f, 0.75f , 0.8f };
     float DefaultExteriorZoneLevel = 0.95f;

@@ -63,6 +63,8 @@ void World::Init()
 {
     SetupSystems();
 
+    WorldRaycaster.SetMap(&WorldMap);
+
     for (auto& [id, system] : Systems)
     {
         system->Init();
@@ -75,6 +77,8 @@ void World::Load(std::string_view map)
 
     if (!map.empty())
         ReadWorldTMX(map.data(), *this);
+
+    WorldRaycaster.SetMap(&WorldMap);
 
     Reset();
 }

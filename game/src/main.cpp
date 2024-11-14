@@ -21,7 +21,7 @@ namespace App
         Run = true;
         SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
         InitWindow(1280, 800, "ModernBoomerShooter");
-        SetTargetFPS(144);
+        SetTargetFPS(300);
 
         GameTime::ComputeNominalFPS();
         ResourceManager::Init("resources");
