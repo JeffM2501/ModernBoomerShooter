@@ -69,7 +69,7 @@ namespace TableManager
         
         auto itr = LoadedTables.find(hash);
         if (itr != LoadedTables.end())
-            return &LoadedTables.begin()->second;
+            return &itr->second;
 
         auto resource = ResourceManager::OpenResource(name, true);
 
