@@ -1,6 +1,8 @@
 #include "map/map_render.h"
 #include "map/raycaster.h"
 
+#include "services/texture_manager.h"
+
 #include "raymath.h"
 #include "rlgl.h"
 
@@ -281,6 +283,8 @@ void MapRenderer::Reset()
     Viepoint.up = Vector3UnitZ;
     SetViewpoint(Vector3Zeros, 0, 0);
 
+    WorldShader = TextureManager::GetShader("world");
+
     Vector2 lightVec = { cosf(DEG2RAD * WorldMap.LightInfo.AmbientAngle), cosf(DEG2RAD * WorldMap.LightInfo.AmbientAngle) };
 
     if (lightVec.x > 0)
@@ -340,7 +344,7 @@ void MapRenderer::Render()
 
     static bool cull = true;
 
-    // todo, get the PVS
+    BeginShaderMode(WorldShader);
     {
         rlSetTexture(WorldMap.Tilemap.id);
         rlBegin(RL_QUADS);
@@ -363,6 +367,8 @@ void MapRenderer::Render()
             }
         }
         rlEnd();
+
+        EndShaderMode();
     }
 
     EndMode3D();
