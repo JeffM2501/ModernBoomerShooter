@@ -2,6 +2,7 @@
 
 #include "system.h"
 #include "map/map_render.h"
+#include "utilities/lighting_system.h"
 #include "raylib.h"
 
 class SceneRenderSystem : public System
@@ -24,4 +25,6 @@ protected:
     Texture2D SkyboxTexture = { 0 };
     Mesh Skybox = { 0 };
     Material SkyboxMaterial = { 0 };
+
+    LightScene ObjectLights;
 };

@@ -71,6 +71,14 @@ void PlayerManagementSystem::OnUpdate()
 
     Vector3 motion = forward + sideways;
 
-    WorldPtr->GetMap().MoveEntity(PlayerPos, motion, 0.25f);
+    bool isGhost = true;
+    if (!isGhost)
+    {
+        WorldPtr->GetMap().MoveEntity(PlayerPos, motion, 0.25f);
+    }
+    else
+    {
+        PlayerPos += motion;
+    }
 }
 

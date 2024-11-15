@@ -285,7 +285,7 @@ void MapRenderer::Reset()
 
     WorldShader = TextureManager::GetShader("world");
 
-    Vector2 lightVec = { cosf(DEG2RAD * WorldMap.LightInfo.AmbientAngle), cosf(DEG2RAD * WorldMap.LightInfo.AmbientAngle) };
+    Vector2 lightVec = { cosf(DEG2RAD * WorldMap.LightInfo.AmbientAngle), sinf(DEG2RAD * WorldMap.LightInfo.AmbientAngle) };
 
     if (lightVec.x > 0)
     {

@@ -66,6 +66,23 @@ void SceneRenderSystem::OnSetup()
     SkyboxMaterial = LoadMaterialDefault();
     SkyboxMaterial.maps[MATERIAL_MAP_CUBEMAP].texture = SkyboxTexture;
     SkyboxMaterial.shader = SkyboxShader;
+
+    ObjectLights.SetShader(TextureManager::GetShader("object"));
+    ObjectLights.ClearLights();
+
+    ObjectLights.SetAmbientColor(WorldPtr->GetMap().LightInfo.InteriorAmbientLevel * 0.125f);
+
+    auto * light = static_cast<DirectionalLight*>(ObjectLights.AddLight(LightTypes::Directional));
+
+    float ambientAngle = WorldPtr->GetMap().LightInfo.AmbientAngle - 90;
+
+    Vector3 lightVec = {
+        cosf(DEG2RAD * ambientAngle),
+        sinf(DEG2RAD * ambientAngle),
+        -1.0f
+    };
+
+    light->SetDirection(Vector3Normalize(lightVec));
 }
 
 float GetFOVX(float fovY)
@@ -88,7 +105,8 @@ void SceneRenderSystem::OnUpdate()
 
     WorldPtr->GetRaycaster().SetOutputSize(GetScreenWidth(), GetFOVX(Render.Viepoint.fovy));
 
-    WorldPtr->GetRaycaster().StartFrame(PlayerManager->PlayerPos, PlayerManager->PlayerFacing);
+    if (PlayerManager)
+        WorldPtr->GetRaycaster().StartFrame(PlayerManager->PlayerPos, PlayerManager->PlayerFacing);
 
     if (IsTextureValid(SkyboxTexture))
     {
@@ -109,4 +127,20 @@ void SceneRenderSystem::OnUpdate()
         DrawRectangleGradientV(0, 0, GetScreenWidth(), GetScreenHeight(), DARKBLUE, SKYBLUE);
     }
     Render.Render();
+
+    BeginMode3D(Render.Viepoint);
+    // draw objects
+    ObjectLights.ApplyLights(Render.Viepoint);
+
+    BeginShaderMode(ObjectLights.GetShader());
+    float size = 0.4f;
+
+    rlPushMatrix();
+
+    rlTranslatef(30, 55, 0.5f);
+    DrawCube(Vector3Zeros, size, size, size, RAYWHITE);
+    rlPopMatrix();
+
+    EndShaderMode();
+    EndMode3D();
 }
