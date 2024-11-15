@@ -47,7 +47,7 @@ namespace App
             return;
 
         BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground(MAGENTA);
 
         GameWorld.RenderScene();
         GameWorld.RenderOverlay();

@@ -75,6 +75,7 @@ struct Map
     MapCell GetCell(int x, int y) const;
     MapCell &GetCellRef(int x, int y);
     bool IsCellSolid(int x, int y) const;
+    bool IsCellPassable(int x, int y) const;
     bool IsCellCapped(int x, int y) const;
     void Clear();
 

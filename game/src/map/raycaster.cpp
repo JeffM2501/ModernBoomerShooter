@@ -263,12 +263,8 @@ bool Raycaster::IsCellVis(int x, int y) const
     return CellStatus[index] == 1;
 }
 
-void Raycaster::SetCellVis(int x, int y)
+void Raycaster::AddCellVis(int x, int y)
 {
-    auto state = WorldMap->GetCell(x, y).State;
-    if (state != MapCellState::Empty && state != MapCellState::Door)
-        return;
-
     int index = y * (int)WorldMap->Size.X + x;
     uint8_t& id = CellStatus[index];
     if (id == 1)
@@ -277,4 +273,27 @@ void Raycaster::SetCellVis(int x, int y)
     id = 1;
     HitCells.push_back(index);
     HitCellLocs.emplace_back(MapCoordinate{ uint16_t(x), uint16_t(y) });
+}
+
+void Raycaster::SetCellVis(int x, int y)
+{
+    auto state = WorldMap->GetCell(x, y).State;
+    if (WorldMap->IsCellSolid(x, y))
+    {
+        // if we hit a wall, ensure that every cell around it that is passable is tagged so we see all the walls
+        for (int yOffset = -1; yOffset <= 1; yOffset++)
+        {
+            for (int xOffset = -1; xOffset <= 1; xOffset++)
+            {
+                if (WorldMap->IsCellPassable(x + xOffset, y + yOffset))
+                {
+                    AddCellVis(x + xOffset, y + yOffset);
+                }
+            }
+        }
+    }
+    else
+    {
+        AddCellVis(x, y);
+    }
 }

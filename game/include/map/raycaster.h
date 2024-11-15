@@ -57,6 +57,8 @@ protected:
 
     void SetCellVis(int x, int y);
 
+    void AddCellVis(int x, int y);
+
     const Map* WorldMap = nullptr;
     int RenderWidth;
     float RenderFOVX;

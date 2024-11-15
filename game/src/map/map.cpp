@@ -71,6 +71,12 @@ bool Map::IsCellSolid(int x, int y) const
     return state == MapCellState::Wall || state == MapCellState::Invalid;
 }
 
+bool Map::IsCellPassable(int x, int y) const
+{
+    auto state = GetCell(x, y).State;
+    return state == MapCellState::Empty || state == MapCellState::Door;
+}
+
 bool Map::IsCellCapped(int x, int y) const
 {
     auto cell = GetCell(x, y);
