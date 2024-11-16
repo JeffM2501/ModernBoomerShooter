@@ -17,13 +17,15 @@ SceneRenderSystem::SceneRenderSystem(World* world)
     : System(world)
     , Render(world->GetMap(), world->GetRaycaster())
 {
-    Render.Reset();
+
 }
 
 void SceneRenderSystem::OnSetup()
 {
     if (!WorldPtr)
         return;
+
+    Render.Reset();
 
     PlayerManager = WorldPtr->GetSystem<PlayerManagementSystem>();
 

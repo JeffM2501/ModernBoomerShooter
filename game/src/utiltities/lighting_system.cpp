@@ -1,7 +1,6 @@
 #include "utilities/lighting_system.h"
 #include "raylib.h"
 
-
 static constexpr char ViewPosName[] = "viewPos";
 static constexpr char EnabledName[] = "enabled";
 static constexpr char TypeName[] = "type";

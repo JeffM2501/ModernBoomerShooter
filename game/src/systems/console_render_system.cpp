@@ -8,7 +8,8 @@
 #include <varargs.h>
 
 static constexpr float AnimationTime = 0.5f;
-static constexpr float ConsoleSizeParam = 0.5f;
+static constexpr float ConsoleSizeParam = 0.75f;
+static constexpr int ConsoleTextSize = 10;
 
 inline const char* GetLogLevelName(int logLevel)
 {
@@ -107,8 +108,8 @@ void ConsoleRenderSystem::OnUpdate()
 	BeginScissorMode(int(consoleRect.x), int(consoleRect.y), int (consoleRect.width), int(consoleRect.height));
 
     Rectangle textBoxRect = consoleRect;
-    textBoxRect.y += textBoxRect.height - 25;
-    textBoxRect.height = 24;
+    textBoxRect.y += textBoxRect.height - ConsoleTextSize-5;
+    textBoxRect.height = ConsoleTextSize + 4;
 
     if (ConsoleState != State::Stowing)
     {
@@ -160,24 +161,24 @@ void ConsoleRenderSystem::OnUpdate()
 		}
 		
 		DrawRectangleLinesEx(textBoxRect, 1, ColorAlpha(YELLOW, 0.75f));
-		DrawText(CurrentConsoleInput.c_str(), int(textBoxRect.x + 5), int(textBoxRect.y + 1), 20, ColorAlpha(WHITE, 0.95f));
+		DrawText(CurrentConsoleInput.c_str(), int(textBoxRect.x + 5), int(textBoxRect.y + 1), ConsoleTextSize, ColorAlpha(WHITE, 0.95f));
 
 		if (int(GetTime() * 2) % 2 == 0)
 		{
-			Rectangle cursorRect = { float(MeasureText(CurrentConsoleInput.c_str(), 20)) + textBoxRect.x + 7, textBoxRect.y + 2, 10.0f, 18.0f };
+			Rectangle cursorRect = { float(MeasureText(CurrentConsoleInput.c_str(), ConsoleTextSize)) + textBoxRect.x + 7, textBoxRect.y + 2, 10.0f, ConsoleTextSize };
 			DrawRectangleRec(cursorRect, ColorAlpha(WHITE, 0.75f));
 		}	
     }
 
-	float textY = (textBoxRect.y + textBoxRect.height) - 44;
+	float textY = (textBoxRect.y + textBoxRect.height) - (ConsoleTextSize*2 + 4);
 
 	for (auto& item : ConsoleOutput)
 	{
 		if (textY < 0)
 			break;
 
-		DrawText(item.c_str(), int(textBoxRect.x+10), int(textY), 20, ColorAlpha(WHITE, 0.75f));
-		textY -= 20;
+		DrawText(item.c_str(), int(textBoxRect.x+10), int(textY), ConsoleTextSize, ColorAlpha(WHITE, 0.75f));
+		textY -= ConsoleTextSize;
 	}
 
 	if (text)

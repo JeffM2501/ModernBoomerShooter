@@ -10,7 +10,6 @@ MapRenderer::MapRenderer(Map& map, Raycaster& caster)
     : WorldMap(map)
     , WorldRaycaster(caster)
 {
-    Reset();
 }
 
 void MapRenderer::SetEyeHeight(float height)

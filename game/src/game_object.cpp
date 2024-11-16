@@ -2,7 +2,6 @@
 #include "world.h"
 #include "system.h"
 
-
 GameObject::~GameObject()
 {
     if (!WorldPtr)

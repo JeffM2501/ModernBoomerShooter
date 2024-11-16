@@ -16,6 +16,7 @@
 World::World()
 {
     RootObject = std::make_unique<GameObject>(this);
+    SetupSystems();
 }
 
 void World::RegisterSystem(SystemStage stage, std::unique_ptr<System> system)
@@ -62,8 +63,6 @@ System* World::GetSystem(size_t systemId)
 
 void World::Init()
 {
-    SetupSystems();
-
     WorldRaycaster.SetMap(&WorldMap);
 
     for (auto& [id, system] : Systems)
