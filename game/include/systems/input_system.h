@@ -25,7 +25,7 @@ struct ActionDef
 {
     ActionType Type = ActionType::Axis;
 
-    virtual void Update() = 0;
+    virtual void Update(bool allowKeyboard = true) = 0;
 
     virtual float GetValue() const = 0;
     virtual bool IsActive() const = 0;
@@ -45,7 +45,7 @@ struct AxisActionDef : public ActionDef
     AxisActionDef() = default;
     AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mouseAxis = -1, float mouseAxisScale = 1, int gamepadAxis = -1, float gamepadAxisScale = 1);
 
-    void Update() override;
+    void Update(bool allowKeyboard = true) override;
 
     float GetValue() const override;
     bool IsActive() const override;
@@ -63,7 +63,7 @@ struct ButtonActionDef : public ActionDef
     ButtonActionDef() = default;
     ButtonActionDef(KeyboardKey key, int mouseButton = -1, GamepadButton button = GAMEPAD_BUTTON_UNKNOWN);
 
-    void Update() override;
+    void Update(bool allowKeyboard = true) override;
 
     float GetValue() const override;
     bool IsActive() const override;
@@ -87,8 +87,11 @@ public:
 
 protected:
     void OnInit() override;
+    void OnSetup() override;
     void OnUpdate() override;
 
 protected:
     std::unordered_map<uint8_t, std::unique_ptr<ActionDef>>  Actions;
+
+    class ConsoleRenderSystem* ConsoleSystem = nullptr;
 };

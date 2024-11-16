@@ -1,4 +1,5 @@
 #include "systems/input_system.h"
+#include "systems/console_render_system.h"
 
 #include "raylib.h"
 #include "world.h"
@@ -17,28 +18,31 @@ AxisActionDef::AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mou
     MouseAxisScale = mouseAxisScale;
 }
 
-void AxisActionDef::Update()
+void AxisActionDef::Update(bool allowKeyboard)
 {
     AxisValue = 0;
 
     float posValue = 0;
     float negValue = 0;
 
-    for (auto& postive : PositiveKeys)
+    if (allowKeyboard)
     {
-        if (IsKeyDown(postive))
+        for (auto& postive : PositiveKeys)
         {
-            AxisValue += 1;
-            break;
+            if (IsKeyDown(postive))
+            {
+                AxisValue += 1;
+                break;
+            }
         }
-    }
 
-    for (auto& negative : NegativeKeys)
-    {
-        if (negative != KEY_NULL && IsKeyDown(negative))
+        for (auto& negative : NegativeKeys)
         {
-            AxisValue += -1;
-            break;
+            if (negative != KEY_NULL && IsKeyDown(negative))
+            {
+                AxisValue += -1;
+                break;
+            }
         }
     }
 
@@ -82,16 +86,19 @@ ButtonActionDef::ButtonActionDef(KeyboardKey key, int mouseButton, GamepadButton
     MouseButton = mouseButton;
 }
 
-void ButtonActionDef::Update()
+void ButtonActionDef::Update(bool allowKeyboard)
 {
     ButtonValue = false;
 
-    for (auto& postive : ButtonKeys)
+    if (allowKeyboard)
     {
-        if (IsKeyDown(postive))
+        for (auto& postive : ButtonKeys)
         {
-            ButtonValue = true;
-            break;
+            if (IsKeyDown(postive))
+            {
+                ButtonValue = true;
+                break;
+            }
         }
     }
 
@@ -187,11 +194,20 @@ void InputSystem::OnInit()
     AddButtonAction(Actions::Fire, KEY_SPACE, 0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN);
 }
 
+void InputSystem::OnSetup()
+{
+    ConsoleSystem = WorldPtr->GetSystem<ConsoleRenderSystem>();
+}
+
 void InputSystem::OnUpdate()
 {
     if (WindowShouldClose())
-        WorldPtr->Quit();      
+        WorldPtr->Quit();  
+
+    bool allowKeys = true;
+    if (ConsoleSystem)
+        allowKeys = !ConsoleSystem->WantKeyInput();
 
     for (auto& [id, action] : Actions)
-        action->Update();
+        action->Update(allowKeys);
 }

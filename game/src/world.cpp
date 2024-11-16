@@ -7,6 +7,7 @@
 #include "systems/input_system.h"
 #include "systems/scene_render_system.h"
 #include "systems/overlay_render_system.h"
+#include "systems/console_render_system.h"
 #include "systems/menu_render_system.h"
 #include "systems/player_management_system.h"
 
@@ -148,7 +149,8 @@ void World::SetupSystems()
     RegisterSystem<SceneRenderSystem>(SystemStage::Render);
 
     RegisterSystem<OverlayRenderSystem>(SystemStage::PostRender);
-    RegisterSystem<MenuRenderSystem>(SystemStage::PostRender);
+    RegisterSystem<MenuRenderSystem>(SystemStage::PostRender); 
+    RegisterSystem<ConsoleRenderSystem>(SystemStage::PostRender);
 }
 
 GameObject* World::AddObject()
