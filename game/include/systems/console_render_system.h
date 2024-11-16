@@ -8,16 +8,19 @@
 class ConsoleRenderSystem : public System
 {
 public:
-    DEFINE_SYSTEM(ConsoleRenderSystem);
+    DEFINE_SYSTM_NO_CONSTRUCTOR(ConsoleRenderSystem);
+    ConsoleRenderSystem(World* world);
+    ~ConsoleRenderSystem();
 
     bool WantKeyInput() const { return ConsoleState != State::Stowed; }
 
 protected:
-    void OnSetup() override;
     void OnUpdate() override;
 
     void ProcessCommand();
 
+    void OutputVarState(std::string_view name, const bool& value);
+    void OutputVarState(std::string_view name, const float& value);
 protected:
     enum class State
     {

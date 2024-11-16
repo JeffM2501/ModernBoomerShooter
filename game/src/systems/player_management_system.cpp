@@ -4,6 +4,7 @@
 #include "systems/input_system.h"
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
+#include "services/global_vars.h"
 
 #include "world.h"
 
@@ -71,8 +72,7 @@ void PlayerManagementSystem::OnUpdate()
 
     Vector3 motion = forward + sideways;
 
-    bool isGhost = true;
-    if (!isGhost)
+    if (!GlobalVars::UseGhostMovement)
     {
         WorldPtr->GetMap().MoveEntity(PlayerPos, motion, 0.25f);
     }
@@ -81,4 +81,3 @@ void PlayerManagementSystem::OnUpdate()
         PlayerPos += motion;
     }
 }
-

@@ -1,15 +1,54 @@
 #include "systems/console_render_system.h"
 #include "services/game_time.h"
+#include "services/global_vars.h"
 
 #include "world.h"
 #include "raylib.h"
 
+#include <varargs.h>
+
 static constexpr float AnimationTime = 0.5f;
 static constexpr float ConsoleSizeParam = 0.5f;
 
-void ConsoleRenderSystem::OnSetup()
+inline const char* GetLogLevelName(int logLevel)
 {
+    switch (logLevel)
+    {
+    default:            return "All";
+    case LOG_TRACE:     return "Trace";
+    case LOG_DEBUG:     return "DEBUG";
+    case LOG_INFO:      return "Info";
+    case LOG_WARNING:   return "Warning";
+    case LOG_ERROR:     return "ERROR";
+    case LOG_FATAL:     return "FATAL";
+    }
+}
 
+static ConsoleRenderSystem* LastConsole = nullptr;
+
+ConsoleRenderSystem::ConsoleRenderSystem(World* world) : System(world)
+{
+    LastConsole = this;
+
+    SetTraceLogCallback([](int logLevel, const char* text, va_list args)
+        {
+            if (!LastConsole)
+                return;
+
+            static char logText[2048] = { 0 };
+
+            std::string log = GetLogLevelName(logLevel);
+            vsprintf(logText, text, args);
+            log += " ";
+            log += logText;
+
+            LastConsole->ConsoleOutput.push_front(log);
+        });
+}
+
+ConsoleRenderSystem::~ConsoleRenderSystem()
+{
+	LastConsole = nullptr;
 }
 
 void ConsoleRenderSystem::OnUpdate()
@@ -147,10 +186,25 @@ void ConsoleRenderSystem::OnUpdate()
 	EndScissorMode();
 }
 
+void ConsoleRenderSystem::OutputVarState(std::string_view name, const bool& value)
+{
+	ConsoleOutput.push_front(TextFormat("%s = %s", name.data(), value ? "true" : "false"));
+}
+
+void ConsoleRenderSystem::OutputVarState(std::string_view name, const float& value) 
+{
+	ConsoleOutput.push_front(TextFormat("%s = %0.2f", name.data(), value));
+}
+
 void ConsoleRenderSystem::ProcessCommand()
 {
     ConsoleOutput.push_front(CurrentConsoleInput);
-    // process command 
+
+	if (CurrentConsoleInput == "toggle_ghost")
+	{
+		GlobalVars::UseGhostMovement = !GlobalVars::UseGhostMovement;
+		OutputVarState("UseGhostMovement", GlobalVars::UseGhostMovement);
+	}
 
 	if (ConsoleLog.empty() || ConsoleLog.back() != CurrentConsoleInput)
 	{
