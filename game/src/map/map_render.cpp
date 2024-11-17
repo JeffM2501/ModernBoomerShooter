@@ -2,6 +2,7 @@
 #include "map/raycaster.h"
 
 #include "services/texture_manager.h"
+#include "services/global_vars.h"
 
 #include "raymath.h"
 #include "rlgl.h"
@@ -341,14 +342,12 @@ void MapRenderer::Render()
 
     DrawSphere(Vector3Zeros, baseArrowRadius * 1.5f, WHITE);
 
-    static bool cull = true;
-
     BeginShaderMode(WorldShader);
     {
         rlSetTexture(WorldMap.Tilemap.id);
         rlBegin(RL_QUADS);
 
-        if (cull)
+        if (GlobalVars::UseVisCulling)
         {
             for (auto cell : WorldRaycaster.GetHitCelList())
             {

@@ -76,11 +76,11 @@ void SceneRenderSystem::OnSetup()
 
     auto * light = static_cast<DirectionalLight*>(ObjectLights.AddLight(LightTypes::Directional));
 
-    float ambientAngle = WorldPtr->GetMap().LightInfo.AmbientAngle - 90;
+    float ambientAngle = WorldPtr->GetMap().LightInfo.AmbientAngle;// -90;
 
     Vector3 lightVec = {
-        cosf(DEG2RAD * ambientAngle),
         sinf(DEG2RAD * ambientAngle),
+        cosf(DEG2RAD * ambientAngle),
         -1.0f
     };
 

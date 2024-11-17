@@ -1,14 +1,16 @@
 #include "systems/console_render_system.h"
 #include "services/game_time.h"
 #include "services/global_vars.h"
+#include "utilities/string_utils.h"
 
 #include "world.h"
 #include "raylib.h"
 
 #include <varargs.h>
+#include <algorithm>
 
 static constexpr float AnimationTime = 0.5f;
-static constexpr float ConsoleSizeParam = 0.75f;
+static constexpr float ConsoleSizeParam = 0.5f;
 static constexpr int ConsoleTextSize = 10;
 
 inline const char* GetLogLevelName(int logLevel)
@@ -52,12 +54,35 @@ ConsoleRenderSystem::~ConsoleRenderSystem()
 	LastConsole = nullptr;
 }
 
+void ConsoleRenderSystem::OnSetup()
+{
+	CommandHandlers.insert_or_assign(ConsoleCommands::ToggleGhost,
+		[this](std::string_view command, const std::vector<std::string>& args)
+		{  
+			GlobalVars::UseGhostMovement = !GlobalVars::UseGhostMovement;
+			OutputVarState("UseGhostMovement", GlobalVars::UseGhostMovement); 
+		} );
+
+    CommandHandlers.insert_or_assign(ConsoleCommands::ToggleCulling,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+            GlobalVars::UseVisCulling = !GlobalVars::UseVisCulling;
+            OutputVarState("UseVisCulling", GlobalVars::UseVisCulling);
+        });
+
+    CommandHandlers.insert_or_assign(ConsoleCommands::Reload,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+            WorldPtr->ReloadMap();
+            OutputMessage("Map Reloaded");
+        });
+}
+
 void ConsoleRenderSystem::OnUpdate()
 {
-	float animationTime = 0.25f;
+	float animationTime = 0.125f;
 
-	const char* text = nullptr;
-
+	// animation and state changes
 	switch (ConsoleState)
 	{
 	case ConsoleRenderSystem::State::Stowed:
@@ -70,7 +95,6 @@ void ConsoleRenderSystem::OnUpdate()
 
 	case ConsoleRenderSystem::State::Deploying:
 		Param += GameTime::GetDeltaTime() / AnimationTime;
-		text = TextFormat("Deploying %0.1f%%", Param * 100);
 		if (Param >= 1)
 		{
 			ConsoleState = State::Deployed;
@@ -78,7 +102,6 @@ void ConsoleRenderSystem::OnUpdate()
 		break;
 
 	case ConsoleRenderSystem::State::Deployed:
-		text = nullptr;
         if (IsKeyPressed(KEY_GRAVE))
         {
             ConsoleState = State::Stowing;
@@ -93,16 +116,16 @@ void ConsoleRenderSystem::OnUpdate()
             ConsoleState = State::Stowed;
 			return;
         }
-		text = TextFormat("Stowing %0.1f%%", Param * 100);
 		break;
 
 	default:
 		break;
 	}
 
+	// draw overlay
 	Rectangle consoleRect = { 0,0, float(GetScreenWidth()), float(GetScreenHeight()) * Param * ConsoleSizeParam };
 
-	DrawRectangleRec(consoleRect, ColorAlpha(BLACK, 0.75f));
+	DrawRectangleRec(consoleRect, ColorAlpha(BLACK, 0.5f));
 	DrawRectangleLinesEx(consoleRect, 3, ColorAlpha(RAYWHITE, 0.75f));
 	DrawRectangleLinesEx(consoleRect, 1, ColorAlpha(DARKGRAY, 0.75f));
 	BeginScissorMode(int(consoleRect.x), int(consoleRect.y), int (consoleRect.width), int(consoleRect.height));
@@ -111,6 +134,7 @@ void ConsoleRenderSystem::OnUpdate()
     textBoxRect.y += textBoxRect.height - ConsoleTextSize-5;
     textBoxRect.height = ConsoleTextSize + 4;
 
+	// handle keyboard input
     if (ConsoleState != State::Stowing)
     {
 		while (int key = GetCharPressed())
@@ -129,7 +153,7 @@ void ConsoleRenderSystem::OnUpdate()
 			{
 				if (!CurrentConsoleInput.empty())
 				{
-
+					// TODO, auto complete?
 				}
 			}
 			else if (key == KEY_UP)
@@ -156,16 +180,27 @@ void ConsoleRenderSystem::OnUpdate()
 			else if (key == KEY_ENTER || key == KEY_KP_ENTER)
 			{
 				if (!CurrentConsoleInput.empty())
-					ProcessCommand();
+				{
+					ProcessCommand(CurrentConsoleInput);
+					if (ConsoleLog.empty() || ConsoleLog.back() != CurrentConsoleInput)
+					{
+						ConsoleLog.push_back(CurrentConsoleInput);
+						CurrentHistoryLogItem = ConsoleLog.size();
+					}
+
+					CurrentConsoleInput.clear();
+				}
 			}
 		}
 		
+		// text box for user entry
 		DrawRectangleLinesEx(textBoxRect, 1, ColorAlpha(YELLOW, 0.75f));
 		DrawText(CurrentConsoleInput.c_str(), int(textBoxRect.x + 5), int(textBoxRect.y + 1), ConsoleTextSize, ColorAlpha(WHITE, 0.95f));
 
+		// blinking cursor
 		if (int(GetTime() * 2) % 2 == 0)
 		{
-			Rectangle cursorRect = { float(MeasureText(CurrentConsoleInput.c_str(), ConsoleTextSize)) + textBoxRect.x + 7, textBoxRect.y + 2, 10.0f, ConsoleTextSize };
+			Rectangle cursorRect = { float(MeasureText(CurrentConsoleInput.c_str(), ConsoleTextSize)) + textBoxRect.x + 7, textBoxRect.y + 2, ConsoleTextSize * 0.5f, ConsoleTextSize};
 			DrawRectangleRec(cursorRect, ColorAlpha(WHITE, 0.75f));
 		}	
     }
@@ -181,9 +216,6 @@ void ConsoleRenderSystem::OnUpdate()
 		textY -= ConsoleTextSize;
 	}
 
-	if (text)
-		DrawText(text, int(consoleRect.x + 2), int(consoleRect.y + 3), 10, ColorAlpha(WHITE, 0.5f));
-
 	EndScissorMode();
 }
 
@@ -192,26 +224,34 @@ void ConsoleRenderSystem::OutputVarState(std::string_view name, const bool& valu
 	ConsoleOutput.push_front(TextFormat("%s = %s", name.data(), value ? "true" : "false"));
 }
 
-void ConsoleRenderSystem::OutputVarState(std::string_view name, const float& value) 
+void ConsoleRenderSystem::OutputVarState(std::string_view name, const float& value)
 {
-	ConsoleOutput.push_front(TextFormat("%s = %0.2f", name.data(), value));
+    ConsoleOutput.push_front(TextFormat("%s = %0.2f", name.data(), value));
 }
 
-void ConsoleRenderSystem::ProcessCommand()
+void ConsoleRenderSystem::OutputMessage(std::string_view name)
+{
+    ConsoleOutput.push_front(TextFormat("%s", name.data()));
+}
+
+void ConsoleRenderSystem::ProcessCommand(std::string_view command)
 {
     ConsoleOutput.push_front(CurrentConsoleInput);
 
-	if (CurrentConsoleInput == "toggle_ghost")
-	{
-		GlobalVars::UseGhostMovement = !GlobalVars::UseGhostMovement;
-		OutputVarState("UseGhostMovement", GlobalVars::UseGhostMovement);
-	}
+	auto args = StringUtils::SplitString(command, " ");
 
-	if (ConsoleLog.empty() || ConsoleLog.back() != CurrentConsoleInput)
-	{
-		ConsoleLog.push_back(CurrentConsoleInput);
-		CurrentHistoryLogItem = ConsoleLog.size();
-	}
+	if (args.empty())
+		return;
 
-    CurrentConsoleInput.clear();
+    std::transform(args[0].begin(), args[0].end(), args[0].begin(), ::tolower);
+
+	auto commandItr = CommandHandlers.find(args[0]);
+	if (commandItr != CommandHandlers.end())
+	{
+		commandItr->second(args[0], args);
+	}
+	else
+    {
+        ConsoleOutput.push_front(TextFormat("Unknown command %s", command.data()));
+    }
 }

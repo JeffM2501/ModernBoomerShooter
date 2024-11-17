@@ -4,6 +4,17 @@
 #include <deque>
 #include <string>
 #include <vector>
+#include <map>
+#include <functional>
+
+namespace ConsoleCommands
+{
+    static constexpr char Reload[] = "reload";
+    static constexpr char ToggleCulling[] = "toggle_culling";
+    static constexpr char ToggleGhost[] = "toggle_ghost";
+}
+
+using CommandHandler = std::function<void(std::string_view, const std::vector<std::string>&)>;
 
 class ConsoleRenderSystem : public System
 {
@@ -14,13 +25,16 @@ public:
 
     bool WantKeyInput() const { return ConsoleState != State::Stowed; }
 
+    void ProcessCommand(std::string_view command);
+
 protected:
     void OnUpdate() override;
 
-    void ProcessCommand();
+    void OnSetup() override;
 
     void OutputVarState(std::string_view name, const bool& value);
     void OutputVarState(std::string_view name, const float& value);
+    void OutputMessage(std::string_view name);
 protected:
     enum class State
     {
@@ -39,4 +53,5 @@ protected:
     size_t CurrentHistoryLogItem = 0;
 
     std::string CurrentConsoleInput;
+    std::map<std::string, CommandHandler> CommandHandlers;
 };

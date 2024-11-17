@@ -3,4 +3,5 @@
 namespace GlobalVars
 {
     extern bool UseGhostMovement;
+    extern bool UseVisCulling;
 }

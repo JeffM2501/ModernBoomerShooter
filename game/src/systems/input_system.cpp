@@ -6,6 +6,7 @@
 
 AxisActionDef::AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mouseAxis, float mouseAxisScale, int gamepadAxis, float gamepadAxisScale)
 {
+    Type = ActionType::Axis;
     if (positive != KEY_NULL)
         PositiveKeys.push_back(positive);
 
@@ -81,6 +82,7 @@ bool AxisActionDef::IsActive() const
 
 ButtonActionDef::ButtonActionDef(KeyboardKey key, int mouseButton, GamepadButton button)
 {
+    Type = ActionType::Button;
     ButtonKeys.push_back(key);
     PadButton = button;
     MouseButton = mouseButton;
@@ -128,6 +130,29 @@ bool ButtonActionDef::IsActive() const
     return ButtonValue;
 }
 
+CommandActionDef::CommandActionDef(KeyboardKey key, std::string_view command, ConsoleRenderSystem* console)
+{
+    Type = ActionType::Command;
+    ConsoleSystem = console;
+    Command = command;
+    ActionKeys.push_back(key);
+}
+
+void CommandActionDef::Update(bool allowKeyboard)
+{
+    if (!Command.empty() && ConsoleSystem)
+    {
+        for (auto& postive : ActionKeys)
+        {
+            if (IsKeyPressed(postive))
+            {
+                ConsoleSystem->ProcessCommand(Command);
+                return;
+            }
+        }
+    }
+}
+
 ButtonActionDef* InputSystem::AddButtonAction(uint8_t id, KeyboardKey key, int mouseButton, GamepadButton button)
 {
     auto itr = Actions.find(id);
@@ -154,6 +179,20 @@ AxisActionDef* InputSystem::AddAxisAction(uint8_t id, KeyboardKey positive, Keyb
     }
 
     return static_cast<AxisActionDef*>(Actions.try_emplace(id, std::make_unique<AxisActionDef>(positive, negative, mouseAxis,mouseAxisScale, gamepadAxis, gamepadAxisScale)).first->second.get());
+}
+
+CommandActionDef* InputSystem::AddCommandAction(uint8_t id, KeyboardKey key, std::string_view command)
+{
+    auto itr = Actions.find(id);
+    if (itr != Actions.end())
+    {
+        if (itr->second->Type != ActionType::Command)
+            return nullptr;
+
+        return static_cast<CommandActionDef*>(itr->second.get());
+    }
+
+    return static_cast<CommandActionDef*>(Actions.try_emplace(id, std::make_unique<CommandActionDef>(key, command, ConsoleSystem)).first->second.get());
 }
 
 ActionDef* InputSystem::GetAction(uint8_t id)
@@ -197,6 +236,8 @@ void InputSystem::OnInit()
 void InputSystem::OnSetup()
 {
     ConsoleSystem = WorldPtr->GetSystem<ConsoleRenderSystem>();
+
+    AddCommandAction(Actions::Reload, KEY_F5, ConsoleCommands::Reload);
 }
 
 void InputSystem::OnUpdate()

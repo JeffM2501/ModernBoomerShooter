@@ -3,6 +3,7 @@
 #include "system.h"
 #include "raylib.h"
 
+#include <string>
 #include <memory>
 #include <unordered_map>
 
@@ -13,12 +14,17 @@ namespace Actions
     static constexpr uint8_t Fire = 2;
     static constexpr uint8_t Yaw = 3;
     static constexpr uint8_t Pitch = 4;
+
+
+    // commands
+    static constexpr uint8_t Reload = 128;
 }
 
 enum class ActionType
 {
     Button,
     Axis,
+    Command,
 };
 
 struct ActionDef
@@ -42,7 +48,7 @@ struct AxisActionDef : public ActionDef
     int MouseAxis = -1;
     float MouseAxisScale = 1;
 
-    AxisActionDef() = default;
+    AxisActionDef() { Type = ActionType::Axis; }
     AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mouseAxis = -1, float mouseAxisScale = 1, int gamepadAxis = -1, float gamepadAxisScale = 1);
 
     void Update(bool allowKeyboard = true) override;
@@ -60,7 +66,7 @@ struct ButtonActionDef : public ActionDef
     GamepadButton PadButton = GAMEPAD_BUTTON_UNKNOWN;
     int MouseButton = -1;
 
-    ButtonActionDef() = default;
+    ButtonActionDef() { Type = ActionType::Button; }
     ButtonActionDef(KeyboardKey key, int mouseButton = -1, GamepadButton button = GAMEPAD_BUTTON_UNKNOWN);
 
     void Update(bool allowKeyboard = true) override;
@@ -72,6 +78,22 @@ private:
     bool ButtonValue = false;
 };
 
+struct CommandActionDef : public ActionDef
+{
+public:
+    std::vector<KeyboardKey> ActionKeys;
+    std::string Command;
+    class ConsoleRenderSystem* ConsoleSystem = nullptr;
+
+    CommandActionDef() { Type = ActionType::Command; }
+    CommandActionDef(KeyboardKey key, std::string_view command = nullptr, ConsoleRenderSystem * console = nullptr);
+
+    void Update(bool allowKeyboard = true) override;
+
+    float GetValue() const override { return 0; }
+    bool IsActive() const override { return false; }
+};
+
 class InputSystem : public System
 {
 public:
@@ -79,6 +101,7 @@ public:
 
     ButtonActionDef* AddButtonAction(uint8_t id, KeyboardKey key = KEY_NULL, int mouseButton = -1, GamepadButton button = GAMEPAD_BUTTON_UNKNOWN);
     AxisActionDef* AddAxisAction(uint8_t id, KeyboardKey positive = KEY_NULL, KeyboardKey negative = KEY_NULL, int mouseAxis = -1, float mouseAxisScale = 1, int gamepadAxis = -1, float gamepadAxisScale = 1);
+    CommandActionDef* AddCommandAction(uint8_t id, KeyboardKey key, std::string_view command);
 
     ActionDef* GetAction(uint8_t id);
 

@@ -73,6 +73,7 @@ void World::Init()
 
 void World::Load(std::string_view map)
 {
+    CurrentWorldMap = map;
     WorldMap.Clear();
 
     if (!map.empty())
@@ -81,6 +82,15 @@ void World::Load(std::string_view map)
     WorldRaycaster.SetMap(&WorldMap);
 
     Reset();
+}
+
+void World::ReloadMap()
+{
+    WorldMap.Clear();
+    if (!CurrentWorldMap.empty())
+        ReadWorldTMX(CurrentWorldMap.data(), *this);
+
+    WorldRaycaster.SetMap(&WorldMap);
 }
 
 void World::Reset()

@@ -3,4 +3,5 @@
 namespace GlobalVars
 {
     bool UseGhostMovement = false;
+    bool UseVisCulling = true;
 }

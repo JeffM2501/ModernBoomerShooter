@@ -25,7 +25,7 @@ project (workspaceName)
     filter "action:vs*"
         debugdir "$(SolutionDir)"
 
-    filter {"action:vs*", "configurations:Release"}
+    filter {"action:vs*"}
         kind "WindowedApp"
         entrypoint "mainCRTStartup"
 

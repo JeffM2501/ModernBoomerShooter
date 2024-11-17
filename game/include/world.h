@@ -55,6 +55,7 @@ public:
     void Reset();
 
     void Load(std::string_view map);
+    void ReloadMap();
 
     bool Update();
 
@@ -91,6 +92,8 @@ protected:
     WorldState State = WorldState::Empty;
     Map WorldMap;
     Raycaster WorldRaycaster;
+
+    std::string CurrentWorldMap;
 
 protected:
     void SetupSystems();

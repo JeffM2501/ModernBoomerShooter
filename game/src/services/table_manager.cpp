@@ -2,33 +2,20 @@
 #include "services/resource_manager.h"
 #include <unordered_map>
 
-static std::vector<std::string> SplitString(std::string_view input, std::string_view delimiter)
-{
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    std::string token;
-    std::vector<std::string> results;
-
-    while ((pos_end = input.find(delimiter, pos_start)) != std::string::npos)
-    {
-        token = input.substr(pos_start, pos_end - pos_start);
-        pos_start = pos_end + delim_len;
-        results.push_back(token);
-    }
-
-    results.push_back(std::string(input.substr(pos_start)));
-    return results;
-}
+#include "utilities/string_utils.h"
 
 bool Table::HasField(const std::string& key) const
 {
     return find(key) != end();
 }
 
+constexpr char EmptyField[] = "";
+
 std::string_view Table::GetField(const std::string& key) const
 {
     auto itr = find(key);
     if (itr == end())
-        return std::string();
+        return EmptyField;
 
     return itr->second;
 }
@@ -44,7 +31,7 @@ std::vector<std::string> Table::SplitField(const std::string& key, std::string_v
     if (itr == end())
         return std::vector<std::string>();
 
-    return SplitString(itr->second, deliminator);
+    return StringUtils::SplitString(itr->second, deliminator);
 }
 
 namespace TableManager
@@ -76,13 +63,13 @@ namespace TableManager
         if (resource == nullptr)
             return nullptr;
 
-        auto lines = SplitString(std::string_view((char*)resource->DataBuffer, resource->DataSize), "\n");
+        auto lines = StringUtils::SplitString(std::string_view((char*)resource->DataBuffer, resource->DataSize), "\n");
 
         Table& table = LoadedTables.try_emplace(hash).first->second;
 
         for (auto& line : lines)
         {
-            auto parts = SplitString(line, ";");
+            auto parts = StringUtils::SplitString(line, ";");
             if (!parts.empty())
             {
                 table.insert_or_assign(parts[0], parts.size() > 1 ? parts[1] : std::string());
