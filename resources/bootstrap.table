@@ -1,4 +1,5 @@
 shader_manifest;shaders/manifest.table
+mesh_manifest;models/manifest.table
 boot_level;maps/example.tmx
 default_skybox;textures/skybox.png
 light_sequences;VFX/light_sequence.table

@@ -54,23 +54,28 @@ ConsoleRenderSystem::~ConsoleRenderSystem()
 	LastConsole = nullptr;
 }
 
+void ConsoleRenderSystem::RegisterCommand(std::string_view command, CommandHandler handler)
+{
+    CommandHandlers.insert_or_assign(std::string(command), handler);
+}
+
 void ConsoleRenderSystem::OnSetup()
 {
-	CommandHandlers.insert_or_assign(ConsoleCommands::ToggleGhost,
+	RegisterCommand(ConsoleCommands::ToggleGhost,
 		[this](std::string_view command, const std::vector<std::string>& args)
 		{  
 			GlobalVars::UseGhostMovement = !GlobalVars::UseGhostMovement;
 			OutputVarState("UseGhostMovement", GlobalVars::UseGhostMovement); 
 		} );
 
-    CommandHandlers.insert_or_assign(ConsoleCommands::ToggleCulling,
+	RegisterCommand(ConsoleCommands::ToggleCulling,
         [this](std::string_view command, const std::vector<std::string>& args)
         {
             GlobalVars::UseVisCulling = !GlobalVars::UseVisCulling;
             OutputVarState("UseVisCulling", GlobalVars::UseVisCulling);
         });
 
-    CommandHandlers.insert_or_assign(ConsoleCommands::Reload,
+	RegisterCommand(ConsoleCommands::Reload,
         [this](std::string_view command, const std::vector<std::string>& args)
         {
             WorldPtr->ReloadMap();

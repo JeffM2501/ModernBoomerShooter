@@ -27,6 +27,8 @@ public:
 
     void ProcessCommand(std::string_view command);
 
+    void RegisterCommand(std::string_view command, CommandHandler handler);
+
 protected:
     void OnUpdate() override;
 

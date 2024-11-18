@@ -22,4 +22,5 @@ namespace ResourceManager
 
     void ReleaseResource(std::shared_ptr<ResoureInfo> resource);
     void ReleaseResource(const char* resourceName);
+    void ReleaseResourceByData(void* resourceData);
 };

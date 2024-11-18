@@ -14,7 +14,9 @@ ResoureInfo::~ResoureInfo()
 namespace ResourceManager
 {
     static std::hash<std::string_view> StringHasher;
-    std::unordered_map<size_t, std::shared_ptr<ResoureInfo>> OpenResources;
+
+    using ResourceMap = std::unordered_map<size_t, std::shared_ptr<ResoureInfo>>;
+    ResourceMap OpenResources;
 
     bool SearchAndSetResourceDir(const char* folderName)
     {
@@ -124,5 +126,17 @@ namespace ResourceManager
         auto itr = OpenResources.find(StringHasher(resourceName));
         if (itr != OpenResources.end())
             OpenResources.erase(itr);
+    }
+
+    void ReleaseResourceByData(void* resourceData)
+    {
+        for (ResourceMap::iterator itr = OpenResources.begin(); itr != OpenResources.end(); itr++)
+        {
+            if (itr->second->DataBuffer == resourceData)
+            {
+                OpenResources.erase(itr);
+                return;
+            }
+        }
     }
 };
