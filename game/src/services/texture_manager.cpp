@@ -1,6 +1,7 @@
 #include "services/texture_manager.h"
 #include "services/resource_manager.h"
 #include "services/table_manager.h"
+#include "model.h"
 
 #include <unordered_map>
 
@@ -81,6 +82,8 @@ namespace TextureManager
 
         LoadTextureRecord(DefaultTexture, defaultImage);
         UnloadImage(defaultImage);
+
+        SetModelTextureResolver(GetTexture);
 
         auto* bootstrapTable = TableManager::GetTable(BootstrapTable);
         

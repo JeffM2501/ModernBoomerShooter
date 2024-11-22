@@ -9,6 +9,8 @@
 #include "services/texture_manager.h"
 #include "services/table_manager.h"
 
+#include "components/transform_component.h"
+
 #include "world.h"
 #include "map/map.h"
 
@@ -85,6 +87,10 @@ void SceneRenderSystem::OnSetup()
     };
 
     light->SetDirection(Vector3Normalize(lightVec));
+
+    TestModel = ModelManager::GetModel("barrel_pallete");
+    if (TestModel)
+        TestModel->SetShader(ObjectLights.GetShader());
 }
 
 float GetFOVX(float fovY)
@@ -134,15 +140,21 @@ void SceneRenderSystem::OnUpdate()
     // draw objects
     ObjectLights.ApplyLights(Render.Viepoint);
 
-    BeginShaderMode(ObjectLights.GetShader());
-    float size = 0.4f;
+    TransformComponent xForm(nullptr);
+    xForm.Position = Vector3(30, 55, 0);
 
-    rlPushMatrix();
+    if (TestModel)
+        TestModel->Draw(xForm);
 
-    rlTranslatef(30, 55, 0.5f);
-    DrawCube(Vector3Zeros, size, size, size, RAYWHITE);
-    rlPopMatrix();
-
-    EndShaderMode();
+//     BeginShaderMode(ObjectLights.GetShader());
+//     float size = 0.4f;
+// 
+//     rlPushMatrix();
+// 
+//     rlTranslatef(30, 55, 0.5f);
+//     DrawCube(Vector3Zeros, size, size, size, RAYWHITE);
+//     rlPopMatrix();
+// 
+//     EndShaderMode();
     EndMode3D();
 }

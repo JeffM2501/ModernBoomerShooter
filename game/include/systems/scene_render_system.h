@@ -3,6 +3,7 @@
 #include "system.h"
 #include "map/map_render.h"
 #include "utilities/lighting_system.h"
+#include "services/model_manager.h"
 #include "raylib.h"
 
 class SceneRenderSystem : public System
@@ -27,4 +28,6 @@ protected:
     Material SkyboxMaterial = { 0 };
 
     LightScene ObjectLights;
+
+    std::shared_ptr<ModelInstance> TestModel;
 };

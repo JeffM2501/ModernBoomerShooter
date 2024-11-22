@@ -2,13 +2,15 @@
 
 #include <string>
 #include <stdio.h>
-
+#include <span>
 
 template<class T>
 static void Write(FILE* fp, T value)
 {
     fwrite(&value, sizeof(T), 1, fp);
 }
+
+using bytes = std::span<const std::byte>;
 
 void WriteModel(Model& model, std::string_view file)
 {
@@ -51,12 +53,20 @@ void WriteModel(Model& model, std::string_view file)
             fwrite(mesh.indices, sizeof(unsigned short) * mesh.triangleCount * 3, 1, out);
     }
 
+    std::hash<std::string_view> hasher;
+
     for (int matIndex = 0; matIndex < model.materialCount; matIndex++)
     { 
         Material& mat = model.materials[matIndex];
 
         Image texture = LoadImageFromTexture(mat.maps[MATERIAL_MAP_ALBEDO].texture);
-        const char* textureName = TextFormat("resources/textures/models/%s_texture_%d.png", file.data(), matIndex);
+
+        int bpp = texture.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 ? 4 : 3;
+
+        std::string_view view((const char*)texture.data, texture.width * texture.height * bpp);
+        size_t hash = hasher(view);
+
+        const char* textureName = TextFormat("textures/models/%d.png", hash);
         ExportImage(texture, textureName);
 
         Write(out, ColorToInt(mat.maps[MATERIAL_MAP_ALBEDO].color));
