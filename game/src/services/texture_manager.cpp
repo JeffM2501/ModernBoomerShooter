@@ -172,6 +172,53 @@ namespace TextureManager
         return itr->second.Texture;
     }
 
+    static bool GenerateCubeMapMipMaps = false;
+
+    Texture2D GetTextureCubemap(std::string_view name)
+    {
+        size_t hash = StringHasher(name);
+        auto itr = LoadedTextures.find(hash);
+        if (itr != LoadedTextures.end())
+            return itr->second.Texture;
+
+        auto resource = ResourceManager::OpenResource(name);
+        if (!resource)
+            return DefaultTexture.Texture;
+
+        Image image = LoadImageFromMemory(GetFileExtension(name.data()), resource->DataBuffer, int(resource->DataSize));
+        ResourceManager::ReleaseResource(resource);
+        if (IsImageValid(image))
+        {
+            itr = LoadedTextures.try_emplace(hash).first;
+
+            TextureRecord& record = itr->second;
+
+            record.ImageSize = image.width * image.height;
+            if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8)
+                record.ImageSize *= 3;
+            if (image.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8)
+                record.ImageSize *= 4;
+
+            record.Texture = LoadTextureCubemap(image, CUBEMAP_LAYOUT_AUTO_DETECT);    // CUBEMAP_LAYOUT_PANORAMA
+
+            if (GenerateCubeMapMipMaps)
+            {
+                GenTextureMipmaps(&record.Texture);
+                SetTextureFilter(record.Texture, TEXTURE_FILTER_ANISOTROPIC_16X);
+                record.ImageSize += record.ImageSize / 3;
+            }
+
+            UsedVRam += record.ImageSize;
+            UnloadImage(image);
+
+            return record.Texture;
+        }
+        else
+        {
+            return DefaultTexture.Texture;
+        }
+    }
+
     void UnloadAll()
     {
         for (auto& [hash, textureRecord] : LoadedTextures)

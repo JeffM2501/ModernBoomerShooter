@@ -9,6 +9,20 @@ void OverlayRenderSystem::OnUpdate()
 {
     DrawText(TextFormat("Rays Cast %d", WorldPtr->GetRaycaster().GetCastCount()), 10, GetScreenHeight() - 50, 20, SKYBLUE);
     DrawText(TextFormat("Cells Drawn %d of %d total cells", GlobalVars::UseVisCulling ? WorldPtr->GetRaycaster().GetHitCelList().size() : WorldPtr->GetMap().Cells.size(), WorldPtr->GetMap().Cells.size()), 10, GetScreenHeight() - 70, 20, YELLOW);
-    DrawText(TextFormat("Used Texture Memory %0.2fkb", TextureManager::GetUsedVRAM()/1024.0f), 10, GetScreenHeight()-30, 20, WHITE);
+
+    float vram = TextureManager::GetUsedVRAM() / 1024.0f;
+    const char* vramSuffix = "kb";
+    if (vram > 1024)
+    {
+        vram /= 1024.0f;
+        vramSuffix = "mb";
+    }
+    if (vram > 1024)
+    {
+        vram /= 1024.0f;
+        vramSuffix = "gb";
+    }
+
+    DrawText(TextFormat("Used Texture Memory %0.2f%s", vram, vramSuffix), 10, GetScreenHeight()-30, 20, WHITE);
     DrawFPS(10, GetScreenHeight() - 90);
 }

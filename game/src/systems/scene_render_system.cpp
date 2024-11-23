@@ -38,24 +38,7 @@ void SceneRenderSystem::OnSetup()
     SkyboxTexture.id = 0;
 
     if (!skyboxName.empty())
-    {
-        auto skyboxresource = ResourceManager::OpenResource(skyboxName);
-        if (skyboxresource)
-        {
-            Image img = LoadImageFromMemory(GetFileExtension(skyboxName.c_str()), skyboxresource->DataBuffer, int(skyboxresource->DataSize));
-            ResourceManager::ReleaseResource(skyboxresource);
-            if (IsImageValid(img))
-            {
-                SkyboxTexture = LoadTextureCubemap(img, CUBEMAP_LAYOUT_AUTO_DETECT);    // CUBEMAP_LAYOUT_PANORAMA
-                UnloadImage(img);
-            }
-        }
-
-        if (!IsTextureValid(SkyboxTexture))
-        {
-            SkyboxTexture = TextureManager::GetTexture(skyboxName);
-        }
-    }
+        SkyboxTexture = TextureManager::GetTextureCubemap(skyboxName);
     
     SkyboxShader = TextureManager::GetShader("skybox");
 

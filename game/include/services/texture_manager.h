@@ -9,6 +9,7 @@ namespace TextureManager
     void Cleanup();
 
     Texture2D GetTexture(std::string_view name);
+    Texture2D GetTextureCubemap(std::string_view name);
     void UnloadAll();
 
     Shader GetShader(std::string_view name);
