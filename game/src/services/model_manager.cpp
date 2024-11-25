@@ -36,7 +36,7 @@ ModelInstance::~ModelInstance()
         Geometry->ReleaseInstance();
 }
 
-static Matrix ModelIdentity = MatrixScale(2,2,2);
+static Matrix ModelIdentity = MatrixScale(1,1,1);
 
 void ModelInstance::Draw(TransformComponent& transform)
 {
@@ -47,7 +47,6 @@ void ModelInstance::Draw(TransformComponent& transform)
     {
         DrawMesh(Geometry->Geometry.meshes[mesh], MaterialOverrides[Geometry->Geometry.meshMaterial[mesh]], ModelIdentity);
     }
-    DrawModel(Geometry->Geometry, Vector3Zeros, 1, WHITE);
     rlPopMatrix();
 }
 

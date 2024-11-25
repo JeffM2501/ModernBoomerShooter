@@ -12,15 +12,16 @@ public:
     DEFINE_SYSTM_NO_CONSTRUCTOR(SceneRenderSystem);
 
     SceneRenderSystem(World* world);
+    void MapObjectAdded(class MapObjectComponent* object);
 
 protected:
     void OnSetup() override;
     void OnUpdate() override;
 
 protected:
-
     MapRenderer Render;
     class PlayerManagementSystem* PlayerManager = nullptr;
+    class MapObjectSystem* MapObjects = nullptr;
 
     Shader SkyboxShader = { 0 };
     Texture2D SkyboxTexture = { 0 };
@@ -28,6 +29,4 @@ protected:
     Material SkyboxMaterial = { 0 };
 
     LightScene ObjectLights;
-
-    std::shared_ptr<ModelInstance> TestModel;
 };

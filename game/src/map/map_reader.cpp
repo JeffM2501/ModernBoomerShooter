@@ -8,6 +8,7 @@
 
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
+#include "components/map_object_component.h"
 
 #include "utilities/light_utils.h"
 
@@ -141,6 +142,24 @@ bool FindProperty(std::string_view name, const std::vector<tmx::Property>& prope
     return false;
 }
 
+
+bool FindProperty(std::string_view name, const std::vector<tmx::Property>& properties, bool& boolValue)
+{
+    for (auto& property : properties)
+    {
+        if (property.getType() != tmx::Property::Type::Boolean)
+            continue;
+
+        if (property.getName() == name)
+        {
+            boolValue = property.getBoolValue();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SetObjectTransform(const tmx::Map& map, const tmx::Object& object, TransformComponent* transform)
 {
     if (!transform)
@@ -148,6 +167,8 @@ void SetObjectTransform(const tmx::Map& map, const tmx::Object& object, Transfor
 
     transform->Position.x = object.getPosition().x / float(map.getTileSize().x);
     transform->Position.y = map.getTileCount().y - (object.getPosition().y / float(map.getTileSize().y));
+
+    FindProperty("height", object.getProperties(), transform->Position.z);
 
     FindProperty("facing", object.getProperties(), transform->Facing);
 }
@@ -244,6 +265,18 @@ void ReadWorldTMX(const char* fileName, World& world)
             spawn->AddComponent<SpawnPointComponent>();
         },
         "spawn");
+
+    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
+        {
+            auto* mapObject = world.AddObject();
+            SetObjectTransform(tmxMap, object, mapObject->AddComponent<TransformComponent>());
+
+            std::string model;
+            FindProperty("model", object.getProperties(), model);
+            auto* modelComp = mapObject->AddComponent<MapObjectComponent>(model);
+            FindProperty("solid", object.getProperties(), modelComp->Solid);
+        },
+        "object");
 
     auto sequenceTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("light_sequences");
 

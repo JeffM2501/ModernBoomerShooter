@@ -6,7 +6,7 @@
 class GameObject;
 
 #define DEFINE_COMPONENT(T) \
-    T(GameObject* owner) {Owner = owner;} \
+    T(GameObject* owner) : Component(owner){} \
     static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
     size_t GetTypeID() const override {return T::TypeID();} \
     static std::unique_ptr<Component> Create(GameObject* owner){ return std::make_unique<T>(owner);}
@@ -14,6 +14,7 @@ class GameObject;
 class Component
 {
 public:
+    Component(GameObject* owner) : Owner(owner) {}
     virtual ~Component() = default;
 
     virtual size_t GetTypeID() const = 0;

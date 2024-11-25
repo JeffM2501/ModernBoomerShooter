@@ -20,10 +20,10 @@ namespace App
     void Init()
     {
         Run = true;
-        SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
+        SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
         InitWindow(1280, 800, "ModernBoomerShooter");
         SetTargetFPS(300);
-
+        
         GameTime::ComputeNominalFPS();
         ResourceManager::Init("resources");
         TextureManager::Init();

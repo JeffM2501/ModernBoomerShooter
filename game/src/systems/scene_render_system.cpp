@@ -4,12 +4,14 @@
 #include "rlgl.h"
 
 #include "systems/player_management_system.h"
+#include "systems/map_object_system.h"
 
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
 #include "services/table_manager.h"
 
 #include "components/transform_component.h"
+#include "components/map_object_component.h"
 
 #include "world.h"
 #include "map/map.h"
@@ -22,6 +24,14 @@ SceneRenderSystem::SceneRenderSystem(World* world)
 
 }
 
+void SceneRenderSystem::MapObjectAdded(class MapObjectComponent* object)
+{
+    if (!MapObjects)
+        return;
+
+    object->Instance->SetShader(ObjectLights.GetShader());
+}
+
 void SceneRenderSystem::OnSetup()
 {
     if (!WorldPtr)
@@ -30,6 +40,7 @@ void SceneRenderSystem::OnSetup()
     Render.Reset();
 
     PlayerManager = WorldPtr->GetSystem<PlayerManagementSystem>();
+    MapObjects = WorldPtr->GetSystem<MapObjectSystem>();
 
     std::string skyboxName = WorldPtr->GetMap().LightInfo.SkyboxTextureName;
     if (skyboxName.empty())
@@ -71,9 +82,10 @@ void SceneRenderSystem::OnSetup()
 
     light->SetDirection(Vector3Normalize(lightVec));
 
-    TestModel = ModelManager::GetModel("barrel_pallete");
-    if (TestModel)
-        TestModel->SetShader(ObjectLights.GetShader());
+    for (auto* mapObjet : MapObjects->MapObjects)
+    {
+        mapObjet->Instance->SetShader(ObjectLights.GetShader());
+    }
 }
 
 float GetFOVX(float fovY)
@@ -123,21 +135,9 @@ void SceneRenderSystem::OnUpdate()
     // draw objects
     ObjectLights.ApplyLights(Render.Viepoint);
 
-    TransformComponent xForm(nullptr);
-    xForm.Position = Vector3(30, 55, 0);
-
-    if (TestModel)
-        TestModel->Draw(xForm);
-
-//     BeginShaderMode(ObjectLights.GetShader());
-//     float size = 0.4f;
-// 
-//     rlPushMatrix();
-// 
-//     rlTranslatef(30, 55, 0.5f);
-//     DrawCube(Vector3Zeros, size, size, size, RAYWHITE);
-//     rlPopMatrix();
-// 
-//     EndShaderMode();
+    for (auto* mapObjet : MapObjects->MapObjects)
+    {
+        mapObjet->Instance->Draw(mapObjet->GetOwner()->MustGetComponent<TransformComponent>());
+    }
     EndMode3D();
 }

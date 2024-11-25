@@ -1,5 +1,6 @@
 #include "model.h"
 
+#include <cstring>
 #include <string>
 #include <stdio.h>
 #include <span>

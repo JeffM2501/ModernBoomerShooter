@@ -10,6 +10,7 @@
 #include "systems/console_render_system.h"
 #include "systems/menu_render_system.h"
 #include "systems/player_management_system.h"
+#include "systems/map_object_system.h"
 
 #include "map/map_reader.h"
 
@@ -152,6 +153,7 @@ void World::SetupSystems()
 {
     // register standard systems
     RegisterSystem<InputSystem>(SystemStage::PreUpdate);
+    RegisterSystem<MapObjectSystem>(SystemStage::PreUpdate);
 
     RegisterSystem<PlayerManagementSystem>(SystemStage::Update);
 

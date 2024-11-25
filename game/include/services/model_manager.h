@@ -6,6 +6,9 @@
 #include <vector>
 #include <string_view>
 
+
+class ModelInstance;
+
 class ModelRecord
 {
 public:
@@ -15,7 +18,7 @@ protected:
     size_t ReferenceCount = 0;
 
 protected:
-    friend class ModelInstance;
+    friend ModelInstance;
     std::shared_ptr<ModelInstance> GetModelInstance();
 
     void ReleaseInstance();

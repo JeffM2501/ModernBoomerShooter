@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="64" tileheight="64" infinite="0" nextlayerid="7" nextobjectid="26">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="64" tileheight="64" infinite="0" nextlayerid="7" nextobjectid="28">
  <properties>
   <property name="ambient_direction_angle" type="float" value="-33.03"/>
   <property name="extereor_ambient_level" type="float" value="1"/>
@@ -150,34 +150,31 @@
    </properties>
    <point/>
   </object>
-  <object id="2" name="Light1" type="Light" x="2193.94" y="1009.09">
+  <object id="4" name="Barrel" type="object" x="1500.61" y="1147.88">
    <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
+    <property name="height" type="float" value="0"/>
+    <property name="model" value="barrel"/>
+    <property name="solid" type="bool" value="false"/>
    </properties>
    <point/>
   </object>
-  <object id="3" x="1460.61" y="978.788">
+  <object id="26" name="Chair" type="object" x="1996.61" y="1135.88">
+   <properties>
+    <property name="height" type="float" value="0"/>
+    <property name="model" value="chair"/>
+    <property name="solid" type="bool" value="true"/>
+   </properties>
    <point/>
   </object>
-  <object id="4" name="Light1" type="Light" x="1460.61" y="987.879">
+  <object id="27" name="palette" type="object" x="2648.61" y="1047.88">
    <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
+    <property name="height" type="float" value="0"/>
+    <property name="model" value="barrel_pallete"/>
+    <property name="solid" type="bool" value="true"/>
    </properties>
    <point/>
   </object>
   <object id="5" name="Light1" type="Light" x="369.697" y="1551.52">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="6" name="Light1" type="Light" x="1548.48" y="1812.12">
    <properties>
     <property name="height" type="float" value="1"/>
     <property name="tint" type="color" value="#ffffffff"/>
@@ -206,68 +203,6 @@
     <property name="height" type="float" value="1"/>
     <property name="tint" type="color" value="#ffffffff"/>
     <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="11" name="Light1" type="Light" x="2909.09" y="2154.55">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="12" name="Light1" type="Light" x="3609.09" y="715.152">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="13" name="Light1" type="Light" x="2890.91" y="684.848">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="14" name="Light1" type="Light" x="2393.94" y="675.758">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="15" name="Light1" type="Light" x="3636.36" y="1260.61">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ff0000ff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="16" name="Light1" type="Light" x="3642.42" y="1593.94">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffff0000"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="17" name="Light1" type="Light" x="3633.33" y="1933.33">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ff00aa00"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="18" name="Barrel" type="object" x="2803.03" y="1484.85">
-   <properties>
-    <property name="mesh" value="barrel_1"/>
    </properties>
    <point/>
   </object>

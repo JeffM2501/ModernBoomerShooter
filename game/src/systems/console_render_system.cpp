@@ -6,7 +6,7 @@
 #include "world.h"
 #include "raylib.h"
 
-#include <varargs.h>
+#include <stdarg.h>
 #include <algorithm>
 
 static constexpr float AnimationTime = 0.5f;
