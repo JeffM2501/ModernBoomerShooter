@@ -5,32 +5,31 @@
 
 namespace CollisionUtils
 {
-    void PointNearestRect(const Rectangle& rect, const Vector3& point, Vector3* nearest, Vector3* normal)
+    void PointNearestRect(const Rectangle& rect, const Vector2& point, Vector2* nearest, Vector2* normal)
     {
         // get the closest point on the vertical sides
-        float hValue = float(rect.x);
-        float hNormal = -1.0f;
+        float hValue = rect.x;
+        float hNormal = -1;
         if (point.x > rect.x + rect.width)
         {
-            hValue += 1;
+            hValue = rect.x + rect.width;
             hNormal = 1;
         }
 
-        Vector3 vecToPoint = Vector3{ hValue, rect.y, 0.0f } - point;
-
+        Vector2 vecToPoint = Vector2Subtract(Vector2 { hValue, rect.y }, point);
         // get the dot product between the ray and the vector to the point
-        float dotForPoint = Vector3DotProduct(Vector3{ 0, -1, 0 }, vecToPoint);
-        Vector3 nearestPoint = { hValue, 0, 0 };
+        float dotForPoint = Vector2DotProduct(Vector2 { 0, -1 }, vecToPoint);
+        Vector2 nearestPoint = { hValue,0 };
 
         if (dotForPoint < 0)
-            nearestPoint.y = float(rect.y);
-        else if (dotForPoint >= 1)
-            nearestPoint.y = float(rect.y + rect.height);
+            nearestPoint.y = rect.y;
+        else if (dotForPoint >= rect.height)
+            nearestPoint.y = rect.y + rect.height;
         else
             nearestPoint.y = rect.y + dotForPoint;
 
         // get the closest point on the horizontal sides
-        float vValue = float(rect.y);
+        float vValue = rect.y;
         float vNormal = -1;
         if (point.y > rect.y + rect.height)
         {
@@ -38,19 +37,19 @@ namespace CollisionUtils
             vNormal = 1;
         }
 
-        vecToPoint = Vector3{ rect.x, vValue, 0 } - point;
+        vecToPoint = Vector2Subtract(Vector2 { rect.x, vValue }, point);
         // get the dot product between the ray and the vector to the point
-        dotForPoint = Vector3DotProduct(Vector3{ -1, 0, 0 }, vecToPoint);
-        *nearest = Vector3{ 0,vValue, 0 };
+        dotForPoint = Vector2DotProduct(Vector2 { -1, 0 }, vecToPoint);
+        *nearest = Vector2{ 0, vValue };
 
         if (dotForPoint < 0)
             nearest->x = rect.x;
-        else if (dotForPoint >= 1)
+        else if (dotForPoint >= rect.width)
             nearest->x = rect.x + rect.width;
         else
             nearest->x = rect.x + dotForPoint;
 
-        if (Vector3LengthSqr(point - nearestPoint) < Vector3LengthSqr(point - *nearest))
+        if (Vector2LengthSqr(Vector2Subtract(point, nearestPoint)) < Vector2LengthSqr(Vector2Subtract(point, *nearest)))
         {
             *nearest = nearestPoint;
 
@@ -72,50 +71,53 @@ namespace CollisionUtils
 
     void PointNearestBoundsXY(const BoundingBox& bbox, const Vector3& position, const Vector3& point, Vector3* nearest, Vector3* normal)
     {
+        Vector3 min = position + bbox.min;
+        Vector3 max = position + bbox.max;
+        Vector3 size = bbox.max - bbox.min;
+
         // get the closest point on the vertical sides
-        float hValue = bbox.min.x + position.x;
-        float hNormal = -1.0f;
-        if (point.x > bbox.max.x + position.x)
+        float hValue = min.x;
+        float hNormal = -1;
+        if (point.x > max.x )
         {
-            hValue += 1;
+            hValue = max.x;
             hNormal = 1;
         }
 
-        Vector3 vecToPoint = Vector3{ hValue, bbox.min.y + position.y, 0.0f } - point;
-
+        Vector3 vecToPoint = Vector3Subtract(Vector3{ hValue, min.y, 0 }, point);
         // get the dot product between the ray and the vector to the point
         float dotForPoint = Vector3DotProduct(Vector3{ 0, -1, 0 }, vecToPoint);
-        Vector3 nearestPoint = { hValue, 0, 0 };
+        Vector3 nearestPoint = { hValue,0 };
 
         if (dotForPoint < 0)
-            nearestPoint.y = bbox.min.y + position.y;
-        else if (dotForPoint >= 1)
-            nearestPoint.y = bbox.max.y + position.y;
+            nearestPoint.y = min.y;
+        else if (dotForPoint >= size.y)
+            nearestPoint.y = max.y;
         else
-            nearestPoint.y = bbox.min.y + position.y + dotForPoint;
+            nearestPoint.y = min.y + dotForPoint;
 
         // get the closest point on the horizontal sides
-        float vValue = bbox.min.y + position.y;
+        float vValue = min.y;
         float vNormal = -1;
-        if (point.y > bbox.max.y + position.y)
+        if (point.y > max.y)
         {
-            vValue = bbox.max.y + position.y;
+            vValue = max.y;
             vNormal = 1;
         }
 
-        vecToPoint = Vector3{ bbox.min.x + position.x, vValue, 0 } - point;
+        vecToPoint = Vector3Subtract(Vector3{ min.x, vValue, 0 }, point);
         // get the dot product between the ray and the vector to the point
         dotForPoint = Vector3DotProduct(Vector3{ -1, 0, 0 }, vecToPoint);
-        *nearest = Vector3{ 0,vValue, 0 };
+        *nearest = Vector3{ 0, vValue, 0 };
 
         if (dotForPoint < 0)
-            nearest->x = bbox.min.x + position.x;
-        else if (dotForPoint >= 1)
-            nearest->x = bbox.max.x + position.x;
+            nearest->x = min.x;
+        else if (dotForPoint >= size.x)
+            nearest->x = max.x;
         else
-            nearest->x = bbox.min.x + position.x + dotForPoint;
+            nearest->x = min.x + dotForPoint;
 
-        if (Vector3LengthSqr(point - nearestPoint) < Vector3LengthSqr(point - *nearest))
+        if (Vector3LengthSqr(Vector3Subtract(point, nearestPoint)) < Vector3LengthSqr(Vector3Subtract(point, *nearest)))
         {
             *nearest = nearestPoint;
 

@@ -1,4 +1,5 @@
 #include "systems/overlay_render_system.h"
+#include "systems/player_management_system.h"
 #include "services/texture_manager.h"
 #include "services/global_vars.h"
 #include "world.h"
@@ -25,4 +26,11 @@ void OverlayRenderSystem::OnUpdate()
 
     DrawText(TextFormat("Used Texture Memory %0.2f%s", vram, vramSuffix), 10, GetScreenHeight()-30, 20, WHITE);
     DrawFPS(10, GetScreenHeight() - 90);
+
+    if (GlobalVars::ShowCoordinates)
+    {
+        auto playerPos = WorldPtr->GetSystem<PlayerManagementSystem>()->PlayerPos;
+
+        DrawText(TextFormat("Player X%0.2f Y%0.2f", playerPos.x, playerPos.y), GetScreenWidth()-250, GetScreenHeight() - 30, 20, WHITE);
+    }
 }

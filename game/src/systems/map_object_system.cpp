@@ -5,6 +5,7 @@
 #include "components/map_object_component.h"
 #include "components/transform_component.h"
 #include "services/model_manager.h"
+#include "services/global_vars.h"
 
 #include "utilities/collision_utils.h"
 
@@ -49,6 +50,8 @@ bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, floa
     {
         if (!object->Solid)
             continue;
+        
+        // TODO check if the object is near the entity
 
         float motionVecLen = Vector3Length(desiredMotion);
         if (motionVecLen < FLT_MIN)
@@ -59,45 +62,80 @@ bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, floa
         Vector3 targetVec = desiredMotion / motionVecLen;
 
         TransformComponent& transform = object->GetOwner()->MustGetComponent<TransformComponent>();
-        // check rectangle
 
-        Vector3 hitPoint = { -10000,-100000, 0 };
-        Vector3 hitNormal = { 0, 0, 0 };
+        // check bounds
 
-        Rectangle rect = { 0,0,0,0 };
-        rect.x = transform.Position.x + bbox.min.x;
-        rect.y = transform.Position.y + bbox.min.y;
-        rect.width = bbox.max.x - bbox.min.x;
-        rect.height = bbox.max.y - bbox.min.y;
-
-
-      //  CollisionUtils::PointNearestRect(rect, newPos, &hitPoint, &hitNormal);
-
-        CollisionUtils::PointNearestBoundsXY(bbox, transform.Position, newPos, &hitPoint, &hitNormal);
-
-        Vector3 vectorToHit = hitPoint - newPos;
-
-        bool inside = Vector3LengthSqr(vectorToHit) < radius * radius;
-
-        if (inside)
+        if (GlobalVars::ShowCollisionVolumes)
         {
-            hitSomething = true;
-            // normalize the vector along the point to where we are nearest
-            vectorToHit = Vector3Normalize(vectorToHit);
+            Rectangle rect = { 0,0,0,0 };
+            rect.x = transform.Position.x + bbox.min.x;
+            rect.y = transform.Position.y + bbox.min.y;
+            rect.width = bbox.max.x - bbox.min.x;
+            rect.height = bbox.max.y - bbox.min.y;
 
-            // project that out to the radius to find the point that should be 'deepest' into the rectangle.
-            Vector3 projectedPoint = newPos + (vectorToHit * radius);
+            Vector2 hitPoint2D = { -10000,-100000 };
+            Vector2 hitNormal2D = { 0, 0 };
 
-            // compute the shift to take the deepest point out to the edge of our nearest hit, based on the vector direction
-            Vector3 delta = { 0,0 };
+            Vector2 newPos2D = { newPos.x, newPos.y };
 
-            if (hitNormal.x != 0)
-                delta.x = hitPoint.x - projectedPoint.x;
-            else
-                delta.y = hitPoint.y - projectedPoint.y;
+            CollisionUtils::PointNearestRect(rect, newPos2D, &hitPoint2D, &hitNormal2D);
 
-            // shift the new point by the delta to push us outside of the rectangle
-            newPos += delta;
+            Vector2 vectorToHit = hitPoint2D - newPos2D;
+
+            bool inside = Vector2LengthSqr(vectorToHit) < radius * radius;
+
+            if (inside)
+            {
+                hitSomething = true;
+                // normalize the vector along the point to where we are nearest
+                vectorToHit = Vector2Normalize(vectorToHit);
+
+                // project that out to the radius to find the point that should be 'deepest' into the rectangle.
+                Vector2 projectedPoint = newPos2D + (vectorToHit * radius);
+
+                // compute the shift to take the deepest point out to the edge of our nearest hit, based on the vector direction
+                Vector3 delta = { 0, 0, 0 };
+
+                if (hitNormal2D.x != 0)
+                    delta.x = hitPoint2D.x - projectedPoint.x;
+                else
+                    delta.y = hitPoint2D.y - projectedPoint.y;
+
+                // shift the new point by the delta to push us outside of the rectangle
+                newPos += delta;
+            }
+        }
+        else
+        {
+            Vector3 hitPoint = { -10000,-100000, 0 };
+            Vector3 hitNormal = { 0, 0, 0 };
+
+            CollisionUtils::PointNearestBoundsXY(bbox, transform.Position, newPos, &hitPoint, &hitNormal);
+
+            Vector3 vectorToHit = hitPoint - newPos;
+ 
+            bool inside = Vector3LengthSqr(vectorToHit) < radius * radius;
+ 
+            if (inside)
+            {
+                hitSomething = true;
+                // normalize the vector along the point to where we are nearest
+                vectorToHit = Vector3Normalize(vectorToHit);
+ 
+                // project that out to the radius to find the point that should be 'deepest' into the rectangle.
+                Vector3 projectedPoint = newPos + (vectorToHit * radius);
+ 
+                // compute the shift to take the deepest point out to the edge of our nearest hit, based on the vector direction
+                Vector3 delta = { 0,0 };
+ 
+                if (hitNormal.x != 0)
+                    delta.x = hitPoint.x - projectedPoint.x;
+                else
+                    delta.y = hitPoint.y - projectedPoint.y;
+ 
+                // shift the new point by the delta to push us outside of the rectangle
+                newPos += delta;
+            }
         }
     }
 

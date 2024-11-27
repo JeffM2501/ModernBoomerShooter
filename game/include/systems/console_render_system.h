@@ -13,6 +13,7 @@ namespace ConsoleCommands
     static constexpr char ToggleCulling[] = "toggle_culling";
     static constexpr char ToggleGhost[] = "toggle_ghost";
     static constexpr char ToggleCollisionVolumes[] = "toggle_volumes";
+    static constexpr char ToggleShowCoordinates[] = "show_coordinates";
     static constexpr char SetConsoleFontSize[] = "set_console_font";
 
     static constexpr char ListCommands[] = "list";

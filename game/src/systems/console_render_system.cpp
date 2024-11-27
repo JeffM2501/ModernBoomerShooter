@@ -88,6 +88,13 @@ void ConsoleRenderSystem::OnSetup()
         {
 			GlobalVars::ShowCollisionVolumes = !GlobalVars::ShowCollisionVolumes;
 			OutputVarState("ShowCollisionVolumes", GlobalVars::ShowCollisionVolumes);
+        });	
+	
+	RegisterCommand(ConsoleCommands::ToggleShowCoordinates,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+            GlobalVars::ShowCoordinates = !GlobalVars::ShowCoordinates;
+            OutputVarState("ShowCoordinates", GlobalVars::ShowCoordinates);
         });
 
     RegisterCommand(ConsoleCommands::ListCommands,
