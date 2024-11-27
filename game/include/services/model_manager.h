@@ -14,14 +14,19 @@ class ModelRecord
 public:
     Model Geometry;
 
+    BoundingBox GetBounds();
+
 protected:
     size_t ReferenceCount = 0;
-
+    BoundingBox Bounds = { 0 };
+    bool BoundsValid = false;
 protected:
     friend ModelInstance;
     std::shared_ptr<ModelInstance> GetModelInstance();
 
     void ReleaseInstance();
+
+    void CheckBounds();
 };
 
 class ModelInstance

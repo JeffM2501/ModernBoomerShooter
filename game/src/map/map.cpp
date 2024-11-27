@@ -134,7 +134,7 @@ bool Map::MoveEntity(Vector3& position, Vector3& desiredMotion, float radius)
         }
     }
 
-    position = newPos;
+    desiredMotion = newPos - position;
 
     return collided;
 }

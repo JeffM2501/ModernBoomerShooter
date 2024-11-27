@@ -8,11 +8,18 @@
 #include "model.h"
 
 #include "rlgl.h"
+#include "raymath.h"
 
 #include <unordered_map>
 #include <string>
 
 const Table* ModelManifestTable = nullptr;
+
+BoundingBox ModelRecord::GetBounds()
+{
+    CheckBounds();
+    return Bounds;
+}
 
 std::shared_ptr<ModelInstance> ModelRecord::GetModelInstance()
 {
@@ -28,6 +35,13 @@ void ModelRecord::ReleaseInstance()
     {
         // we could destroy this mesh
     }
+}
+
+void ModelRecord::CheckBounds()
+{
+    if (BoundsValid)
+        return;
+    Bounds = GetModelBoundingBox(Geometry);
 }
 
 ModelInstance::~ModelInstance()

@@ -2,6 +2,7 @@
 
 #include "services/game_time.h"
 #include "systems/input_system.h"
+#include "systems/map_object_system.h"
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
 #include "services/global_vars.h"
@@ -14,6 +15,7 @@ void PlayerManagementSystem::OnSetup()
         return;
 
     Input = WorldPtr->GetSystem<InputSystem>();
+    MapObjects = WorldPtr->GetSystem<MapObjectSystem>();
 
     PlayerPos = Vector3Zeros;
     PlayerFacing = Vector3UnitZ;
@@ -72,12 +74,16 @@ void PlayerManagementSystem::OnUpdate()
 
     Vector3 motion = forward + sideways;
 
+    static constexpr float playerRadius = 0.25f;
+
     if (!GlobalVars::UseGhostMovement)
     {
-        WorldPtr->GetMap().MoveEntity(PlayerPos, motion, 0.25f);
+        WorldPtr->GetMap().MoveEntity(PlayerPos, motion, playerRadius);
+        if (MapObjects->MoveEntity(PlayerPos, motion, playerRadius))
+        {
+
+        }
     }
-    else
-    {
-        PlayerPos += motion;
-    }
+
+    PlayerPos += motion;
 }

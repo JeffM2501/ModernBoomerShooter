@@ -9,6 +9,7 @@
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
 #include "services/table_manager.h"
+#include "services/global_vars.h"
 
 #include "components/transform_component.h"
 #include "components/map_object_component.h"
@@ -137,7 +138,16 @@ void SceneRenderSystem::OnUpdate()
 
     for (auto* mapObjet : MapObjects->MapObjects)
     {
-        mapObjet->Instance->Draw(mapObjet->GetOwner()->MustGetComponent<TransformComponent>());
+        auto& transform = mapObjet->GetOwner()->MustGetComponent<TransformComponent>();
+        mapObjet->Instance->Draw(transform);
+
+        if (mapObjet->Solid && GlobalVars::ShowCollisionVolumes)
+        {
+            rlPushMatrix();
+            rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
+            DrawBoundingBox(mapObjet->Instance->Geometry->GetBounds(), ColorAlpha(RED, 0.75f));
+            rlPopMatrix();
+        }
     }
     EndMode3D();
 }

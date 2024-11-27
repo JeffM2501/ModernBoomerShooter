@@ -5,6 +5,7 @@
 #include "raymath.h"
 
 class SpawnPointComponent;
+class MapObjectSystem;
 
 class PlayerManagementSystem : public System
 {
@@ -29,4 +30,6 @@ protected:
     float PlayerSideStepSpeed = 4;
 
     SpawnPointComponent* Spawn = nullptr;
+
+    MapObjectSystem* MapObjects = nullptr;
 };

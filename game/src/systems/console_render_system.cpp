@@ -6,12 +6,13 @@
 #include "world.h"
 #include "raylib.h"
 
+#include <string>
 #include <stdarg.h>
 #include <algorithm>
 
 static constexpr float AnimationTime = 0.5f;
 static constexpr float ConsoleSizeParam = 0.5f;
-static constexpr int ConsoleTextSize = 10;
+static int ConsoleTextSize = 10;
 
 inline const char* GetLogLevelName(int logLevel)
 {
@@ -81,6 +82,34 @@ void ConsoleRenderSystem::OnSetup()
             WorldPtr->ReloadMap();
             OutputMessage("Map Reloaded");
         });
+
+	RegisterCommand(ConsoleCommands::ToggleCollisionVolumes,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+			GlobalVars::ShowCollisionVolumes = !GlobalVars::ShowCollisionVolumes;
+			OutputVarState("ShowCollisionVolumes", GlobalVars::ShowCollisionVolumes);
+        });
+
+    RegisterCommand(ConsoleCommands::ListCommands,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+			OutputMessage("Available commands");
+			for (auto& cmd : CommandHandlers)
+			{
+				OutputMessage(cmd.first);
+			}
+        });	
+	
+	RegisterCommand(ConsoleCommands::SetConsoleFontSize,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+			if (args.size() < 2)
+				ConsoleTextSize = 10;
+			else
+				ConsoleTextSize = atoi(args[1].c_str());
+
+			OutputMessage(TextFormat("Console Size = %d", ConsoleTextSize));
+        });
 }
 
 void ConsoleRenderSystem::OnUpdate()
@@ -137,7 +166,7 @@ void ConsoleRenderSystem::OnUpdate()
 
     Rectangle textBoxRect = consoleRect;
     textBoxRect.y += textBoxRect.height - ConsoleTextSize-5;
-    textBoxRect.height = ConsoleTextSize + 4;
+    textBoxRect.height = float(ConsoleTextSize + 4);
 
 	// handle keyboard input
     if (ConsoleState != State::Stowing)
@@ -205,7 +234,7 @@ void ConsoleRenderSystem::OnUpdate()
 		// blinking cursor
 		if (int(GetTime() * 2) % 2 == 0)
 		{
-			Rectangle cursorRect = { float(MeasureText(CurrentConsoleInput.c_str(), ConsoleTextSize)) + textBoxRect.x + 7, textBoxRect.y + 2, ConsoleTextSize * 0.5f, ConsoleTextSize};
+			Rectangle cursorRect = { float(MeasureText(CurrentConsoleInput.c_str(), ConsoleTextSize)) + textBoxRect.x + 7, textBoxRect.y + 2, ConsoleTextSize * 0.5f, float(ConsoleTextSize)};
 			DrawRectangleRec(cursorRect, ColorAlpha(WHITE, 0.75f));
 		}	
     }

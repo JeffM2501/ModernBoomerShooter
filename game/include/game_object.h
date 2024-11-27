@@ -30,26 +30,9 @@ public:
     {
         auto itr = Components.find(T::TypeID());
         if (itr != Components.end())
-            return reinterpret_cast<T*>(itr->second.get());
+            return static_cast<T*>(itr->second.get());
 
         auto comp = std::make_unique<T>(this, std::forward<Args>(args)...);
-        T* ptr = static_cast<T*>(comp.get());
-
-        Components.try_emplace(T::TypeID(), std::move(comp));
-
-        ptr->OnAddedToObject();
-        return ptr;
-    }
-
-    template<class T>
-    inline T* AddComponent()
-    {
-        auto itr = Components.find(T::TypeID());
-        if (itr != Components.end())
-            return reinterpret_cast<T*>(itr->second.get());
-
-
-        auto comp = T::Create(this);
         T* ptr = static_cast<T*>(comp.get());
 
         Components.try_emplace(T::TypeID(), std::move(comp));

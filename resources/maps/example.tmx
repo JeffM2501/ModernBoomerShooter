@@ -154,11 +154,11 @@
    <properties>
     <property name="height" type="float" value="0"/>
     <property name="model" value="barrel"/>
-    <property name="solid" type="bool" value="false"/>
+    <property name="solid" type="bool" value="true"/>
    </properties>
    <point/>
   </object>
-  <object id="26" name="Chair" type="object" x="1996.61" y="1135.88">
+  <object id="26" name="Chair" type="object" x="2000" y="1200">
    <properties>
     <property name="height" type="float" value="0"/>
     <property name="model" value="chair"/>
@@ -171,38 +171,6 @@
     <property name="height" type="float" value="0"/>
     <property name="model" value="barrel_pallete"/>
     <property name="solid" type="bool" value="true"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="5" name="Light1" type="Light" x="369.697" y="1551.52">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="7" name="Light1" type="Light" x="512.121" y="2548.48">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="8" name="Light1" type="Light" x="933.333" y="2551.52">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="10" name="Light1" type="Light" x="2469.7" y="2606.06">
-   <properties>
-    <property name="height" type="float" value="1"/>
-    <property name="tint" type="color" value="#ffffffff"/>
-    <property name="type" value="point"/>
    </properties>
    <point/>
   </object>

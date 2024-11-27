@@ -5,6 +5,7 @@
 #include "services/texture_manager.h"
 #include "services/resource_manager.h"
 #include "services/table_manager.h"
+#include "services/model_manager.h"
 
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
@@ -300,7 +301,6 @@ void ReadWorldTMX(const char* fileName, World& world)
                 zone.SequenceFrameTime = zone.SequenceLenght / zone.SequenceValues.size();
             }
             
-
             auto bounds = ConvertObjectAABBToRect(tmxMap, object.getAABB());
 
             for (int y = int(bounds.y); y < int(bounds.y + bounds.height); y++)

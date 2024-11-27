@@ -1,6 +1,7 @@
 # Stuff left to do
 
  * Objects
+    * Object Collisions
  * Triggers
  * Doors
  * Behaviors

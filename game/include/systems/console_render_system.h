@@ -12,6 +12,10 @@ namespace ConsoleCommands
     static constexpr char Reload[] = "reload";
     static constexpr char ToggleCulling[] = "toggle_culling";
     static constexpr char ToggleGhost[] = "toggle_ghost";
+    static constexpr char ToggleCollisionVolumes[] = "toggle_volumes";
+    static constexpr char SetConsoleFontSize[] = "set_console_font";
+
+    static constexpr char ListCommands[] = "list";
 }
 
 using CommandHandler = std::function<void(std::string_view, const std::vector<std::string>&)>;

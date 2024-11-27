@@ -1,4 +1,5 @@
 #include "model.h"
+#include "raymath.h"
 
 static ResolveModelTextureCallback TextureCallback = nullptr;
 
@@ -20,6 +21,7 @@ T ReadData(uint8_t* buffer, size_t& offset, size_t size)
 
 void ReadModel(Model& model, uint8_t* buffer, size_t size)
 {
+    model.transform = MatrixIdentity();
     size_t offset = 0;
 
     int version = ReadData<int>(buffer, offset, size);
