@@ -76,6 +76,22 @@ void ConsoleRenderSystem::OnSetup()
             OutputVarState("UseVisCulling", GlobalVars::UseVisCulling);
         });
 
+    RegisterCommand(ConsoleCommands::ToggleVSync,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+			if (GlobalVars::UseVSync)
+			{
+				ClearWindowState(FLAG_VSYNC_HINT);
+				GlobalVars::UseVSync = false;
+			}
+			else
+			{
+                SetWindowState(FLAG_VSYNC_HINT);
+                GlobalVars::UseVSync = true;
+			}
+            OutputVarState("UseVsync", GlobalVars::UseVSync);
+        });
+
 	RegisterCommand(ConsoleCommands::Reload,
         [this](std::string_view command, const std::vector<std::string>& args)
         {
@@ -116,6 +132,19 @@ void ConsoleRenderSystem::OnSetup()
 				ConsoleTextSize = atoi(args[1].c_str());
 
 			OutputMessage(TextFormat("Console Size = %d", ConsoleTextSize));
+        });
+
+    RegisterCommand(ConsoleCommands::SetFPSCap,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+            if (args.size() < 2)
+                GlobalVars::FPSCap = 300;
+            else
+				GlobalVars::FPSCap = atoi(args[1].c_str());
+
+			SetTargetFPS(GlobalVars::FPSCap);
+
+            OutputMessage(TextFormat("FPS Cap = %d", GlobalVars::FPSCap));
         });
 }
 

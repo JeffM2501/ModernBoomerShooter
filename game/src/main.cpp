@@ -3,6 +3,7 @@
 
 #include "world.h"
 
+#include "services/global_vars.h"
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
 #include "services/table_manager.h"
@@ -20,9 +21,16 @@ namespace App
     void Init()
     {
         Run = true;
-        SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
+
+        uint32_t flags = FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI;
+        if (GlobalVars::UseVSync)
+            flags |= FLAG_VSYNC_HINT;
+
+        SetConfigFlags(flags);
+
         InitWindow(1280, 800, "ModernBoomerShooter");
-        SetTargetFPS(300);
+        SetExitKey(KEY_NULL);
+        SetTargetFPS(GlobalVars::FPSCap);
         
         GameTime::ComputeNominalFPS();
         ResourceManager::Init("resources");
@@ -71,6 +79,8 @@ namespace App
         return !Run;
     }
 }
+
+
 int main()
 {
     App::Init();

@@ -18,4 +18,9 @@ namespace GlobalVars
     bool UseVisCulling = true;
     bool ShowCollisionVolumes = false;
     bool ShowCoordinates = DebugTrue;
+
+    bool UseVSync = DebugFalse;
+    int FPSCap = 300;
+
+    bool UseMouseDrag = DebugTrue;
 }

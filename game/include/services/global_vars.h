@@ -6,4 +6,7 @@ namespace GlobalVars
     extern bool UseVisCulling;
     extern bool ShowCollisionVolumes;
     extern bool ShowCoordinates;
+    extern bool UseVSync;
+    extern int FPSCap;
+    extern bool UseMouseDrag;
 }

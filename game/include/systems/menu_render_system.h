@@ -8,4 +8,7 @@ public:
 
 protected:
     void OnUpdate() override;
+
+protected:
+    bool InMenu = false;
 };

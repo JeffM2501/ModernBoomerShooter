@@ -1,4 +1,6 @@
 #include "systems/menu_render_system.h"
+#include "services/global_vars.h"
+
 #include "world.h"
 #include "raylib.h"
 
@@ -19,11 +21,31 @@ void MenuRenderSystem::OnUpdate()
         break;
        
     case WorldState::Playing:
-        // Playing
+
+        if (InMenu)
+        {
+            DrawText("Paused, Y to exit, escape to resume", 300, 400, 40, WHITE);
+            if (IsKeyPressed(KEY_Y))
+            {
+                WorldPtr->Quit();
+            }
+        }
+
+        if (IsKeyPressed(KEY_ESCAPE))
+            InMenu = !InMenu;
+
         break;
 
     case WorldState::Closing:
         DrawText("Closing", 600, 400, 40, WHITE);
         break;
     }
+
+    bool wantCuror = InMenu || GlobalVars::UseMouseDrag;
+
+    if (wantCuror && IsCursorHidden())
+        EnableCursor();
+
+    if (!wantCuror && !IsCursorHidden())
+        DisableCursor();
 }

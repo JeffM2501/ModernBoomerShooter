@@ -41,9 +41,7 @@ void PlayerManagementSystem::OnUpdate()
     if (!WorldPtr || !Input)
         return;
     
-#if defined(_DEBUG)
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-#endif
+    if (!GlobalVars::UseMouseDrag || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
         PlayerYaw += Input->GetActionValue(Actions::Yaw);
         PlayerPitch += Input->GetActionValue(Actions::Pitch);
@@ -81,7 +79,7 @@ void PlayerManagementSystem::OnUpdate()
         WorldPtr->GetMap().MoveEntity(PlayerPos, motion, playerRadius);
         if (MapObjects->MoveEntity(PlayerPos, motion, playerRadius))
         {
-
+            // trigger event
         }
     }
 

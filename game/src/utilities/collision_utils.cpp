@@ -84,7 +84,7 @@ namespace CollisionUtils
             hNormal = 1;
         }
 
-        Vector3 vecToPoint = Vector3Subtract(Vector3{ hValue, min.y, 0 }, point);
+        Vector3 vecToPoint = Vector3{ hValue, min.y, 0 } - point;
         // get the dot product between the ray and the vector to the point
         float dotForPoint = Vector3DotProduct(Vector3{ 0, -1, 0 }, vecToPoint);
         Vector3 nearestPoint = { hValue,0 };
@@ -105,7 +105,7 @@ namespace CollisionUtils
             vNormal = 1;
         }
 
-        vecToPoint = Vector3Subtract(Vector3{ min.x, vValue, 0 }, point);
+        vecToPoint = Vector3{ min.x, vValue, 0 } - point;
         // get the dot product between the ray and the vector to the point
         dotForPoint = Vector3DotProduct(Vector3{ -1, 0, 0 }, vecToPoint);
         *nearest = Vector3{ 0, vValue, 0 };
@@ -117,7 +117,7 @@ namespace CollisionUtils
         else
             nearest->x = min.x + dotForPoint;
 
-        if (Vector3LengthSqr(Vector3Subtract(point, nearestPoint)) < Vector3LengthSqr(Vector3Subtract(point, *nearest)))
+        if (Vector3LengthSqr(point -nearestPoint) < Vector3LengthSqr(point - *nearest))
         {
             *nearest = nearestPoint;
 
