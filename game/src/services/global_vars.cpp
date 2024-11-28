@@ -23,4 +23,7 @@ namespace GlobalVars
     int FPSCap = 300;
 
     bool UseMouseDrag = DebugTrue;
+
+
+    bool Paused = false;
 }

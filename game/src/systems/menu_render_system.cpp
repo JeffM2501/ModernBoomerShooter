@@ -32,7 +32,10 @@ void MenuRenderSystem::OnUpdate()
         }
 
         if (IsKeyPressed(KEY_ESCAPE))
+        {
             InMenu = !InMenu;
+            GlobalVars::Paused = InMenu;
+        }
 
         break;
 

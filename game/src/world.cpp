@@ -12,6 +12,9 @@
 #include "systems/player_management_system.h"
 #include "systems/map_object_system.h"
 
+// services
+#include "services/global_vars.h"
+
 #include "map/map_reader.h"
 
 World::World()
@@ -64,6 +67,8 @@ System* World::GetSystem(size_t systemId)
 
 void World::Init()
 {
+    GlobalVars::Paused = false;
+
     WorldRaycaster.SetMap(&WorldMap);
 
     for (auto& [id, system] : Systems)
@@ -96,6 +101,8 @@ void World::ReloadMap()
 
 void World::Reset()
 {
+    GlobalVars::Paused = false;
+
     for (auto& [id, system] : Systems)
     {
         system->Setup();
@@ -116,6 +123,8 @@ void World::Cleanup()
     RenderSystems.clear();
     PostRenderSystems.clear();
     Systems.clear();
+
+    GlobalVars::Paused = true;
 }
 
 bool World::Update()

@@ -1,5 +1,6 @@
 #include "systems/input_system.h"
 #include "systems/console_render_system.h"
+#include "services/global_vars.h"
 
 #include "raylib.h"
 #include "world.h"
@@ -21,6 +22,9 @@ AxisActionDef::AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mou
 
 void AxisActionDef::Update(bool allowKeyboard)
 {
+    if (GlobalVars::Paused)
+        return;
+
     AxisValue = 0;
 
     float posValue = 0;

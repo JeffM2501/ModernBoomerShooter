@@ -17,6 +17,8 @@
 
 function platform_defines()
     defines{"PLATFORM_DESKTOP"}
+    defines{"DISABLE_SCREEN_CAPTURE"}
+    defines{"DISABLE_GIF_RECORDING"}
 
     filter {"options:graphics=opengl43"}
         defines{"GRAPHICS_API_OPENGL_43"}

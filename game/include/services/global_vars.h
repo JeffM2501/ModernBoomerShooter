@@ -9,4 +9,7 @@ namespace GlobalVars
     extern bool UseVSync;
     extern int FPSCap;
     extern bool UseMouseDrag;
+
+
+    extern bool Paused;
 }
