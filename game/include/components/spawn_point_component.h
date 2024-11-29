@@ -15,8 +15,7 @@ enum class SpawnType
 class SpawnPointComponent : public Component
 {
 public:
-    DEFINE_COMPONENT(SpawnPointComponent)
+    DEFINE_COMPONENT_WITH_SYSTEM(SpawnPointComponent, PlayerManagementSystem)
 
     SpawnType Type = SpawnType::Player;
-    void OnAddedToObject() override;
 };

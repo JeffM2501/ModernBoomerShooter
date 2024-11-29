@@ -29,7 +29,7 @@ void OverlayRenderSystem::OnUpdate()
 
     if (GlobalVars::ShowCoordinates)
     {
-        auto playerPos = WorldPtr->GetSystem<PlayerManagementSystem>()->PlayerPos;
+        auto playerPos = WorldPtr->GetSystem<PlayerManagementSystem>()->GetPlayerPos();
 
         DrawText(TextFormat("Player X%0.2f Y%0.2f", playerPos.x, playerPos.y), GetScreenWidth()-250, GetScreenHeight() - 30, 20, WHITE);
     }

@@ -22,7 +22,29 @@ public:
     void SetEyeHeight(float height);
 
 private:
+
+    struct AmbientOcclusionVertexValue
+    {
+        int AOValue = 0;
+        int ConveredValue = 0;
+    };
+
+    struct AmbientOcclusionCellValues
+    {
+        AmbientOcclusionVertexValue Values[4];
+    };
+
     void RenderCell(int x, int y);
+    void RenderDoor(int x, int y, Color floorColor, const AmbientOcclusionCellValues& aoInfo);
+    void DrawDoorPanelXAlligned(Color floorColor, Rectangle& uv, const AmbientOcclusionCellValues& aoInfo);
+    void DrawDoorPanelYAlligned(Color floorColor, Rectangle& uv, const AmbientOcclusionCellValues& aoInfo);
+
+    void RenderFloor(int x, int y, Color floorColor, Color exteriorFloorColor, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo);
+    void RenderCeiling(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo);
+    void RenderNorthWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo);
+    void RenderSouthWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo);
+    void RenderEastWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo);
+    void RenderWestWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo);
 
 private:
     float EyeHeight = 0.5f;
@@ -34,5 +56,6 @@ private:
     float DefaultIntereorZoneLevel = 0.8f;
 
     Shader WorldShader;
+
 };
 

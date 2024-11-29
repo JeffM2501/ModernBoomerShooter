@@ -12,4 +12,9 @@ public:
 
     Vector3 Position = Vector3Zeros;
     float Facing = 0;
+
+    inline Vector3 GetForward() const
+    {
+        return Vector3RotateByAxisAngle(Vector3UnitY, Vector3UnitZ, Facing * DEG2RAD);
+    }
 };

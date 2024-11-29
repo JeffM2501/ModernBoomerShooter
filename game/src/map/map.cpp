@@ -65,6 +65,17 @@ MapCell& Map::GetCellRef(int x, int y)
     return Cells[y * Size.X + x];
 }
 
+const MapCell& Map::GetCellRef(int x, int y) const
+{
+    if (x < 0 || x >= Size.X)
+        return InvalidCell;
+
+    if (y < 0 || y >= Size.Y)
+        return InvalidCell;
+
+    return Cells[y * Size.X + x];
+}
+
 bool Map::IsCellSolid(int x, int y) const
 {
     auto state = GetCell(x, y).State;
@@ -73,8 +84,8 @@ bool Map::IsCellSolid(int x, int y) const
 
 bool Map::IsCellPassable(int x, int y) const
 {
-    auto state = GetCell(x, y).State;
-    return state == MapCellState::Empty || state == MapCellState::Door;
+    MapCell cell = GetCell(x, y);
+    return (cell.State == MapCellState::Empty || cell.State == MapCellState::Door) && !(cell.Flags & MapCellFlags::Impassible);
 }
 
 bool Map::IsCellCapped(int x, int y) const

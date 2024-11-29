@@ -6,17 +6,21 @@
 
 class SpawnPointComponent;
 class MapObjectSystem;
+class TransformComponent;
 
 class PlayerManagementSystem : public System
 {
 public:
     DEFINE_SYSTEM(PlayerManagementSystem)
 
-    Vector3 PlayerPos = Vector3Zeros;
-    Vector3 PlayerFacing = Vector3UnitZ;
+    Vector3 GetPlayerPos() const;
+    Vector3 GetPlayerFacing() const;
 
-    float PlayerYaw = 0;
-    float PlayerPitch = 0;
+    float GetPlayerYaw() const;
+    float GetPlayerPitch() const;
+
+    static constexpr char PlayerHitWall[] = "PlayerHitWall";
+    static constexpr char PlayerHitObstacle[] = "PlayerHitObstacle";
 
 protected:
     void OnSetup() override;
@@ -26,10 +30,15 @@ protected:
 protected:
     class InputSystem* Input = nullptr;
 
-    float PlayerFowardSpeed = 8;
-    float PlayerSideStepSpeed = 4;
+    float PlayerPitch = 0;
+
+    float PlayerFowardSpeed = 4;
+    float PlayerSideStepSpeed = 2;
 
     SpawnPointComponent* Spawn = nullptr;
 
     MapObjectSystem* MapObjects = nullptr;
+
+    GameObject* PlayerObject = nullptr;
+    TransformComponent* PlayerTransform = nullptr;
 };

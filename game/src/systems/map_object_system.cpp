@@ -4,6 +4,7 @@
 #include "systems/scene_render_system.h"
 #include "components/map_object_component.h"
 #include "components/transform_component.h"
+#include "components/trigger_component.h"
 #include "services/model_manager.h"
 #include "services/global_vars.h"
 
@@ -35,9 +36,67 @@ void MapObjectSystem::OnAddObject(GameObject* object)
         if (SceneRenderer)
             SceneRenderer->MapObjectAdded(mapObject);
     }
+
+    if (object->HasComponent<TriggerComponent>())
+        Triggers.push_back(object->GetComponent<TriggerComponent>());
 }
 
-bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, float radius)
+template<class T>
+bool FindAndErase(GameObject* object, std::vector<T*>& container)
+{
+    T* comp = object->GetComponent<T>();
+    if (comp)
+    {
+        auto itr = std::find(container.begin(), container.end(), comp);
+        if (itr != container.end())
+        {
+            container.erase(itr);
+            return true;
+        }
+    };
+
+    return false;
+}
+
+void MapObjectSystem::OnRemoveObject(GameObject* object)
+{
+    FindAndErase<MapObjectComponent>(object, MapObjects);
+    FindAndErase<TriggerComponent>(object, Triggers);
+}
+
+void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSomething)
+{
+    if (!entity)
+        return;
+
+    auto* transform = entity->GetComponent<TransformComponent>();
+    if (!transform)
+        return;
+
+    Vector2 pos = { transform->Position.x, transform->Position.y };
+
+    for (auto& trigger : Triggers)
+    {
+        if (CheckCollisionCircleRec(pos, radius, trigger->Bounds))
+        {
+            if (!entity->HasFlag(trigger))
+            {
+                entity->AddFlag(trigger);
+                trigger->GetOwner()->CallEvent(TriggerComponent::TriggerEnter, entity);
+
+                TraceLog(LOG_INFO, "Trigger Entered");
+            }
+        }
+        else if (entity->HasFlag(trigger))
+        {
+            entity->ClearFlag(trigger);
+            trigger->GetOwner()->CallEvent(TriggerComponent::TriggerExit, entity);
+            TraceLog(LOG_INFO, "Trigger Exited");
+        }
+    }
+}
+
+bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, float radius, GameObject* entity)
 {
     bool hitSomething = false;
 
@@ -50,8 +109,6 @@ bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, floa
     {
         if (!object->Solid)
             continue;
-        
-        // TODO check if the object is near the entity
 
         float motionVecLen = Vector3Length(desiredMotion);
         if (motionVecLen < FLT_MIN)

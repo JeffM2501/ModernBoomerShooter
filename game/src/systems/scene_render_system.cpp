@@ -104,13 +104,23 @@ void SceneRenderSystem::OnUpdate()
     for (auto& zone : WorldPtr->GetMap().LightZones)
         zone.Advance();
 
+
+    float doorParam = sinf(float(GetTime())/2.0f);
+    doorParam += 1;
+    doorParam /= 2.0f;
+
+    for (size_t doorId : WorldPtr->GetMap().DoorCells)
+    {
+        WorldPtr->GetMap().Cells[doorId].ParamState = uint8_t(doorParam * 255);
+    }
+
     if (PlayerManager)
-        Render.SetViewpoint(PlayerManager->PlayerPos, PlayerManager->PlayerYaw, PlayerManager->PlayerPitch);
+        Render.SetViewpoint(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerYaw(), PlayerManager->GetPlayerPitch());
 
     WorldPtr->GetRaycaster().SetOutputSize(GetScreenWidth(), GetFOVX(Render.Viepoint.fovy));
 
     if (PlayerManager)
-        WorldPtr->GetRaycaster().StartFrame(PlayerManager->PlayerPos, PlayerManager->PlayerFacing);
+        WorldPtr->GetRaycaster().StartFrame(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerFacing());
 
     if (IsTextureValid(SkyboxTexture))
     {
@@ -122,9 +132,8 @@ void SceneRenderSystem::OnUpdate()
             DrawMesh(Skybox, SkyboxMaterial, mat);
             rlEnableDepthMask();
             rlEnableBackfaceCulling();
-
-            EndMode3D();
         }
+        EndMode3D();
     }
     else
     {

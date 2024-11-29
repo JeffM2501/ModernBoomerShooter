@@ -17,17 +17,48 @@ void PlayerManagementSystem::OnSetup()
     Input = WorldPtr->GetSystem<InputSystem>();
     MapObjects = WorldPtr->GetSystem<MapObjectSystem>();
 
-    PlayerPos = Vector3Zeros;
-    PlayerFacing = Vector3UnitZ;
-    PlayerYaw = 0;
+    if (PlayerObject == nullptr)
+    {
+        PlayerObject = WorldPtr->AddObject();
+        PlayerTransform = PlayerObject->AddComponent<TransformComponent>();
+    }
     PlayerPitch = 0;
 
     if (Spawn)
     {
         TransformComponent& transform = Spawn->GetOwner()->MustGetComponent<TransformComponent>();
-        PlayerPitch = transform.Facing;
-        PlayerPos = transform.Position;
+        PlayerTransform->Position = transform.Position;
+        PlayerTransform->Facing = transform.Facing;
     }
+}
+
+Vector3 PlayerManagementSystem::GetPlayerPos() const
+{
+    if (PlayerTransform)
+        return PlayerTransform->Position;
+
+    return Vector3Zeros;
+}
+
+Vector3 PlayerManagementSystem::GetPlayerFacing() const
+{
+    if (PlayerTransform)
+        return PlayerTransform->GetForward();
+
+    return Vector3UnitY;
+}
+
+float PlayerManagementSystem::GetPlayerYaw() const
+{
+    if (PlayerTransform)
+        return PlayerTransform->Facing;
+
+    return 0;
+}
+
+float PlayerManagementSystem::GetPlayerPitch() const
+{
+    return PlayerPitch;
 }
 
 void PlayerManagementSystem::OnAddObject(GameObject* object)
@@ -38,19 +69,19 @@ void PlayerManagementSystem::OnAddObject(GameObject* object)
 
 void PlayerManagementSystem::OnUpdate()
 {
-    if (!WorldPtr || !Input)
+    if (!WorldPtr || !Input || !PlayerObject)
         return;
     
     if (!GlobalVars::UseMouseDrag || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
-        PlayerYaw += Input->GetActionValue(Actions::Yaw);
+        PlayerTransform->Facing += Input->GetActionValue(Actions::Yaw);
         PlayerPitch += Input->GetActionValue(Actions::Pitch);
 
         // unwind angle
-        while (PlayerYaw > 180)
-            PlayerYaw -= 360;
-        while (PlayerYaw < -180)
-            PlayerYaw += 360;
+        while (PlayerTransform->Facing > 180)
+            PlayerTransform->Facing -= 360;
+        while (PlayerTransform->Facing < -180)
+            PlayerTransform->Facing += 360;
 
         // clamp
         if (PlayerPitch > 89)
@@ -59,14 +90,12 @@ void PlayerManagementSystem::OnUpdate()
             PlayerPitch = -89;
     }
     
-    PlayerFacing = Vector3RotateByAxisAngle(Vector3UnitY, Vector3UnitZ, PlayerYaw * DEG2RAD);
-
     float speed = (PlayerFowardSpeed * GameTime::Scale(Input->GetActionValue(Actions::Forward)));
     if (speed < 0)
         speed *= 0.5f;
 
-    Vector3 forward = PlayerFacing * speed;
-    Vector3 sideways = Vector3RotateByAxisAngle(PlayerFacing, Vector3UnitZ, -90 * DEG2RAD);
+    Vector3 forward = PlayerTransform->GetForward() * speed;
+    Vector3 sideways = Vector3RotateByAxisAngle(PlayerTransform->GetForward(), Vector3UnitZ, -90 * DEG2RAD);
 
     sideways *= (PlayerSideStepSpeed * GameTime::Scale(Input->GetActionValue(Actions::Sideways)));
 
@@ -74,14 +103,20 @@ void PlayerManagementSystem::OnUpdate()
 
     static constexpr float playerRadius = 0.25f;
 
+    bool hitWall = false;
+    bool hitObstacle = false;
     if (!GlobalVars::UseGhostMovement)
     {
-        WorldPtr->GetMap().MoveEntity(PlayerPos, motion, playerRadius);
-        if (MapObjects->MoveEntity(PlayerPos, motion, playerRadius))
+        hitWall = WorldPtr->GetMap().MoveEntity(PlayerTransform->Position, motion, playerRadius);
+        hitObstacle = MapObjects->MoveEntity(PlayerTransform->Position, motion, playerRadius);
+
+        if (hitWall || hitObstacle)
         {
-            // trigger event
+            // trigger event ?
         }
     }
 
-    PlayerPos += motion;
+    PlayerTransform->Position += motion;
+
+    MapObjects->CheckTriggers(PlayerObject, playerRadius, hitWall || hitObstacle);
 }

@@ -10,6 +10,7 @@
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
 #include "components/map_object_component.h"
+#include "components/trigger_component.h"
 
 #include "utilities/light_utils.h"
 
@@ -36,6 +37,12 @@ void ReleaseXMLDataCallback(const char* filePath, void* data)
 
 using LayerTileCallback = std::function<void(const tmx::TileLayer::Tile&, int, int, size_t)>;
 
+
+static size_t ComputeTMXIndex(int x, int y, MapCoordinate mapSize)
+{
+    return (mapSize.Y - y - 1)* mapSize.X + x;
+}
+
 void DoForEachTile(World& world, tmx::TileLayer& layer, LayerTileCallback callback)
 {
     if (!callback)
@@ -49,7 +56,7 @@ void DoForEachTile(World& world, tmx::TileLayer& layer, LayerTileCallback callba
     int y = 0;
     for (size_t i = 0; i < tiles.size(); i++)
     {
-        size_t mapCellIndex = (mapSize.Y - y - 1) * mapSize.X + x;
+        size_t mapCellIndex = ComputeTMXIndex(x, y, mapSize);
         callback(tiles[i], x, y, mapCellIndex);
         x++;
         if (x >= mapSize.X)
@@ -183,7 +190,6 @@ Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rec
     outRect.width = rect.width / float(map.getTileSize().x);
     outRect.height = rect.height / float(map.getTileSize().y);
 
-
     outRect.y -= outRect.height;
 
     return outRect;
@@ -232,15 +238,6 @@ void ReadWorldTMX(const char* fileName, World& world)
     FindProperty("extereor_ambient_level", mapProps, map.LightInfo.ExteriorAmbientLevel);
     FindProperty("interior_ambient_level", mapProps, map.LightInfo.InteriorAmbientLevel);
 
-    DoForEachTileInLayer(world, tmxMap, "walls", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
-        {
-            if (tile.ID != 0)
-            {
-                map.Cells[mapCellIndex].State = MapCellState::Wall;
-                map.Cells[mapCellIndex].Tiles[0] = tile.ID - 1;
-            }
-        });
-
     DoForEachTileInLayer(world, tmxMap, "floors", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
         {
             if (tile.ID != 0 && map.Cells[mapCellIndex].State != MapCellState::Wall)
@@ -256,6 +253,32 @@ void ReadWorldTMX(const char* fileName, World& world)
             {
                 map.Cells[mapCellIndex].State = MapCellState::Empty;
                 map.Cells[mapCellIndex].Tiles[1] = tile.ID - 1;
+            }
+        });
+
+
+    DoForEachTileInLayer(world, tmxMap, "walls", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
+        {
+            if (tile.ID != 0)
+            {
+                map.Cells[mapCellIndex].State = MapCellState::Wall;
+                map.Cells[mapCellIndex].Tiles[0] = tile.ID - 1;
+            }
+        });
+
+    DoForEachTileInLayer(world, tmxMap, "doors", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
+        {
+            if (tile.ID != 0 && map.Cells[mapCellIndex].State == MapCellState::Empty)
+            {
+                map.Cells[mapCellIndex].State = MapCellState::Door;
+                map.Cells[mapCellIndex].Tiles[2] = tile.ID - 1;
+
+                map.Cells[mapCellIndex].ParamState = 64;
+
+                if (map.Cells[ComputeTMXIndex(x+1, y, map.Size)].State != MapCellState::Empty)
+                    map.Cells[mapCellIndex].Flags |= MapCellFlags::XAllignment;
+
+                map.DoorCells.push_back(mapCellIndex);
             }
         });
 
@@ -278,6 +301,15 @@ void ReadWorldTMX(const char* fileName, World& world)
             FindProperty("solid", object.getProperties(), modelComp->Solid);
         },
         "object");
+
+    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
+        {
+            auto* trigger = world.AddObject();
+            SetObjectTransform(tmxMap, object, trigger->AddComponent<TransformComponent>());
+            auto* volume = trigger->AddComponent<TriggerComponent>();
+            volume->Bounds = ConvertObjectAABBToRect(tmxMap, object.getAABB());
+        },
+        "trigger");
 
     auto sequenceTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("light_sequences");
 

@@ -5,11 +5,6 @@
 
 class GameObject;
 
-#define DEFINE_COMPONENT(T) \
-    T(GameObject* owner) : Component(owner){} \
-    static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
-    size_t GetTypeID() const override {return T::TypeID();} \
-    static std::unique_ptr<Component> Create(GameObject* owner){ return std::make_unique<T>(owner);}
 
 class Component
 {
@@ -49,3 +44,16 @@ public:
 protected:
     GameObject* Owner = nullptr;
 };
+
+#define DEFINE_COMPONENT(T) \
+    T(GameObject* owner) : Component(owner){} \
+    static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
+    size_t GetTypeID() const override {return T::TypeID();} \
+    static std::unique_ptr<Component> Create(GameObject* owner){ return std::make_unique<T>(owner);}
+
+#define DEFINE_COMPONENT_WITH_SYSTEM(T, S) \
+    T(GameObject* owner) : Component(owner){} \
+    static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
+    size_t GetTypeID() const override {return T::TypeID();} \
+    static std::unique_ptr<Component> Create(GameObject* owner) { return std::make_unique<T>(owner); } \
+    void OnAddedToObject() override { AddToSystem<S>(); }

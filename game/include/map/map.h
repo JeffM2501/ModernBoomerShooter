@@ -23,16 +23,27 @@ enum class MapCellState : uint8_t
     Invalid = 0xFF
 };
 
+namespace MapCellFlags
+{
+    static constexpr uint8_t None = (1u << 0);
+    static constexpr uint8_t HorizontalVertical = (1u << 1);
+    static constexpr uint8_t XAllignment = (1u << 2);
+    static constexpr uint8_t Impassible = (1u << 3);
+    static constexpr uint8_t Split = (1u << 4);
+    static constexpr uint8_t Reversed = (1u << 5);
+}
+
 static constexpr uint8_t MapCellInvalidTile = 0xff;
 static constexpr uint8_t MapCellInvalidLightZone = 0xff;
 
 struct MapCell  //pad to 64 bits
 {
     MapCellState State = MapCellState::Empty;
-    uint8_t Tiles[2] = { MapCellInvalidTile, MapCellInvalidTile };
     uint8_t Flags = 0;
-
     uint8_t LightZone = MapCellInvalidLightZone;
+    uint8_t ParamState = 0;
+
+    uint8_t Tiles[4] = { MapCellInvalidTile, MapCellInvalidTile, MapCellInvalidTile, MapCellInvalidTile };
 };
 
 struct LightingInfo
@@ -73,7 +84,8 @@ struct Map
     std::vector<LightZoneInfo> LightZones;
 
     MapCell GetCell(int x, int y) const;
-    MapCell &GetCellRef(int x, int y);
+    MapCell& GetCellRef(int x, int y);
+    const MapCell& GetCellRef(int x, int y) const;
     bool IsCellSolid(int x, int y) const;
     bool IsCellPassable(int x, int y) const;
     bool IsCellCapped(int x, int y) const;
@@ -82,6 +94,8 @@ struct Map
     inline size_t GetCellIndex(int x, int y) const { return y * Size.X + x; }
 
     bool MoveEntity(Vector3& position, Vector3& desiredMotion, float radius);
+
+    std::vector<size_t> DoorCells;
 
 private:
     void PointNearesGridPoint(int x, int y, const Vector3 point, Vector3* nearest, Vector3* normal);

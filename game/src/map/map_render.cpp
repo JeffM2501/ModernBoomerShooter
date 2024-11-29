@@ -49,11 +49,410 @@ int GetVertexAO(bool a, bool b, bool c)
     return val;
 }
 
+static constexpr float DoorThickness = 0.125f;
+
+void MapRenderer::DrawDoorPanelXAlligned(Color floorColor, Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    // Y side face
+    rlNormal3f(0, -1, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(MapScale, DoorThickness * -0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(0, DoorThickness * -0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(0, DoorThickness *-0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(MapScale, DoorThickness * -0.5f, 0);
+
+    // Y side face
+    rlNormal3f(0, 1, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(0, DoorThickness * 0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(0, DoorThickness * 0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(MapScale, DoorThickness * 0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(MapScale, DoorThickness * 0.5f, 0);
+
+    // X min side face
+    rlNormal3f(-1, 0, 0);
+
+    float thinUVWidth = tileUv.width - tileUv.x;
+
+    float thinUVMin = tileUv.x + ((0.5f - (DoorThickness / 2)) * thinUVWidth);
+    float thinUVMax = tileUv.x + ((0.5f + (DoorThickness / 2)) * thinUVWidth);
+    
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.y);
+    rlVertex3f(0, DoorThickness * -0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.y);
+    rlVertex3f(0, DoorThickness * 0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.height);
+    rlVertex3f(0, DoorThickness * 0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.height);
+    rlVertex3f(0, DoorThickness * -0.5f, 0);
+
+    // X max side face
+    rlNormal3f(1, 0, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.height);
+    rlVertex3f(MapScale, DoorThickness * 0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.y);
+    rlVertex3f(MapScale, DoorThickness * 0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.y);
+    rlVertex3f(MapScale, DoorThickness * -0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.height);
+    rlVertex3f(MapScale, DoorThickness * -0.5f, 0);
+}
+
+
+void MapRenderer::DrawDoorPanelYAlligned(Color floorColor, Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float thinUVWidth = tileUv.width - tileUv.x;
+
+    float thinUVMin = tileUv.x + ((0.5f - (DoorThickness / 2)) * thinUVWidth);
+    float thinUVMax = tileUv.x + ((0.5f + (DoorThickness / 2)) * thinUVWidth);
+
+    // Y side face
+    rlNormal3f(0, -1, 0);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.y);
+    rlVertex3f(DoorThickness * 0.5f, 0, MapScale);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.y);
+    rlVertex3f(DoorThickness * -0.5f, 0, MapScale);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.height);
+    rlVertex3f(DoorThickness * -0.5f, 0, 0);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.height);
+    rlVertex3f(DoorThickness * 0.5f, 0, 0);
+ 
+    // Y side face
+    rlNormal3f(0, 1, 0);
+    
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.height);
+    rlVertex3f(DoorThickness * -0.5f, MapScale, 0);
+    
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(thinUVMax, tileUv.y);
+    rlVertex3f(DoorThickness * -0.5f, MapScale, MapScale);
+    
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.y);
+    rlVertex3f(DoorThickness * 0.5f, MapScale, MapScale);
+    
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(thinUVMin, tileUv.height);
+    rlVertex3f(DoorThickness * 0.5f, MapScale, 0);
+
+    // X min side face
+    rlNormal3f(-1, 0, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(-DoorThickness * 0.5f, 0, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(-DoorThickness * 0.5f, MapScale, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(-DoorThickness * 0.5f, MapScale, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(-DoorThickness * 0.5f, 0, 0);
+
+    // X max side face
+    rlNormal3f(1, 0, 0);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(DoorThickness * 0.5f, MapScale, 0);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(DoorThickness * 0.5f, MapScale, MapScale);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(DoorThickness * 0.5f, 0, MapScale);
+ 
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(DoorThickness * 0.5f, 0, 0);
+}
+
+void MapRenderer::RenderDoor(int x, int y, Color floorColor, const AmbientOcclusionCellValues& aoInfo)
+{
+    MapCell cell = WorldMap.GetCell(x, y);
+
+    bool xAlligned = cell.Flags & MapCellFlags::XAllignment;
+    bool openVertical = cell.Flags & MapCellFlags::HorizontalVertical;
+    bool backwards = cell.Flags & MapCellFlags::Reversed;
+
+    float halfGrid = MapScale * 0.5f;
+
+    float animParam = cell.ParamState / 255.0f;
+
+    Vector3 animaionOffset = { 0, 0, 0 };
+
+    if (xAlligned)
+    {
+        if (cell.ParamState > 0)
+        {
+            if (backwards)
+                animaionOffset.x = -(animParam * MapScale);
+            else
+                animaionOffset.x = animParam * MapScale;
+        }
+        rlPushMatrix();
+        rlTranslatef(x * MapScale, y * MapScale, 0);
+        rlTranslatef(animaionOffset.x, halfGrid + animaionOffset.y, animaionOffset.z);
+        DrawDoorPanelXAlligned(floorColor, WorldMap.TileSourceRects[cell.Tiles[2]], aoInfo);
+        rlPopMatrix();
+    }
+    else
+    {
+        if (cell.ParamState > 0)
+        {
+            if (backwards)
+                animaionOffset.y = -animParam * MapScale;
+            else
+                animaionOffset.y = animParam * MapScale;
+        }
+        rlPushMatrix();
+        rlTranslatef(x * MapScale, y * MapScale, 0);
+        rlTranslatef(animaionOffset.x + halfGrid, animaionOffset.y, animaionOffset.z);
+        DrawDoorPanelYAlligned(floorColor, WorldMap.TileSourceRects[cell.Tiles[2]], aoInfo);
+        rlPopMatrix();
+    }
+}
+
+void MapRenderer::RenderNorthWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float xMin = x * MapScale;
+    float yMin = y * MapScale;
+
+    float xMax = xMin + MapScale;
+    float yMax = yMin + MapScale;
+
+    rlColor4ub(tint.r, tint.g, tint.b, 255);
+    rlNormal3f(0, -1, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(xMax, yMax, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(xMin, yMax, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(xMin, yMax, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(xMax, yMax, 0);
+}
+
+void MapRenderer::RenderSouthWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float xMin = x * MapScale;
+    float yMin = y * MapScale;
+
+    float xMax = xMin + MapScale;
+    float yMax = yMin + MapScale;
+
+    rlColor4ub(tint.r, tint.g, tint.b, 255);
+    rlNormal3f(0, 1, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(xMin, yMin, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(xMin, yMin, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(xMax, yMin, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(xMax, yMin, 0);
+}
+
+void MapRenderer::RenderEastWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float xMin = x * MapScale;
+    float yMin = y * MapScale;
+
+    float xMax = xMin + MapScale;
+    float yMax = yMin + MapScale;
+
+    rlColor4ub(tint.r, tint.g, tint.b, 255);
+    rlNormal3f(-1, 0, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(xMax, yMin, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(xMax, yMax, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(xMax, yMax, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(xMax, yMin, 0);
+}
+
+void MapRenderer::RenderWestWall(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float xMin = x * MapScale;
+    float yMin = y * MapScale;
+
+    float xMax = xMin + MapScale;
+    float yMax = yMin + MapScale;
+
+    rlColor4ub(tint.r, tint.g, tint.b, 255);
+    rlNormal3f(1, 0, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(xMin, yMax, 0);
+
+    rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(xMin, yMax, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(xMin, yMin, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(xMin, yMin, 0);
+}
+
+void MapRenderer::RenderCeiling(int x, int y, Color tint, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float xMin = x * MapScale;
+    float yMin = y * MapScale;
+
+    float xMax = xMin + MapScale;
+    float yMax = yMin + MapScale;
+
+    rlColor4ub(tint.r, tint.g, tint.b, 255);
+    rlNormal3f(0, 0, -1);
+
+    rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(xMin, yMax, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(xMax, yMax, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(xMax, yMin, MapScale);
+
+    rlColor4ubScaled(tint, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(xMin, yMin, MapScale);
+}
+
+void MapRenderer::RenderFloor(int x, int y, Color floorColor, Color exteriorFloorColor, const Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
+{
+    float xMin = x * MapScale;
+    float yMin = y * MapScale;
+
+    float xMax = xMin + MapScale;
+    float yMax = yMin + MapScale;
+
+    Color tint = floorColor;
+    if (aoInfo.Values[3].ConveredValue == 0)
+        tint = exteriorFloorColor;
+
+    rlNormal3f(0, 0, 1);
+    rlColor4ubScaled(tint, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(xMin, yMin, 0);
+
+    tint = floorColor;
+    if (aoInfo.Values[2].ConveredValue == 0)
+        tint = exteriorFloorColor;
+
+    rlColor4ubScaled(tint, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(xMax, yMin, 0);
+
+    tint = floorColor;
+    if (aoInfo.Values[1].ConveredValue == 0)
+        tint = exteriorFloorColor;
+
+    rlColor4ubScaled(tint, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.y);
+    rlVertex3f(xMax, yMax, 0);
+
+    tint = floorColor;
+    if (aoInfo.Values[0].ConveredValue == 0)
+        tint = exteriorFloorColor;
+
+    rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.y);
+    rlVertex3f(xMin, yMax, 0);
+}
+
 void MapRenderer::RenderCell(int x, int y)
 {
     MapCell cell = WorldMap.GetCell(x, y);
 
-    if (cell.State != MapCellState::Empty && cell.State != MapCellState::Door)
+    if (cell.State == MapCellState::Wall)
         return;
 
     Color tint = WHITE;
@@ -72,24 +471,27 @@ void MapRenderer::RenderCell(int x, int y)
 
     /*  AO Grid
         Y
-        | 1-----2
+        | 0-----1
         | |     |
         | |     |
-        | 4-----3
+        | 3-----2
         |
         +--------X
     */
-    int AO1 = GetVertexAO(WorldMap.IsCellSolid(x, y + 1), WorldMap.IsCellSolid(x - 1, y + 1), WorldMap.IsCellSolid(x - 1, y));
-    int AO1Covered = GetVertexAO(WorldMap.IsCellCapped(x, y + 1), WorldMap.IsCellCapped(x - 1, y + 1), WorldMap.IsCellCapped(x - 1, y));
 
-    int AO2 = GetVertexAO(WorldMap.IsCellSolid(x + 1, y), WorldMap.IsCellSolid(x + 1, y + 1), WorldMap.IsCellSolid(x, y + 1));
-    int AO2Covered = GetVertexAO(WorldMap.IsCellCapped(x + 1, y), WorldMap.IsCellCapped(x + 1, y + 1), WorldMap.IsCellCapped(x, y + 1));
+    AmbientOcclusionCellValues aoInfo;
 
-    int AO3 = GetVertexAO(WorldMap.IsCellSolid(x, y - 1), WorldMap.IsCellSolid(x + 1, y - 1), WorldMap.IsCellSolid(x + 1, y));
-    int AO3Covered = GetVertexAO(WorldMap.IsCellCapped(x, y - 1), WorldMap.IsCellCapped(x + 1, y - 1), WorldMap.IsCellCapped(x + 1, y));
+    aoInfo.Values[0].AOValue = GetVertexAO(WorldMap.IsCellSolid(x, y + 1), WorldMap.IsCellSolid(x - 1, y + 1), WorldMap.IsCellSolid(x - 1, y));
+    aoInfo.Values[0].ConveredValue = GetVertexAO(WorldMap.IsCellCapped(x, y + 1), WorldMap.IsCellCapped(x - 1, y + 1), WorldMap.IsCellCapped(x - 1, y));
+
+    aoInfo.Values[1].AOValue = GetVertexAO(WorldMap.IsCellSolid(x + 1, y), WorldMap.IsCellSolid(x + 1, y + 1), WorldMap.IsCellSolid(x, y + 1));
+    aoInfo.Values[1].ConveredValue = GetVertexAO(WorldMap.IsCellCapped(x + 1, y), WorldMap.IsCellCapped(x + 1, y + 1), WorldMap.IsCellCapped(x, y + 1));
+
+    aoInfo.Values[2].AOValue = GetVertexAO(WorldMap.IsCellSolid(x, y - 1), WorldMap.IsCellSolid(x + 1, y - 1), WorldMap.IsCellSolid(x + 1, y));
+    aoInfo.Values[2].ConveredValue = GetVertexAO(WorldMap.IsCellCapped(x, y - 1), WorldMap.IsCellCapped(x + 1, y - 1), WorldMap.IsCellCapped(x + 1, y));
    
-    int AO4 = GetVertexAO(WorldMap.IsCellSolid(x, y - 1), WorldMap.IsCellSolid(x - 1, y - 1), WorldMap.IsCellSolid(x - 1, y));
-    int AO4Covered = GetVertexAO(WorldMap.IsCellCapped(x, y - 1), WorldMap.IsCellCapped(x - 1, y - 1), WorldMap.IsCellCapped(x - 1, y));
+    aoInfo.Values[3].AOValue = GetVertexAO(WorldMap.IsCellSolid(x, y - 1), WorldMap.IsCellSolid(x - 1, y - 1), WorldMap.IsCellSolid(x - 1, y));
+    aoInfo.Values[3].ConveredValue = GetVertexAO(WorldMap.IsCellCapped(x, y - 1), WorldMap.IsCellCapped(x - 1, y - 1), WorldMap.IsCellCapped(x - 1, y));
 
     // resolve zone color
     float baseColor = DefaultIntereorZoneLevel;
@@ -108,172 +510,41 @@ void MapRenderer::RenderCell(int x, int y)
 
     Color floorColor = ScaleColor3(WHITE, baseColor);
 
-      // floor
+    // floor
     if (cell.Tiles[0] != MapCellInvalidTile)
     {
-        rlNormal3f(0, 0, 1);
-
-        Color exteriorFloorColor = ScaleColor3(WHITE, DefaultExteriorZoneLevel);
-
-        tint = floorColor;
-        if (AO4Covered == 0)
-            tint = exteriorFloorColor;
-
-        rlColor4ubScaled(tint, AO4);
-        rlTexCoord2f(tileUv.x, tileUv.height);
-        rlVertex3f(xMin, yMin, 0);
-
-        tint = floorColor;
-        if (AO3Covered == 0)
-            tint = exteriorFloorColor;
-
-        rlColor4ubScaled(tint, AO3);
-        rlTexCoord2f(tileUv.width, tileUv.height);
-        rlVertex3f(xMax, yMin, 0);
-
-        tint = floorColor;
-        if (AO2Covered == 0)
-            tint = exteriorFloorColor;
-
-        rlColor4ubScaled(tint, AO2);
-        rlTexCoord2f(tileUv.width, tileUv.y);
-        rlVertex3f(xMax, yMax, 0);
-
-        tint = floorColor;
-        if (AO1Covered == 0)
-            tint = exteriorFloorColor;
-
-        rlColor4ubScaled(tint, AO1);
-        rlTexCoord2f(tileUv.x, tileUv.y);
-        rlVertex3f(xMin, yMax, 0);
+        RenderFloor(x, y, floorColor, ScaleColor3(WHITE, DefaultExteriorZoneLevel), tileUv, aoInfo);
     }
 
     // ceiling
     if (cell.Tiles[1] != MapCellInvalidTile)
     {
-        Color ceilingColor = ScaleColor3(WHITE, baseColor * 0.75f);
-        tileUv = WorldMap.TileSourceRects[cell.Tiles[1]];
-
-        tint = ceilingColor;
-        rlColor4ub(tint.r, tint.g, tint.b, 255);
-        rlNormal3f(0, 0, -1);
-
-        rlColor4ubScaled(tint, AO1);
-        rlTexCoord2f(tileUv.x, tileUv.y);
-        rlVertex3f(xMin, yMax, MapScale);
-
-        rlColor4ubScaled(tint, AO2);
-        rlTexCoord2f(tileUv.width, tileUv.y);
-        rlVertex3f(xMax, yMax, MapScale);
-
-        rlColor4ubScaled(tint, AO3);
-        rlTexCoord2f(tileUv.width, tileUv.height);
-        rlVertex3f(xMax, yMin, MapScale);
-
-        rlColor4ubScaled(tint, AO4);
-        rlTexCoord2f(tileUv.x, tileUv.height);
-        rlVertex3f(xMin, yMin, MapScale);
+        RenderCeiling(x, y, ScaleColor3(WHITE, baseColor * 0.75f), WorldMap.TileSourceRects[cell.Tiles[1]], aoInfo);
     }
 
     if (WorldMap.IsCellSolid(x, y + 1))
     {
-        tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x,y+1).Tiles[0]];
-
-        tint = ScaleColor3(floorColor, WallColors[0]);
-
-        rlColor4ub(tint.r, tint.g, tint.b, 255);
-        rlNormal3f(0, -1, 0);
-
-        rlColor4ubScaled(tint, AO2);
-        rlTexCoord2f(tileUv.x, tileUv.y);
-        rlVertex3f(xMax, yMax, MapScale);
-
-        rlColor4ubScaled(tint, AO1);
-        rlTexCoord2f(tileUv.width, tileUv.y);
-        rlVertex3f(xMin, yMax, MapScale);
-
-        rlColor4ubScaled(tint, AO1);
-        rlTexCoord2f(tileUv.width, tileUv.height);
-        rlVertex3f(xMin, yMax, 0);
-
-        rlColor4ubScaled(tint, AO2);
-        rlTexCoord2f(tileUv.x, tileUv.height);
-        rlVertex3f(xMax, yMax, 0);
+        RenderNorthWall(x, y, ScaleColor3(floorColor, WallColors[0]), WorldMap.TileSourceRects[WorldMap.GetCell(x, y + 1).Tiles[0]], aoInfo);
     }
 
     if (WorldMap.IsCellSolid(x, y - 1))
     {
-        tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x, y - 1).Tiles[0]];
-
-        tint = ScaleColor3(floorColor, WallColors[1]);
-        rlColor4ub(tint.r, tint.g, tint.b, 255);
-        rlNormal3f(0, 1, 0);
-
-        rlColor4ubScaled(tint, AO4);
-        rlTexCoord2f(tileUv.width, tileUv.height);
-        rlVertex3f(xMin, yMin, 0);
-
-        rlColor4ubScaled(tint, AO4);
-        rlTexCoord2f(tileUv.width, tileUv.y);
-        rlVertex3f(xMin, yMin, MapScale);
-
-        rlColor4ubScaled(tint, AO3);
-        rlTexCoord2f(tileUv.x, tileUv.y);
-        rlVertex3f(xMax, yMin, MapScale);
-
-        rlColor4ubScaled(tint, AO3);
-        rlTexCoord2f(tileUv.x, tileUv.height);
-        rlVertex3f(xMax, yMin, 0);
+        RenderSouthWall(x, y, ScaleColor3(floorColor, WallColors[1]), WorldMap.TileSourceRects[WorldMap.GetCell(x, y - 1).Tiles[0]], aoInfo);   
     }
 
     if (WorldMap.IsCellSolid(x + 1, y))
     {
-        tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x + 1, y).Tiles[0]];
-
-        //  FaceCount++;
-        tint = ScaleColor3(floorColor, WallColors[2]);
-        rlColor4ub(tint.r, tint.g, tint.b, 255);
-        rlNormal3f(-1, 0, 0);
-
-        rlColor4ubScaled(tint, AO3);
-        rlTexCoord2f(tileUv.x, tileUv.y);
-        rlVertex3f(xMax, yMin, MapScale);
-
-        rlColor4ubScaled(tint, AO2);
-        rlTexCoord2f(tileUv.width, tileUv.y);
-        rlVertex3f(xMax, yMax, MapScale);
-
-        rlColor4ubScaled(tint, AO2);
-        rlTexCoord2f(tileUv.width, tileUv.height);
-        rlVertex3f(xMax, yMax, 0);
-
-        rlColor4ubScaled(tint, AO3);
-        rlTexCoord2f(tileUv.x, tileUv.height);
-        rlVertex3f(xMax, yMin, 0);
+        RenderEastWall(x, y, ScaleColor3(floorColor, WallColors[2]), WorldMap.TileSourceRects[WorldMap.GetCell(x + 1, y).Tiles[0]], aoInfo);
     }
 
     if (WorldMap.IsCellSolid(x - 1, y))
     {
-        tileUv = WorldMap.TileSourceRects[WorldMap.GetCell(x - 1, y).Tiles[0]];
-        tint = ScaleColor3(floorColor, WallColors[3]);
-        rlColor4ub(tint.r, tint.g, tint.b, 255);
-        rlNormal3f(1, 0, 0);
+        RenderWestWall(x, y, ScaleColor3(floorColor, WallColors[3]), WorldMap.TileSourceRects[WorldMap.GetCell(x - 1, y).Tiles[0]], aoInfo);  
+    }
 
-        rlColor4ubScaled(tint, AO1);
-        rlTexCoord2f(tileUv.width, tileUv.height);
-        rlVertex3f(xMin, yMax, 0);
-
-        rlColor4ubScaled(tint, AO1);
-        rlTexCoord2f(tileUv.width, tileUv.y);
-        rlVertex3f(xMin, yMax, MapScale);
-
-        rlColor4ubScaled(tint, AO4);
-        rlTexCoord2f(tileUv.x, tileUv.y);
-        rlVertex3f(xMin, yMin, MapScale);
-
-        rlColor4ubScaled(tint, AO4);
-        rlTexCoord2f(tileUv.x, tileUv.height);
-        rlVertex3f(xMin, yMin, 0);
+    if (cell.State == MapCellState::Door)
+    {
+        RenderDoor(x, y, floorColor, aoInfo);
     }
 }
 
