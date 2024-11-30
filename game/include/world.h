@@ -64,6 +64,10 @@ public:
 
     GameObject* AddObject();
 
+    void AddEventHandler(size_t hash, GameObjectEventHandler handler, ObjectLifetimeToken::Ptr token);
+    void AddEventHandler(std::string_view name, GameObjectEventHandler handler, ObjectLifetimeToken::Ptr token);
+    void CallEvent(size_t hash, GameObject* sender, GameObject* target);
+
     void Quit() { Run = false; }
 
     WorldState& GetState() { return State; }
@@ -94,6 +98,8 @@ protected:
     Raycaster WorldRaycaster;
 
     std::string CurrentWorldMap;
+
+    std::unordered_map<size_t, std::vector<GameObjectEventRecord>> EventHandlers;
 
 protected:
     void SetupSystems();

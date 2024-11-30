@@ -29,7 +29,7 @@ GameObject* GameObject::AddChild()
 GameObject::GameObject(World* world)
     :WorldPtr(world)
 {
-    Token = GameObjectLifetimeToken::Create(this);
+    Token = ObjectLifetimeToken::Create(this);
 }
 
 GameObject* GameObject::GetParent() const
@@ -61,7 +61,7 @@ void GameObject::AddToSystem(size_t systemGUID)
     system->AddObject(this);
 }
 
-void GameObject::AddEvent(size_t hash, GameObjectEventHandler handler, GameObjectLifetimeToken::Ptr token)
+void GameObject::AddEventHandler(size_t hash, GameObjectEventHandler handler, ObjectLifetimeToken::Ptr token)
 {
     auto itr = EventHandlers.find(hash);
     if (itr == EventHandlers.end())
@@ -72,13 +72,16 @@ void GameObject::AddEvent(size_t hash, GameObjectEventHandler handler, GameObjec
     itr->second.emplace_back(GameObjectEventRecord{ handler, token });
 }
 
-void GameObject::AddEvent(std::string_view name, GameObjectEventHandler handler, GameObjectLifetimeToken::Ptr token)
+void GameObject::AddEventHandler(std::string_view name, GameObjectEventHandler handler, ObjectLifetimeToken::Ptr token)
 {
-    AddEvent(StringHasher(name), handler, token);
+    AddEventHandler(StringHasher(name), handler, token);
 }
 
 void GameObject::CallEvent(size_t hash, GameObject* target)
 {
+    if (WorldPtr)
+        WorldPtr->CallEvent(hash, this, target);
+
     auto itr = EventHandlers.find(hash);
     if (itr == EventHandlers.end())
         return;

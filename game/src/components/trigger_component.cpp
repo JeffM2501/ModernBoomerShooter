@@ -2,13 +2,13 @@
 
 #include <algorithm>
 
-void TriggerComponent::AddObject(GameObjectLifetimeToken::Ptr token)
+void TriggerComponent::AddObject(ObjectLifetimeToken::Ptr token)
 {
     if (token->IsValid())
         ConainedObjects.push_back(token);
 }
 
-void TriggerComponent::RemovObject(GameObjectLifetimeToken::Ptr token)
+void TriggerComponent::RemovObject(ObjectLifetimeToken::Ptr token)
 {
     if (!token->IsValid())
         return;
@@ -22,7 +22,7 @@ bool TriggerComponent::HasObject(GameObject* object)
 {
     for (auto itr = ConainedObjects.begin(); itr != ConainedObjects.end();)
     {
-        GameObjectLifetimeToken* tokenPtr = itr->get();
+        ObjectLifetimeToken* tokenPtr = itr->get();
 
         if (!tokenPtr->IsValid())
         {
@@ -43,7 +43,7 @@ bool TriggerComponent::HasAnyObjects()
 {
     for (auto itr = ConainedObjects.begin(); itr != ConainedObjects.end();)
     {
-        GameObjectLifetimeToken* tokenPtr = itr->get();
+        ObjectLifetimeToken* tokenPtr = itr->get();
 
         if (!tokenPtr->IsValid())
         {

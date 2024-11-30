@@ -17,6 +17,8 @@
 
 #include "map/map_reader.h"
 
+static std::hash<std::string_view> StringHasher;
+
 World::World()
 {
     RootObject = std::make_unique<GameObject>(this);
@@ -178,4 +180,41 @@ GameObject* World::AddObject()
     auto* object = RootObject->AddChild();
 
     return object;
+}
+
+
+void World::AddEventHandler(size_t hash, GameObjectEventHandler handler, ObjectLifetimeToken::Ptr token)
+{
+    auto itr = EventHandlers.find(hash);
+    if (itr == EventHandlers.end())
+    {
+        itr = EventHandlers.insert_or_assign(hash, std::vector<GameObjectEventRecord>()).first;
+    }
+
+    itr->second.emplace_back(GameObjectEventRecord{ handler, token });
+}
+
+void World::AddEventHandler(std::string_view name, GameObjectEventHandler handler, ObjectLifetimeToken::Ptr token)
+{
+    AddEventHandler(StringHasher(name), handler, token);
+}
+
+void World::CallEvent(size_t hash, GameObject* sender, GameObject* target)
+{
+    auto itr = EventHandlers.find(hash);
+    if (itr == EventHandlers.end())
+        return;
+
+    for (std::vector<GameObjectEventRecord>::iterator eventItr = itr->second.begin(); eventItr != itr->second.end();)
+    {
+        if (eventItr->LifetimeToken->IsValid())
+        {
+            eventItr->Handler(hash, sender, target);
+            eventItr++;
+        }
+        else
+        {
+            eventItr = itr->second.erase(eventItr);
+        }
+    }
 }

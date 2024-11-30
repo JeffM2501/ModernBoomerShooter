@@ -11,6 +11,5 @@ namespace GlobalVars
     extern int FPSCap;
     extern bool UseMouseDrag;
 
-
     extern bool Paused;
 }

@@ -14,10 +14,14 @@
 
 namespace App
 {
+    // global world
     World GameWorld;
 
+    // application running state
     bool Run = false;
 
+
+    // Setup raylib and all systems and services
     void Init()
     {
         Run = true;
@@ -32,12 +36,20 @@ namespace App
         SetExitKey(KEY_NULL);
         SetTargetFPS(GlobalVars::FPSCap);
         
+        // setup debug FPS limit
         GameTime::ComputeNominalFPS();
+        
+        // tell the resource manager where the game resources are
         ResourceManager::Init("resources");
+
+        // initialize the GPU shared resource managers
         TextureManager::Init();
         ModelManager::Init();
+
+        // Setup all systems
         GameWorld.Init();
 
+        // load the bootstrap table, all game data runs from this
         auto* table = TableManager::GetTable(BootstrapTable);
 
         if (!table)
@@ -46,21 +58,24 @@ namespace App
             TraceLog(LOG_FATAL, "Unable to locate bootstrap table at %s, exiting", BootstrapTable);
         }
 
+        // find the boot level
         GameWorld.Load(table->GetField("boot_level"));
     }
 
     void NewFrame()
     {
+        // have all systems update
         Run = GameWorld.Update();
 
+        // bail out if we want to die
         if (!Run)
             return;
 
+        // Render
         BeginDrawing();
-        ClearBackground(MAGENTA);
-
-        GameWorld.RenderScene();
-        GameWorld.RenderOverlay();
+        ClearBackground(MAGENTA); // garish color so we can see if any gaps.
+        GameWorld.RenderScene(); // the 3d part
+        GameWorld.RenderOverlay(); // the 2d part
         EndDrawing();
     }
 
@@ -80,7 +95,7 @@ namespace App
     }
 }
 
-
+// simple main app
 int main()
 {
     App::Init();

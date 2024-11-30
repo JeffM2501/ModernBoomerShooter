@@ -2,6 +2,12 @@
 
 #include <set>
 #include <string_view>
+#include "object_lifetime_token.h"
+
+/*
+Systems are classes that are tied to the world that have an update method that is called by the game loop.
+Each system is updated in order as defined by how it's registered.
+*/
 
 class GameObject;
 class World;
@@ -20,18 +26,18 @@ using SystemHash = std::hash<std::string_view>;
 class System
 {
 public:
-    System(World* world) : WorldPtr(world) {};
-    virtual ~System() = default;
+    System(World* world) : WorldPtr(world) { Token = ObjectLifetimeToken::Create(this); }
+    virtual ~System() { Token->Invalidate(); }
 
-    void Init();
-    void Cleanup();
+    void Init();    // called when the system is created
+    void Cleanup(); // called when the system is destroyed
 
-    void Setup(); // all systems and states are loaded
+    void Setup();   // all systems and states are loaded
 
-    void Update();
+    void Update();  // called when the system is updated
 
-    void AddObject(GameObject* object);
-    void RemoveObject(GameObject* object);
+    void AddObject(GameObject* object);     // called when an object is added to the system,
+    void RemoveObject(GameObject* object);  // called when an object is removed
 
     virtual size_t GetGUID() const = 0;
 
@@ -47,4 +53,6 @@ protected:
 protected:
     std::set<GameObject*> Objects;
     World* WorldPtr = nullptr;
+
+    ObjectLifetimeToken::Ptr Token;
 };

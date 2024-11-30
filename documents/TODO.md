@@ -1,9 +1,9 @@
 # Stuff left to do
 
- * Objects
-    * Object Collisions
- * Triggers
- * Doors
+ * !Objects
+    * !Object Collisions
+ * !Triggers
+ * !Doors
  * Behaviors
  * Scripting
  * Pathfiding JPS(https://github.com/fgenesis/tinypile/blob/master/jps.hh)

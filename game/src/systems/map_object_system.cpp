@@ -17,6 +17,12 @@
 void MapObjectSystem::OnSetup()
 {
     SceneRenderer = WorldPtr->GetSystem<SceneRenderSystem>();
+
+    WorldPtr->AddEventHandler(TriggerComponent::TriggerEnter, [](size_t, GameObject*, GameObject*)
+        { TraceLog(LOG_INFO, "Trigger Entered"); }, Token);
+
+    WorldPtr->AddEventHandler(TriggerComponent::TriggerExit, [](size_t, GameObject*, GameObject*)
+        { TraceLog(LOG_INFO, "Trigger Exited"); }, Token);
 }
 
 void MapObjectSystem::OnUpdate()
@@ -92,8 +98,6 @@ void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSo
                 entity->AddFlag(trigger);
                 trigger->AddObject(entity->GetToken());
                 trigger->GetOwner()->CallEvent(TriggerComponent::TriggerEnter, entity);
-
-                TraceLog(LOG_INFO, "Trigger Entered");
             }
         }
         else if (entity->HasFlag(trigger))
@@ -101,7 +105,6 @@ void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSo
             trigger->RemovObject(entity->GetToken());
             entity->ClearFlag(trigger);
             trigger->GetOwner()->CallEvent(TriggerComponent::TriggerExit, entity);
-            TraceLog(LOG_INFO, "Trigger Exited");
         }
     }
 }

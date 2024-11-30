@@ -8,7 +8,7 @@ void DoorControllerComponent::OnAddedToObject()
 
     GameObject* owner = GetOwner();
 
-    owner->AddEvent(TriggerComponent::TriggerEnter,
+    owner->AddEventHandler(TriggerComponent::TriggerEnter,
         [this](size_t, GameObject* sender, GameObject* subject)
         {
             OnTriggerEnter(sender, subject);
@@ -16,7 +16,7 @@ void DoorControllerComponent::OnAddedToObject()
         owner->GetToken());
 
 
-    owner->AddEvent(TriggerComponent::TriggerExit,
+    owner->AddEventHandler(TriggerComponent::TriggerExit,
         [this](size_t, GameObject* sender, GameObject* subject)
         {
             OnTriggerExit(sender, subject);
