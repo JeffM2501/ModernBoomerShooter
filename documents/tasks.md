@@ -24,6 +24,15 @@ Let some doors not open all the way.
 ## Add stay open state for doors
 Add an option to allow doors to stay open when triggered.
 
+## Only draw meshes in visable cells
+Map each mesh's bbox to the vis cell list.
+
+## Sort cells far to near
+Bucket the vis list by the distance the line has walked so that it can be sorted far to near for transperancy.
+
+## Transperant cells
+Add option to give a cell a transpeerant wall and floor.
+
 # In Progress
 --------------------------------------------------------------
 
