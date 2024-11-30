@@ -113,6 +113,13 @@ void ConsoleRenderSystem::OnSetup()
             OutputVarState("ShowCoordinates", GlobalVars::ShowCoordinates);
         });
 
+    RegisterCommand(ConsoleCommands::ToggleTriggers,
+        [this](std::string_view command, const std::vector<std::string>& args)
+        {
+            GlobalVars::ShowTriggerVolumes = !GlobalVars::ShowTriggerVolumes;
+            OutputVarState("ShowTriggerVolumes", GlobalVars::ShowTriggerVolumes);
+        });
+
     RegisterCommand(ConsoleCommands::ListCommands,
         [this](std::string_view command, const std::vector<std::string>& args)
         {

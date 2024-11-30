@@ -13,6 +13,7 @@
 
 #include "components/transform_component.h"
 #include "components/map_object_component.h"
+#include "components/trigger_component.h"
 
 #include "world.h"
 #include "map/map.h"
@@ -96,6 +97,33 @@ float GetFOVX(float fovY)
     return 2.0f * atanf(tanf(fovY * DEG2RAD * 0.5f) * aspectRatio) * RAD2DEG;
 }
 
+
+static constexpr float DebugFloorHeight = 0.01f;
+void SceneRenderSystem::DrawDebugShapes()
+{
+    if (GlobalVars::ShowTriggerVolumes)
+    {
+        for (auto* trigger : MapObjects->Triggers)
+        {
+            DrawLine3D(Vector3{ trigger->Bounds.x, trigger->Bounds.y, DebugFloorHeight },
+                Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y, DebugFloorHeight },
+                RED);
+
+            DrawLine3D(Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y, DebugFloorHeight },
+                Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
+                RED);
+
+            DrawLine3D(Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
+                Vector3{ trigger->Bounds.x, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
+                RED);
+
+            DrawLine3D(Vector3{ trigger->Bounds.x, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
+                Vector3{ trigger->Bounds.x, trigger->Bounds.y, DebugFloorHeight },
+                RED);
+        }
+    }
+}
+
 void SceneRenderSystem::OnUpdate()
 {
     if (!WorldPtr || WorldPtr->GetState() != WorldState::Playing)
@@ -103,16 +131,6 @@ void SceneRenderSystem::OnUpdate()
 
     for (auto& zone : WorldPtr->GetMap().LightZones)
         zone.Advance();
-
-
-    float doorParam = sinf(float(GetTime())/2.0f);
-    doorParam += 1;
-    doorParam /= 2.0f;
-
-    for (size_t doorId : WorldPtr->GetMap().DoorCells)
-    {
-        WorldPtr->GetMap().Cells[doorId].ParamState = uint8_t(doorParam * 255);
-    }
 
     if (PlayerManager)
         Render.SetViewpoint(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerYaw(), PlayerManager->GetPlayerPitch());
@@ -158,5 +176,7 @@ void SceneRenderSystem::OnUpdate()
             rlPopMatrix();
         }
     }
+
+    DrawDebugShapes();
     EndMode3D();
 }

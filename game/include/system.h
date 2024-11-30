@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <set>
 #include <string_view>
 
 class GameObject;
@@ -45,6 +45,6 @@ protected:
     virtual void OnRemoveObject(GameObject* object) {}
 
 protected:
-    std::vector<GameObject*> Objects;
+    std::set<GameObject*> Objects;
     World* WorldPtr = nullptr;
 };

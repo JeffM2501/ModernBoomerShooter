@@ -285,7 +285,7 @@ void Raycaster::SetCellVis(int x, int y)
         {
             for (int xOffset = -1; xOffset <= 1; xOffset++)
             {
-                if (WorldMap->IsCellPassable(x + xOffset, y + yOffset))
+                if (!WorldMap->IsCellSolid(x + xOffset, y + yOffset))
                 {
                     AddCellVis(x + xOffset, y + yOffset);
                 }

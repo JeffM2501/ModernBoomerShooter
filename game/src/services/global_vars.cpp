@@ -17,6 +17,7 @@ namespace GlobalVars
     bool UseGhostMovement = false;
     bool UseVisCulling = true;
     bool ShowCollisionVolumes = false;
+    bool ShowTriggerVolumes = DebugTrue;
     bool ShowCoordinates = DebugTrue;
 
     bool UseVSync = DebugFalse;

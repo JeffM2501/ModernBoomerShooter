@@ -218,6 +218,13 @@ void MapRenderer::DrawDoorPanelYAlligned(Color floorColor, Rectangle& tileUv, co
     rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
     rlTexCoord2f(tileUv.x, tileUv.height);
     rlVertex3f(DoorThickness * 0.5f, 0, 0);
+
+
+    // TODO
+    // draw the top
+
+
+    // draw the bottom....
 }
 
 void MapRenderer::RenderDoor(int x, int y, Color floorColor, const AmbientOcclusionCellValues& aoInfo)
@@ -234,15 +241,36 @@ void MapRenderer::RenderDoor(int x, int y, Color floorColor, const AmbientOcclus
 
     Vector3 animaionOffset = { 0, 0, 0 };
 
-    if (xAlligned)
+    if (cell.ParamState > 0)
     {
-        if (cell.ParamState > 0)
+        if (openVertical)
         {
             if (backwards)
-                animaionOffset.x = -(animParam * MapScale);
+                animaionOffset.z = -(animParam * MapScale);
             else
-                animaionOffset.x = animParam * MapScale;
+                animaionOffset.z = animParam * MapScale;
         }
+        else
+        {
+            if (xAlligned)
+            {
+                if (backwards)
+                    animaionOffset.x = -(animParam * MapScale);
+                else
+                    animaionOffset.x = animParam * MapScale;
+            }
+            else
+            {
+                if (backwards)
+                    animaionOffset.y = -animParam * MapScale;
+                else
+                    animaionOffset.y = animParam * MapScale;
+            }
+        }
+    }
+
+    if (xAlligned)
+    {
         rlPushMatrix();
         rlTranslatef(x * MapScale, y * MapScale, 0);
         rlTranslatef(animaionOffset.x, halfGrid + animaionOffset.y, animaionOffset.z);
@@ -251,13 +279,6 @@ void MapRenderer::RenderDoor(int x, int y, Color floorColor, const AmbientOcclus
     }
     else
     {
-        if (cell.ParamState > 0)
-        {
-            if (backwards)
-                animaionOffset.y = -animParam * MapScale;
-            else
-                animaionOffset.y = animParam * MapScale;
-        }
         rlPushMatrix();
         rlTranslatef(x * MapScale, y * MapScale, 0);
         rlTranslatef(animaionOffset.x + halfGrid, animaionOffset.y, animaionOffset.z);

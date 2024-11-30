@@ -16,6 +16,7 @@ namespace ConsoleCommands
     static constexpr char ToggleCollisionVolumes[] = "toggle_volumes";
     static constexpr char ToggleShowCoordinates[] = "show_coordinates";
     static constexpr char ToggleVSync[] = "toggle_vsync";
+    static constexpr char ToggleTriggers[] = "toggle_triggers";
 
     static constexpr char SetConsoleFontSize[] = "set_console_font";
     static constexpr char SetFPSCap[] = "set_fps_cap";

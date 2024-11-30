@@ -11,6 +11,7 @@
 #include "components/transform_component.h"
 #include "components/map_object_component.h"
 #include "components/trigger_component.h"
+#include "components/door_controller_component.h"
 
 #include "utilities/light_utils.h"
 
@@ -35,7 +36,7 @@ void ReleaseXMLDataCallback(const char* filePath, void* data)
     ResourceManager::ReleaseResource(filePath);
 }
 
-using LayerTileCallback = std::function<void(const tmx::TileLayer::Tile&, int, int, size_t)>;
+using LayerTileCallback = std::function<void(const tmx::TileLayer::Tile&, MapCoordinate, MapCoordinate, size_t)>;
 
 
 static size_t ComputeTMXIndex(int x, int y, MapCoordinate mapSize)
@@ -52,17 +53,24 @@ void DoForEachTile(World& world, tmx::TileLayer& layer, LayerTileCallback callba
 
     auto mapSize = world.GetMap().Size;
 
-    int x = 0;
-    int y = 0;
+    MapCoordinate tmxCoordinate(0, 0);
+    MapCoordinate mapCoordinate(0, mapSize.Y-1);
+
     for (size_t i = 0; i < tiles.size(); i++)
     {
-        size_t mapCellIndex = ComputeTMXIndex(x, y, mapSize);
-        callback(tiles[i], x, y, mapCellIndex);
-        x++;
-        if (x >= mapSize.X)
+        size_t mapCellIndex = ComputeTMXIndex(tmxCoordinate.X, tmxCoordinate.Y, mapSize);
+
+        callback(tiles[i], tmxCoordinate, mapCoordinate, mapCellIndex);
+
+        tmxCoordinate.X++;
+        mapCoordinate.X++;
+
+        if (tmxCoordinate.X >= mapSize.X)
         {
-            y++;
-            x = 0;
+            mapCoordinate.Y--;
+            tmxCoordinate.Y++;
+
+            mapCoordinate.X = tmxCoordinate.X = 0;
         }
     }
 }
@@ -238,7 +246,7 @@ void ReadWorldTMX(const char* fileName, World& world)
     FindProperty("extereor_ambient_level", mapProps, map.LightInfo.ExteriorAmbientLevel);
     FindProperty("interior_ambient_level", mapProps, map.LightInfo.InteriorAmbientLevel);
 
-    DoForEachTileInLayer(world, tmxMap, "floors", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
+    DoForEachTileInLayer(world, tmxMap, "floors", [&map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
         {
             if (tile.ID != 0 && map.Cells[mapCellIndex].State != MapCellState::Wall)
             {
@@ -247,7 +255,7 @@ void ReadWorldTMX(const char* fileName, World& world)
             }
         });
 
-    DoForEachTileInLayer(world, tmxMap, "ceilings", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
+    DoForEachTileInLayer(world, tmxMap, "ceilings", [&map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
         {
             if (tile.ID != 0 && map.Cells[mapCellIndex].State != MapCellState::Wall)
             {
@@ -257,7 +265,7 @@ void ReadWorldTMX(const char* fileName, World& world)
         });
 
 
-    DoForEachTileInLayer(world, tmxMap, "walls", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
+    DoForEachTileInLayer(world, tmxMap, "walls", [&map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoordy, size_t mapCellIndex)
         {
             if (tile.ID != 0)
             {
@@ -266,17 +274,41 @@ void ReadWorldTMX(const char* fileName, World& world)
             }
         });
 
-    DoForEachTileInLayer(world, tmxMap, "doors", [&map](const tmx::TileLayer::Tile& tile, int x, int y, size_t mapCellIndex)
+    DoForEachTileInLayer(world, tmxMap, "doors", [&world, &map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
         {
             if (tile.ID != 0 && map.Cells[mapCellIndex].State == MapCellState::Empty)
             {
                 map.Cells[mapCellIndex].State = MapCellState::Door;
                 map.Cells[mapCellIndex].Tiles[2] = tile.ID - 1;
 
-                map.Cells[mapCellIndex].ParamState = 64;
+                bool isXAlligned = false;
 
-                if (map.Cells[ComputeTMXIndex(x+1, y, map.Size)].State != MapCellState::Empty)
+                if (map.Cells[ComputeTMXIndex(tmxCoord.X + 1, tmxCoord.Y, map.Size)].State != MapCellState::Empty)
+                    isXAlligned = true;
+
+                if (isXAlligned)
                     map.Cells[mapCellIndex].Flags |= MapCellFlags::XAllignment;
+
+                auto trigger = world.AddObject();
+                Rectangle triggerBounds = { 0,0 };
+                if (isXAlligned)
+                {
+                    triggerBounds.y = float(mapCoord.Y - 1);
+                    triggerBounds.x = float(mapCoord.X);
+                    triggerBounds.height = 3;
+                    triggerBounds.width = 1;
+                }
+                else
+                {
+                    triggerBounds.y = float(mapCoord.Y);
+                    triggerBounds.x = float(mapCoord.X-1);
+                    triggerBounds.height = 1;
+                    triggerBounds.width = 3;
+                }
+
+                trigger->AddComponent<TriggerComponent>(triggerBounds);
+                trigger->AddComponent<DoorControllerComponent>(mapCellIndex);
+                map.Cells[mapCellIndex].Flags |= MapCellFlags::Impassible;
 
                 map.DoorCells.push_back(mapCellIndex);
             }

@@ -3,6 +3,7 @@
 #include "services/game_time.h"
 #include "systems/input_system.h"
 #include "systems/map_object_system.h"
+#include "components/player_info_component.h"
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
 #include "services/global_vars.h"
@@ -22,6 +23,9 @@ void PlayerManagementSystem::OnSetup()
         PlayerObject = WorldPtr->AddObject();
         PlayerTransform = PlayerObject->AddComponent<TransformComponent>();
     }
+
+    PlayerObject->MustGetComponent<PlayerInfoComponent>().PlayerId = 0;
+
     PlayerPitch = 0;
 
     if (Spawn)

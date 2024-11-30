@@ -5,6 +5,7 @@
 #include "components/map_object_component.h"
 #include "components/transform_component.h"
 #include "components/trigger_component.h"
+#include "components/door_controller_component.h"
 #include "services/model_manager.h"
 #include "services/global_vars.h"
 
@@ -20,6 +21,9 @@ void MapObjectSystem::OnSetup()
 
 void MapObjectSystem::OnUpdate()
 {
+    for (auto* door : Doors)
+        door->Update();
+
     // AI updates?
 }
 
@@ -39,6 +43,9 @@ void MapObjectSystem::OnAddObject(GameObject* object)
 
     if (object->HasComponent<TriggerComponent>())
         Triggers.push_back(object->GetComponent<TriggerComponent>());
+
+    if (object->HasComponent<DoorControllerComponent>())
+        Doors.push_back(object->GetComponent<DoorControllerComponent>());
 }
 
 template<class T>
@@ -62,6 +69,7 @@ void MapObjectSystem::OnRemoveObject(GameObject* object)
 {
     FindAndErase<MapObjectComponent>(object, MapObjects);
     FindAndErase<TriggerComponent>(object, Triggers);
+    FindAndErase<DoorControllerComponent>(object, Doors);
 }
 
 void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSomething)
@@ -82,6 +90,7 @@ void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSo
             if (!entity->HasFlag(trigger))
             {
                 entity->AddFlag(trigger);
+                trigger->AddObject(entity->GetToken());
                 trigger->GetOwner()->CallEvent(TriggerComponent::TriggerEnter, entity);
 
                 TraceLog(LOG_INFO, "Trigger Entered");
@@ -89,6 +98,7 @@ void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSo
         }
         else if (entity->HasFlag(trigger))
         {
+            trigger->RemovObject(entity->GetToken());
             entity->ClearFlag(trigger);
             trigger->GetOwner()->CallEvent(TriggerComponent::TriggerExit, entity);
             TraceLog(LOG_INFO, "Trigger Exited");

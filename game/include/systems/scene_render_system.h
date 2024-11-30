@@ -18,6 +18,8 @@ protected:
     void OnSetup() override;
     void OnUpdate() override;
 
+    void DrawDebugShapes();
+
 protected:
     MapRenderer Render;
     class PlayerManagementSystem* PlayerManager = nullptr;

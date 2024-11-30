@@ -23,15 +23,11 @@ void System::Update()
 
 void System::AddObject(GameObject* object)
 {
-    Objects.push_back(object);
+    Objects.insert(object);
     OnAddObject(object);
 }
 
 void System::RemoveObject(GameObject* object)
 {
-    auto itr = std::find(Objects.begin(), Objects.end(), object);
-    if (itr == Objects.end())
-        return;
-
-    Objects.erase(itr);
+    Objects.erase(object);
 }

@@ -85,7 +85,9 @@ bool Map::IsCellSolid(int x, int y) const
 bool Map::IsCellPassable(int x, int y) const
 {
     MapCell cell = GetCell(x, y);
-    return (cell.State == MapCellState::Empty || cell.State == MapCellState::Door) && !(cell.Flags & MapCellFlags::Impassible);
+    bool impassable = cell.Flags & MapCellFlags::Impassible;
+
+    return !impassable && (cell.State == MapCellState::Empty || cell.State == MapCellState::Door);
 }
 
 bool Map::IsCellCapped(int x, int y) const
@@ -109,7 +111,7 @@ bool Map::MoveEntity(Vector3& position, Vector3& desiredMotion, float radius)
     {
         for (int x = int(position.x - 1); x <= int(position.x + 1); x++)
         {
-            if (IsCellSolid(x, y))
+            if (!IsCellPassable(x, y))
             {
                 // check rectangle
 

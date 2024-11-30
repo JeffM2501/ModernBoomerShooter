@@ -20,4 +20,13 @@ public:
 
     static constexpr char TriggerEnter[] = "TriggerComponentEnter";
     static constexpr char TriggerExit[] = "TriggerComponentExit";
+
+    void AddObject(GameObjectLifetimeToken::Ptr token);
+    void RemovObject(GameObjectLifetimeToken::Ptr token);
+
+    bool HasObject(GameObject* object);
+    bool HasAnyObjects();
+
+protected:
+    std::vector<GameObjectLifetimeToken::Ptr> ConainedObjects;
 };

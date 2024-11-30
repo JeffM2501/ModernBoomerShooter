@@ -52,15 +52,13 @@ void GameObject::AddToSystem(size_t systemGUID)
     if (!WorldPtr)
         return;
 
-    if (LinkedSystems.find(systemGUID) != LinkedSystems.end())
-        return;
-
     auto* system = WorldPtr->GetSystem(systemGUID);
     if (!system)
         return;
 
-    system->AddObject(this);
     LinkedSystems.insert(systemGUID);
+
+    system->AddObject(this);
 }
 
 void GameObject::AddEvent(size_t hash, GameObjectEventHandler handler, GameObjectLifetimeToken::Ptr token)
