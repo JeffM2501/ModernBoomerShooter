@@ -13,3 +13,14 @@ Allow other systems to force a door open or closed
 # Add door security
 Add a basic door security system that is extensiable via scripting.
 
+# Add split doors
+Add option for split doors, vertical and horizontal.
+
+# Add start state for doors.
+Let doors start open or closed.
+
+# Add max/min state for doors.
+Let some doors not open all the way.
+
+# Add stay open state for doors
+Add an option to allow doors to stay open when triggered.
