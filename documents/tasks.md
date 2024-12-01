@@ -37,10 +37,22 @@ Bucket the vis list by the distance the line has walked so that it can be sorted
 
 ## Transperant cells
 Add option to give a cell a transpeerant wall and floor.
-# In Progress
---------------------------------------------------------------
+
+## Add Billobard system
+Compute billboard characters and faces from relative rotation/facing
+
 ## Add MOB system
 Mob components and mob processing system, seperate from map object system
+
+## Support rotation/flip of walls and floors
+Allow faces to be rotated or flipped based on tmx flags?
+
+
+# In Progress
+--------------------------------------------------------------
+
+## Fix world lighting to use lighting shader
+Use the lighting shadder for ambient, but still apply AO and lighting zones.
 
 # Commplete
 --------------------------------------------------------------

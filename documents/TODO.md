@@ -20,3 +20,9 @@
  * Music
  * User Prefs/keymaps
  * Package System
+ 
+ 
+ # Ideas
+ 
+ ## Prefabs
+ Use component data objects, with codegen functions to read/write binary data. Prefab overrides are just applied as sparse data as an addiitional read. Allow other objects to hold an override set for some other component, so that a spawner can apply overrides to each obecjt spawned.
