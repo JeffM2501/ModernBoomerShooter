@@ -1,0 +1,4 @@
+door_open;sounds/doorOpen_000.ogg
+door_close;sounds/doorClose_000.ogg
+wall_hit;sounds/impactMetal_000.ogg
+spawn;sounds/footstep07.ogg

@@ -288,7 +288,7 @@ void ReadWorldTMX(const char* fileName, World& world)
 
                 if (isXAlligned)
                     map.Cells[mapCellIndex].Flags |= MapCellFlags::XAllignment;
-
+               
                 auto trigger = world.AddObject();
                 Rectangle triggerBounds = { 0,0 };
                 if (isXAlligned)

@@ -18,11 +18,23 @@ void MapObjectSystem::OnSetup()
 {
     SceneRenderer = WorldPtr->GetSystem<SceneRenderSystem>();
 
-    WorldPtr->AddEventHandler(TriggerComponent::TriggerEnter, [](size_t, GameObject*, GameObject*)
-        { TraceLog(LOG_INFO, "Trigger Entered"); }, Token);
+    Audio = WorldPtr->GetSystem<AudioSystem>();
 
-    WorldPtr->AddEventHandler(TriggerComponent::TriggerExit, [](size_t, GameObject*, GameObject*)
-        { TraceLog(LOG_INFO, "Trigger Exited"); }, Token);
+    OpenDoorSound = Audio->GetSound("door_open");
+    CloseDoorSound = Audio->GetSound("door_close");
+
+    WorldPtr->AddEventHandler(DoorControllerComponent::DoorOpening, [this](size_t, GameObject*, GameObject*)
+        { 
+            if (OpenDoorSound)
+                OpenDoorSound->Play();
+        }, Token);
+
+    WorldPtr->AddEventHandler(DoorControllerComponent::DoorClosing, [this](size_t, GameObject*, GameObject*)
+        { 
+            if (CloseDoorSound)
+                CloseDoorSound->Play();
+        }, Token);
+
 }
 
 void MapObjectSystem::OnUpdate()

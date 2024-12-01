@@ -95,6 +95,7 @@ void MapRenderer::DrawDoorPanelXAlligned(Color floorColor, Rectangle& tileUv, co
     rlNormal3f(-1, 0, 0);
 
     float thinUVWidth = tileUv.width - tileUv.x;
+    float thinUVHeight = tileUv.height - tileUv.y;
 
     float thinUVMin = tileUv.x + ((0.5f - (DoorThickness / 2)) * thinUVWidth);
     float thinUVMax = tileUv.x + ((0.5f + (DoorThickness / 2)) * thinUVWidth);
@@ -133,12 +134,54 @@ void MapRenderer::DrawDoorPanelXAlligned(Color floorColor, Rectangle& tileUv, co
     rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
     rlTexCoord2f(thinUVMin, tileUv.height);
     rlVertex3f(MapScale, DoorThickness * -0.5f, 0);
+
+    // TODO
+    // draw the top
+    rlNormal3f(0, 0, 1);
+
+    float topVOffset = thinUVHeight * DoorThickness;
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height - topVOffset);
+    rlVertex3f(0, DoorThickness * -0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height - topVOffset);
+    rlVertex3f(MapScale, DoorThickness * -0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(MapScale, DoorThickness * 0.5f, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(0, DoorThickness * 0.5f, MapScale);
+
+
+    // draw the bottom....
+    rlNormal3f(0, 0, -1);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(0, DoorThickness * 0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(MapScale, DoorThickness * 0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height - topVOffset);
+    rlVertex3f(MapScale, DoorThickness * -0.5f, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height - topVOffset);
+    rlVertex3f(0, DoorThickness * -0.5f, 0);
 }
 
 
 void MapRenderer::DrawDoorPanelYAlligned(Color floorColor, Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
 {
     float thinUVWidth = tileUv.width - tileUv.x;
+    float thinUVHeight = tileUv.height - tileUv.y;
 
     float thinUVMin = tileUv.x + ((0.5f - (DoorThickness / 2)) * thinUVWidth);
     float thinUVMax = tileUv.x + ((0.5f + (DoorThickness / 2)) * thinUVWidth);
@@ -219,12 +262,44 @@ void MapRenderer::DrawDoorPanelYAlligned(Color floorColor, Rectangle& tileUv, co
     rlTexCoord2f(tileUv.x, tileUv.height);
     rlVertex3f(DoorThickness * 0.5f, 0, 0);
 
-
     // TODO
     // draw the top
+    rlNormal3f(0, 0, 1);
 
+    float topVOffset = thinUVHeight * DoorThickness;
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height - topVOffset);
+    rlVertex3f(DoorThickness * -0.5f, 0, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height - topVOffset);
+    rlVertex3f(DoorThickness * 0.5f, 0, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(DoorThickness * 0.5f, MapScale, MapScale);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(DoorThickness * -0.5f, MapScale, MapScale);
 
     // draw the bottom....
+    rlNormal3f(0, 0, -1);
+    rlColor4ubScaled(floorColor, aoInfo.Values[0].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height);
+    rlVertex3f(DoorThickness * -0.5f, MapScale, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[1].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height);
+    rlVertex3f(DoorThickness * 0.5f, MapScale, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[2].AOValue);
+    rlTexCoord2f(tileUv.width, tileUv.height - topVOffset);
+    rlVertex3f(DoorThickness * 0.5f, 0, 0);
+
+    rlColor4ubScaled(floorColor, aoInfo.Values[3].AOValue);
+    rlTexCoord2f(tileUv.x, tileUv.height - topVOffset);
+    rlVertex3f(DoorThickness * -0.5f, 0, 0);
 }
 
 void MapRenderer::RenderDoor(int x, int y, Color floorColor, const AmbientOcclusionCellValues& aoInfo)
@@ -237,7 +312,7 @@ void MapRenderer::RenderDoor(int x, int y, Color floorColor, const AmbientOcclus
 
     float halfGrid = MapScale * 0.5f;
 
-    float animParam = cell.ParamState / 255.0f;
+    float animParam = cell.ParamState / 257.0f;
 
     Vector3 animaionOffset = { 0, 0, 0 };
 

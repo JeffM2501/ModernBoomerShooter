@@ -16,7 +16,7 @@
  * Open Ceiling wall caps
  * Shooting
  * Sound effects
- * Tasksk
+ * Tasks
  * Music
  * User Prefs/keymaps
  * Package System

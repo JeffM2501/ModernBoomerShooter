@@ -1,12 +1,13 @@
 #include "systems/player_management_system.h"
 
-#include "services/game_time.h"
-#include "systems/input_system.h"
-#include "systems/map_object_system.h"
 #include "components/player_info_component.h"
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
+#include "services/game_time.h"
 #include "services/global_vars.h"
+#include "systems/audio_system.h"
+#include "systems/input_system.h"
+#include "systems/map_object_system.h"
 
 #include "world.h"
 
@@ -34,6 +35,8 @@ void PlayerManagementSystem::OnSetup()
         PlayerTransform->Position = transform.Position;
         PlayerTransform->Facing = transform.Facing;
     }
+
+    WorldPtr->GetSystem<AudioSystem>()->GetSound("spawn")->Play();
 }
 
 Vector3 PlayerManagementSystem::GetPlayerPos() const

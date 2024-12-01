@@ -25,6 +25,7 @@ namespace GlobalVars
 
     bool UseMouseDrag = DebugTrue;
 
+    float MasterVolume = 0.5f;
 
     bool Paused = false;
 }

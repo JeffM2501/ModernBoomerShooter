@@ -1,6 +1,7 @@
 #pragma once
 
 #include "system.h"
+#include "systems/audio_system.h"
 #include "raylib.h"
 
 #include <vector>
@@ -9,6 +10,7 @@ class MapObjectComponent;
 class TriggerComponent;
 class DoorControllerComponent;
 class SceneRenderSystem;
+
 
 class MapObjectSystem : public System
 {
@@ -29,4 +31,8 @@ protected:
     void OnRemoveObject(GameObject* object) override;
 
     SceneRenderSystem* SceneRenderer = nullptr;
+    AudioSystem* Audio = nullptr;
+
+    SoundInstance::Ptr OpenDoorSound;
+    SoundInstance::Ptr CloseDoorSound;
 };
