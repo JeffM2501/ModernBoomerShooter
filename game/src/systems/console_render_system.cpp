@@ -34,19 +34,23 @@ ConsoleRenderSystem::ConsoleRenderSystem(World* world) : System(world)
 {
     LastConsole = this;
 
-    SetTraceLogCallback([](int logLevel, const char* text, va_list args)
-        {
-            if (!LastConsole)
-                return;
+	SetTraceLogCallback([](int logLevel, const char* text, va_list args)
+		{
+			if (!LastConsole)
+				return;
 
-            static char logText[2048] = { 0 };
+			static char logText[2048] = { 0 };
 
-            std::string log = GetLogLevelName(logLevel);
-            vsprintf(logText, text, args);
-            log += " ";
-            log += logText;
+			std::string log = GetLogLevelName(logLevel);
+			vsprintf(logText, text, args);
+			log += " ";
+			log += logText;
 
-            LastConsole->ConsoleOutput.push_front(log);
+			LastConsole->ConsoleOutput.push_front(log);
+
+#if defined(_DEBUG)
+			printf("%s : %s\n", log.c_str(), logText);
+#endif
         });
 }
 

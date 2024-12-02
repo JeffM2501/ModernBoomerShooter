@@ -51,7 +51,8 @@ private:
 
     float MapScale = 1;
 
-    float WallColors[4] = { 1, 0.4f, 0.75f , 0.8f };
+    //float WallColors[4] = { 1, 0.4f, 0.75f , 0.8f };
+    float WallColors[4] = { 1, 1, 1 , 1 };
     float DefaultExteriorZoneLevel = 0.95f;
     float DefaultIntereorZoneLevel = 0.8f;
 

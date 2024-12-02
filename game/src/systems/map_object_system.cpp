@@ -41,8 +41,6 @@ void MapObjectSystem::OnUpdate()
 {
     for (auto* door : Doors)
         door->Update();
-
-    // AI updates?
 }
 
 void MapObjectSystem::OnAddObject(GameObject* object)

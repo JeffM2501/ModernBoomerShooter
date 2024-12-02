@@ -31,4 +31,5 @@ protected:
     Material SkyboxMaterial = { 0 };
 
     LightScene ObjectLights;
+    Shader MapShader = { 0 };
 };

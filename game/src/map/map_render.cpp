@@ -4,6 +4,8 @@
 #include "services/texture_manager.h"
 #include "services/global_vars.h"
 
+#include "utilities/lighting_system.h"
+
 #include "raymath.h"
 #include "rlgl.h"
 
@@ -30,7 +32,7 @@ Color ScaleColor3(Color tint, float factor)
 
 void rlColor4ubScaled(Color tint, int factor)
 {
-    float scaleFactor = 1 - ((factor / 3.0f) * 0.3f);
+    float scaleFactor = 1 - ((factor / 3.0f) * 0.5f);
 
     Color scaleColor = ScaleColor3(tint, scaleFactor);
     rlColor4ub(scaleColor.r, scaleColor.g, scaleColor.b, scaleColor.a);
@@ -483,7 +485,7 @@ void MapRenderer::RenderCeiling(int x, int y, Color tint, const Rectangle& tileU
     float yMax = yMin + MapScale;
 
     rlColor4ub(tint.r, tint.g, tint.b, 255);
-    rlNormal3f(0, 0, -1);
+    rlNormal3f(0, 0, 1);
 
     rlColor4ubScaled(tint, aoInfo.Values[0].AOValue);
     rlTexCoord2f(tileUv.x, tileUv.y);
@@ -651,30 +653,25 @@ void MapRenderer::Reset()
     SetViewpoint(Vector3Zeros, 0, 0);
 
     WorldShader = TextureManager::GetShader("world");
+    WorldShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(WorldShader, ViewPosName);
 
-    Vector2 lightVec = { cosf(DEG2RAD * WorldMap.LightInfo.AmbientAngle), sinf(DEG2RAD * WorldMap.LightInfo.AmbientAngle) };
+    float ambientScale = 0.5f;
+    float ambient[4] = { WorldMap.LightInfo.InteriorAmbientLevel * ambientScale, WorldMap.LightInfo.InteriorAmbientLevel * ambientScale, WorldMap.LightInfo.InteriorAmbientLevel * ambientScale , 1 };
+    SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "ambient"), ambient, SHADER_UNIFORM_VEC4);
 
-    if (lightVec.x > 0)
-    {
-        WallColors[3] = lightVec.x;
-        WallColors[2] = lightVec.x * 0.75f;
-    }
-    else
-    {
-        WallColors[2] = fabsf(lightVec.x);
-        WallColors[3] = fabsf(lightVec.x) * 0.75f;
-    }
+    float globalColor[4] = { 1, 1, 1, 1 };
+    SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablLightColor"), globalColor, SHADER_UNIFORM_VEC4);
 
-    if (lightVec.y > 0)
-    {
-        WallColors[1] = lightVec.y;
-        WallColors[0] = lightVec.y * 0.75f;
-    }
-    else
-    {
-        WallColors[0] = fabsf(lightVec.y);
-        WallColors[1] = fabsf(lightVec.y) * 0.75f;
-    }
+    float ambientAngle = WorldMap.LightInfo.AmbientAngle;// -90;
+
+    Vector3 lightVec = {
+        sinf(DEG2RAD * ambientAngle),
+        cosf(DEG2RAD * ambientAngle),
+        -1.0f
+    };
+    lightVec = Vector3Normalize(lightVec);
+
+    SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablLightDirection"), &lightVec, SHADER_UNIFORM_VEC3);
 
     DefaultExteriorZoneLevel = WorldMap.LightInfo.ExteriorAmbientLevel;
     DefaultIntereorZoneLevel = WorldMap.LightInfo.InteriorAmbientLevel;
@@ -682,6 +679,8 @@ void MapRenderer::Reset()
 
 void MapRenderer::Render()
 {
+    SetShaderValue(WorldShader, WorldShader.locs[SHADER_LOC_VECTOR_VIEW], &Viepoint.position, SHADER_UNIFORM_VEC3);
+
     BeginMode3D(Viepoint);
 
     // draw the world bounds

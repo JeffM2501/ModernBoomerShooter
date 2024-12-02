@@ -7,6 +7,17 @@
 #include <memory>
 #include "raylib.h"
 
+static constexpr char ViewPosName[] = "viewPos";
+static constexpr char EnabledName[] = "enabled";
+static constexpr char TypeName[] = "type";
+static constexpr char PositionName[] = "position";
+static constexpr char DirectionName[] = "direction";
+static constexpr char ColorName[] = "color";
+static constexpr char AttenuationName[] = "attenuation";
+static constexpr char FallofName[] = "falloff";
+static constexpr char ConeName[] = "cone";
+static constexpr char AmbientName[] = "ambient";
+
 enum class LightTypes
 {
     Directional = 0,

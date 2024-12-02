@@ -70,7 +70,8 @@ void SceneRenderSystem::OnSetup()
     ObjectLights.SetShader(TextureManager::GetShader("object"));
     ObjectLights.ClearLights();
 
-    ObjectLights.SetAmbientColor(WorldPtr->GetMap().LightInfo.InteriorAmbientLevel * 0.125f);
+    float ambientScale = 0.5f;
+    ObjectLights.SetAmbientColor(WorldPtr->GetMap().LightInfo.InteriorAmbientLevel * ambientScale);
 
     auto * light = static_cast<DirectionalLight*>(ObjectLights.AddLight(LightTypes::Directional));
 
@@ -157,6 +158,7 @@ void SceneRenderSystem::OnUpdate()
     {
         DrawRectangleGradientV(0, 0, GetScreenWidth(), GetScreenHeight(), DARKBLUE, SKYBLUE);
     }
+
     Render.Render();
 
     BeginMode3D(Render.Viepoint);
