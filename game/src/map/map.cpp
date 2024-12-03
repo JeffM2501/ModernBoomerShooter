@@ -93,7 +93,7 @@ bool Map::IsCellPassable(int x, int y) const
 bool Map::IsCellCapped(int x, int y) const
 {
     auto cell = GetCell(x, y);
-    return (cell.State == MapCellState::Wall || cell.State == MapCellState::Invalid) || (cell.State == MapCellState::Empty && cell.Tiles[1] != MapCellInvalidTile);
+    return (cell.State == MapCellState::Wall || cell.State == MapCellState::Invalid) || ((cell.State != MapCellState::Wall) && cell.Tiles[1] != MapCellInvalidTile);
 }
 
 void Map::Clear()

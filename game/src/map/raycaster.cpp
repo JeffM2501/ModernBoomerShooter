@@ -278,7 +278,6 @@ void Raycaster::AddCellVis(int x, int y)
 void Raycaster::SetCellVis(int x, int y)
 {
     auto state = WorldMap->GetCell(x, y).State;
-    if (WorldMap->IsCellSolid(x, y))
     {
         // if we hit a wall, ensure that every cell around it that is passable is tagged so we see all the walls
         for (int yOffset = -1; yOffset <= 1; yOffset++)
@@ -291,9 +290,5 @@ void Raycaster::SetCellVis(int x, int y)
                 }
             }
         }
-    }
-    else
-    {
-        AddCellVis(x, y);
     }
 }

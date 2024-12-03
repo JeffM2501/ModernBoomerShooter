@@ -4,7 +4,7 @@
   <property name="ambient_direction_angle" type="float" value="-33.03"/>
   <property name="extereor_ambient_level" type="float" value="1"/>
   <property name="interior_ambient_level" type="float" value="0.75"/>
-  <property name="skybox" value="textures/skybox_night.png"/>
+  <property name="skybox" value="textures/skybox.png"/>
  </properties>
  <tileset firstgid="1" source="../textures/defaultTiles.tsx"/>
  <layer id="1" name="Floor" class="floors" width="64" height="64">

@@ -655,12 +655,20 @@ void MapRenderer::Reset()
     WorldShader = TextureManager::GetShader("world");
     WorldShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(WorldShader, ViewPosName);
 
-    float ambientScale = 0.5f;
+    float ambientScale = 0.0f;// 15f;
     float ambient[4] = { WorldMap.LightInfo.InteriorAmbientLevel * ambientScale, WorldMap.LightInfo.InteriorAmbientLevel * ambientScale, WorldMap.LightInfo.InteriorAmbientLevel * ambientScale , 1 };
     SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "ambient"), ambient, SHADER_UNIFORM_VEC4);
 
+    float tintScale = 1.5f;
+    SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "tintScale"), &tintScale, SHADER_UNIFORM_FLOAT);
+    
     float globalColor[4] = { 1, 1, 1, 1 };
     SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablLightColor"), globalColor, SHADER_UNIFORM_VEC4);
+
+
+    float backFillColor[4] = { 0.75f, 0.75f, 0.75f, 1 };
+    SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablBackfillLightColor"), backFillColor, SHADER_UNIFORM_VEC4);
+
 
     float ambientAngle = WorldMap.LightInfo.AmbientAngle;// -90;
 
@@ -672,6 +680,9 @@ void MapRenderer::Reset()
     lightVec = Vector3Normalize(lightVec);
 
     SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablLightDirection"), &lightVec, SHADER_UNIFORM_VEC3);
+
+    lightVec = Vector3Scale(lightVec, -1);
+    SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablBackfillLightDirection"), &lightVec, SHADER_UNIFORM_VEC3);
 
     DefaultExteriorZoneLevel = WorldMap.LightInfo.ExteriorAmbientLevel;
     DefaultIntereorZoneLevel = WorldMap.LightInfo.InteriorAmbientLevel;
