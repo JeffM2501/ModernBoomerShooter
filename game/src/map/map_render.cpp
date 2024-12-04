@@ -179,7 +179,6 @@ void MapRenderer::DrawDoorPanelXAlligned(Color floorColor, Rectangle& tileUv, co
     rlVertex3f(0, DoorThickness * -0.5f, 0);
 }
 
-
 void MapRenderer::DrawDoorPanelYAlligned(Color floorColor, Rectangle& tileUv, const AmbientOcclusionCellValues& aoInfo)
 {
     float thinUVWidth = tileUv.width - tileUv.x;
@@ -655,7 +654,7 @@ void MapRenderer::Reset()
     WorldShader = TextureManager::GetShader("world");
     WorldShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(WorldShader, ViewPosName);
 
-    float ambientScale = 0.0f;// 15f;
+    float ambientScale = 0.125f;
     float ambient[4] = { WorldMap.LightInfo.InteriorAmbientLevel * ambientScale, WorldMap.LightInfo.InteriorAmbientLevel * ambientScale, WorldMap.LightInfo.InteriorAmbientLevel * ambientScale , 1 };
     SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "ambient"), ambient, SHADER_UNIFORM_VEC4);
 
@@ -665,10 +664,8 @@ void MapRenderer::Reset()
     float globalColor[4] = { 1, 1, 1, 1 };
     SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablLightColor"), globalColor, SHADER_UNIFORM_VEC4);
 
-
     float backFillColor[4] = { 0.75f, 0.75f, 0.75f, 1 };
     SetShaderValue(WorldShader, GetShaderLocation(WorldShader, "gloablBackfillLightColor"), backFillColor, SHADER_UNIFORM_VEC4);
-
 
     float ambientAngle = WorldMap.LightInfo.AmbientAngle;// -90;
 

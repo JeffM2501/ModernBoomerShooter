@@ -29,6 +29,7 @@ Bucket the vis list by the distance the line has walked so that it can be sorted
 
 ## Transperant cells
 Add option to give a cell a transpeerant wall and floor.
+
 ## Only draw meshes in visable cells
 Map each mesh's bbox to the vis cell list.
 

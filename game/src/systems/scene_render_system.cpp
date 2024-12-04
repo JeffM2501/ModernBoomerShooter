@@ -31,7 +31,7 @@ void SceneRenderSystem::MapObjectAdded(class MapObjectComponent* object)
     if (!MapObjects)
         return;
 
-    object->Instance->SetShader(ObjectLights.GetShader());
+    object->Instance->SetShader(Render.GetWorldShader());
 }
 
 void SceneRenderSystem::OnSetup()
@@ -67,27 +67,12 @@ void SceneRenderSystem::OnSetup()
     SkyboxMaterial.maps[MATERIAL_MAP_CUBEMAP].texture = SkyboxTexture;
     SkyboxMaterial.shader = SkyboxShader;
 
-    ObjectLights.SetShader(TextureManager::GetShader("object"));
+    ObjectLights.SetShader(Render.GetWorldShader());
     ObjectLights.ClearLights();
-
-    float ambientScale = 0.5f;
-    ObjectLights.SetAmbientColor(WorldPtr->GetMap().LightInfo.InteriorAmbientLevel * ambientScale);
-
-    auto * light = static_cast<DirectionalLight*>(ObjectLights.AddLight(LightTypes::Directional));
-
-    float ambientAngle = WorldPtr->GetMap().LightInfo.AmbientAngle;// -90;
-
-    Vector3 lightVec = {
-        sinf(DEG2RAD * ambientAngle),
-        cosf(DEG2RAD * ambientAngle),
-        -1.0f
-    };
-
-    light->SetDirection(Vector3Normalize(lightVec));
 
     for (auto* mapObjet : MapObjects->MapObjects)
     {
-        mapObjet->Instance->SetShader(ObjectLights.GetShader());
+        mapObjet->Instance->SetShader(Render.GetWorldShader());
     }
 }
 
@@ -159,11 +144,11 @@ void SceneRenderSystem::OnUpdate()
         DrawRectangleGradientV(0, 0, GetScreenWidth(), GetScreenHeight(), DARKBLUE, SKYBLUE);
     }
 
+    ObjectLights.ApplyLights(Render.Viepoint);
+
     Render.Render();
 
     BeginMode3D(Render.Viepoint);
-    // draw objects
-    ObjectLights.ApplyLights(Render.Viepoint);
 
     for (auto* mapObjet : MapObjects->MapObjects)
     {

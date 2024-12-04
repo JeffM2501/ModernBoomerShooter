@@ -1,4 +1,3 @@
 skybox;shaders/skybox.fs:shaders/skybox.vs
 world;shaders/world.fs:shaders/world.vs
-object;shaders/lighting.fs:shaders/lighting.vs
 skydome;shaders/skydome.fs

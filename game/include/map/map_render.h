@@ -21,6 +21,8 @@ public:
 
     void SetEyeHeight(float height);
 
+    Shader& GetWorldShader() { return WorldShader; }
+
 private:
 
     struct AmbientOcclusionVertexValue
