@@ -12,6 +12,7 @@
 #include "systems/overlay_render_system.h"
 #include "systems/player_management_system.h"
 #include "systems/scene_render_system.h"
+#include "systems/mobile_object_system.h"
 
 // services
 #include "services/global_vars.h"
@@ -167,6 +168,7 @@ void World::SetupSystems()
     RegisterSystem<InputSystem>(SystemStage::PreUpdate);
     RegisterSystem<MapObjectSystem>(SystemStage::PreUpdate);
 
+    RegisterSystem<MobSystem>(SystemStage::Update);
     RegisterSystem<PlayerManagementSystem>(SystemStage::Update);
 
     RegisterSystem<AudioSystem>(SystemStage::PostUpdate);
