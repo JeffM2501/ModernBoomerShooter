@@ -2,11 +2,12 @@
 
 #include "system.h"
 #include "systems/audio_system.h"
+#include "components/map_object_component.h"
+#include "component.h"
 #include "raylib.h"
 
 #include <vector>
 
-class MapObjectComponent;
 class TriggerComponent;
 class DoorControllerComponent;
 class SceneRenderSystem;
@@ -17,9 +18,9 @@ class MapObjectSystem : public System
 public:
     DEFINE_SYSTEM(MapObjectSystem)
 
-    std::vector<MapObjectComponent*> MapObjects;
-    std::vector<TriggerComponent*> Triggers;
-    std::vector<DoorControllerComponent*> Doors;
+    SystemComponentList<MapObjectComponent> MapObjects;
+    SystemComponentList<TriggerComponent> Triggers;
+    SystemComponentList<DoorControllerComponent> Doors;
 
     bool MoveEntity(Vector3& position, Vector3& desiredMotion, float radius, GameObject* entity = nullptr);
     void CheckTriggers(GameObject* entity, float radius, bool hitSomething);

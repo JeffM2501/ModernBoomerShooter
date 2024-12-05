@@ -1,4 +1,5 @@
 #include "components/door_controller_component.h"
+#include "systems/map_object_system.h"
 #include "components/trigger_component.h"
 #include "world.h"
 

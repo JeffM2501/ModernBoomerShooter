@@ -39,29 +39,24 @@ void MapObjectSystem::OnSetup()
 
 void MapObjectSystem::OnUpdate()
 {
-    for (auto* door : Doors)
+    for (auto* door : Doors.Components)
         door->Update();
 }
 
 void MapObjectSystem::OnAddObject(GameObject* object)
 {
-    if (object->HasComponent<MapObjectComponent>())
+    auto* mapObject = MapObjects.Add(object);
+
+    if (mapObject)
     {
-        MapObjects.push_back(object->GetComponent<MapObjectComponent>());
-
-        MapObjectComponent* mapObject = MapObjects.back();
-
         mapObject->Instance = ModelManager::GetModel(mapObject->ModelName);
 
         if (SceneRenderer)
             SceneRenderer->MapObjectAdded(mapObject);
     }
 
-    if (object->HasComponent<TriggerComponent>())
-        Triggers.push_back(object->GetComponent<TriggerComponent>());
-
-    if (object->HasComponent<DoorControllerComponent>())
-        Doors.push_back(object->GetComponent<DoorControllerComponent>());
+    Triggers.Add(object);
+    Doors.Add(object);
 }
 
 template<class T>
@@ -83,9 +78,9 @@ bool FindAndErase(GameObject* object, std::vector<T*>& container)
 
 void MapObjectSystem::OnRemoveObject(GameObject* object)
 {
-    FindAndErase<MapObjectComponent>(object, MapObjects);
-    FindAndErase<TriggerComponent>(object, Triggers);
-    FindAndErase<DoorControllerComponent>(object, Doors);
+    MapObjects.Remove(object);
+    Triggers.Remove(object);
+    Doors.Remove(object);
 }
 
 void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSomething)
@@ -99,7 +94,7 @@ void MapObjectSystem::CheckTriggers(GameObject* entity, float radius, bool hitSo
 
     Vector2 pos = { transform->Position.x, transform->Position.y };
 
-    for (auto& trigger : Triggers)
+    for (auto& trigger : Triggers.Components)
     {
         if (CheckCollisionCircleRec(pos, radius, trigger->Bounds))
         {
@@ -128,7 +123,7 @@ bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, floa
 
     Vector3 newPos = position + desiredMotion;
 
-    for (auto* object : MapObjects)
+    for (auto* object : MapObjects.Components)
     {
         if (!object->Solid)
             continue;

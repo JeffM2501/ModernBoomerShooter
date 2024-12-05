@@ -5,7 +5,6 @@
 
 class GameObject;
 
-
 class Component
 {
 public:
@@ -40,6 +39,7 @@ public:
     virtual void OnAddedToObject() {}
 
     inline GameObject* GetOwner() { return Owner; }
+
 
 protected:
     GameObject* Owner = nullptr;

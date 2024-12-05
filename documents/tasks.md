@@ -42,18 +42,12 @@ Add option to give a cell a transpeerant wall and floor.
 ## Add Billobard system
 Compute billboard characters and faces from relative rotation/facing
 
-## Add MOB system
-Mob components and mob processing system, seperate from map object system
-
 ## Support rotation/flip of walls and floors
 Allow faces to be rotated or flipped based on tmx flags?
-
 
 # In Progress
 --------------------------------------------------------------
 
-## Fix world lighting to use lighting shader
-Use the lighting shadder for ambient, but still apply AO and lighting zones.
 
 # Commplete
 --------------------------------------------------------------
@@ -62,3 +56,9 @@ Add callbacks that can be triggered fron events from any object. Have object fir
 
 ## Draw top and bottom of doors
 Doors need tops and bottoms now that they can be vertical.
+
+## Fix world lighting to use lighting shader
+Use the lighting shadder for ambient, but still apply AO and lighting zones.
+
+## Add MOB system
+Mob components and mob processing system, seperate from map object system

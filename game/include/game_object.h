@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include <algorithm>
 #include <vector>
 #include <unordered_map>
 #include <set>
@@ -116,16 +117,40 @@ protected:
     GameObject* GetParent() const;
 };
 
+// utility class to cache a list of components in systems from the game objects they have
+// will check if the object has the component and if so, cache it's pointer for ECS-like iteration
 template<class T>
-class SystemComponentList : public std::vector<T>
+class SystemComponentList
 {
 public:
-    void Add(GameObject* object)
-    {
+    std::vector<T*> Components;
 
+    inline T* Add(GameObject* object)
+    {
+        T* comp = object->GetComponent<T>();
+        if (comp)
+            Components.push_back(comp);
+
+        return comp;
     }
-    void Remove(GameObject* object)
+ 
+    inline T* MustAdd(GameObject* object)
     {
+        T& comp = object->MustGetComponent<T>();
+        Components.push_back(&comp);
+ 
+        return &comp;
+    }
 
+    inline void Remove(GameObject* object)
+    {
+        T* comp = object->GetComponent<T>();
+
+        if (comp)
+        {
+            auto itr = std::find(Components.begin(), Components.end(), comp);
+            if (itr != Components.end())
+                Components.erase(itr);
+        }
     }
 };

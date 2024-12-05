@@ -10,6 +10,7 @@
 #include "components/door_controller_component.h"
 #include "components/map_object_component.h"
 #include "components/mobile_object_component.h"
+#include "components/mob_behavior_component.h"
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
 #include "components/trigger_component.h"
@@ -340,6 +341,7 @@ void ReadWorldTMX(const char* fileName, World& world)
             auto* mapObject = world.AddObject();
             SetObjectTransform(tmxMap, object, mapObject->AddComponent<TransformComponent>());
             auto* modelComp = mapObject->AddComponent<MobComponent>();
+            mapObject->AddComponent<MobBehaviorComponent>();
         },
         "mob");
 

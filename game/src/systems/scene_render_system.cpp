@@ -15,7 +15,9 @@
 #include "components/transform_component.h"
 #include "components/map_object_component.h"
 #include "components/trigger_component.h"
+#include "components/mobile_object_component.h"
 
+#include "game_object.h"
 #include "world.h"
 #include "map/map.h"
 
@@ -71,7 +73,7 @@ void SceneRenderSystem::OnSetup()
     ObjectLights.SetShader(Render.GetWorldShader());
     ObjectLights.ClearLights();
 
-    for (auto* mapObjet : MapObjects->MapObjects)
+    for (auto* mapObjet : MapObjects->MapObjects.Components)
     {
         mapObjet->Instance->SetShader(Render.GetWorldShader());
     }
@@ -84,13 +86,12 @@ float GetFOVX(float fovY)
     return 2.0f * atanf(tanf(fovY * DEG2RAD * 0.5f) * aspectRatio) * RAD2DEG;
 }
 
-
 static constexpr float DebugFloorHeight = 0.01f;
 void SceneRenderSystem::DrawDebugShapes()
 {
     if (GlobalVars::ShowTriggerVolumes)
     {
-        for (auto* trigger : MapObjects->Triggers)
+        for (auto* trigger : MapObjects->Triggers.Components)
         {
             DrawLine3D(Vector3{ trigger->Bounds.x, trigger->Bounds.y, DebugFloorHeight },
                 Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y, DebugFloorHeight },
@@ -151,7 +152,7 @@ void SceneRenderSystem::OnUpdate()
 
     BeginMode3D(Render.Viepoint);
 
-    for (auto* mapObjet : MapObjects->MapObjects)
+    for (auto* mapObjet : MapObjects->MapObjects.Components)
     {
         auto& transform = mapObjet->GetOwner()->MustGetComponent<TransformComponent>();
         mapObjet->Instance->Draw(transform);
@@ -166,9 +167,9 @@ void SceneRenderSystem::OnUpdate()
     }
     
     BeginShaderMode(ObjectLights.GetShader());
-    for (auto* mob : Mobs->GetSystemObjects())
+    for (auto mob : Mobs->Mobs.Components)
     {
-        auto* transform = mob->GetComponent<TransformComponent>();
+        auto* transform = mob->GetOwner()->GetComponent<TransformComponent>();
         if (!transform)
             continue;
 
@@ -176,6 +177,9 @@ void SceneRenderSystem::OnUpdate()
         rlTranslatef(transform->Position.x, transform->Position.y, transform->Position.z + 0.375f);
         rlRotatef(transform->Facing, 0,0,1);
         DrawCube(Vector3Zeros, 0.25f, 0.25f, 0.75f, RED);
+        DrawCube(Vector3UnitY * 0.125f + Vector3UnitZ * 0.3f, 0.25f, 0.005f, 0.125f, YELLOW);
+        DrawCube(Vector3UnitZ * 0.125f, 0.5f, 0.25f, 0.125f, RED);
+        DrawCube(Vector3UnitX * 0.3f + Vector3UnitY * 0.125f, 0.125f, 0.4f, 0.125f, PURPLE);
         rlPopMatrix();
     }
 

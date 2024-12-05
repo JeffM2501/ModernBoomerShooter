@@ -1,5 +1,6 @@
 #include "systems/mobile_object_system.h"
 
+#include "components/mob_behavior_component.h"
 #include "components/transform_component.h"
 #include "utilities/collision_utils.h"
 
@@ -7,26 +8,20 @@ void MobSystem::OnUpdate()
 {
     // do AI updates
 
-    for (auto& mob : Objects)
+    for (auto& behavior : MobBehaviors.Components)
     {
-        auto* transform = mob->GetComponent<TransformComponent>();
-        if (!transform)
-            continue;
-
-        constexpr float RotSpeed = 45;
-        transform->Facing += GetFrameTime() * RotSpeed;
-        CollisionUtils::SetUnitAngleDeg(transform->Facing);
-
-        transform->Position += transform->GetForward() * GetFrameTime() * 1;
+        behavior->Process();
     }
 }
 
 void MobSystem::OnAddObject(GameObject* object)
 {
-
+    Mobs.Add(object);
+    MobBehaviors.Add(object);
 }
 
 void MobSystem::OnRemoveObject(GameObject* object)
 {
-
+    MobBehaviors.Remove(object);
+    Mobs.Remove(object);
 }
