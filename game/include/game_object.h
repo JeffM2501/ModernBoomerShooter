@@ -115,3 +115,17 @@ protected:
 protected:
     GameObject* GetParent() const;
 };
+
+template<class T>
+class SystemComponentList : public std::vector<T>
+{
+public:
+    void Add(GameObject* object)
+    {
+
+    }
+    void Remove(GameObject* object)
+    {
+
+    }
+};

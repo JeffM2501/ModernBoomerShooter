@@ -5,6 +5,15 @@
 
 namespace CollisionUtils
 {
+    void SetUnitAngleDeg(float& angle)
+    {
+        while (angle > 180)
+            angle -= 360;
+
+        while (angle < -180)
+            angle += 360;
+    }
+
     void PointNearestRect(const Rectangle& rect, const Vector2& point, Vector2* nearest, Vector2* normal)
     {
         // get the closest point on the vertical sides

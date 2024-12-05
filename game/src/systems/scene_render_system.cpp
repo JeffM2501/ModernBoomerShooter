@@ -5,6 +5,7 @@
 
 #include "systems/player_management_system.h"
 #include "systems/map_object_system.h"
+#include "systems/mobile_object_system.h"
 
 #include "services/resource_manager.h"
 #include "services/texture_manager.h"
@@ -23,7 +24,6 @@ SceneRenderSystem::SceneRenderSystem(World* world)
     : System(world)
     , Render(world->GetMap(), world->GetRaycaster())
 {
-
 }
 
 void SceneRenderSystem::MapObjectAdded(class MapObjectComponent* object)
@@ -43,6 +43,7 @@ void SceneRenderSystem::OnSetup()
 
     PlayerManager = WorldPtr->GetSystem<PlayerManagementSystem>();
     MapObjects = WorldPtr->GetSystem<MapObjectSystem>();
+    Mobs = WorldPtr->GetSystem<MobSystem>();
 
     std::string skyboxName = WorldPtr->GetMap().LightInfo.SkyboxTextureName;
     if (skyboxName.empty())
@@ -163,6 +164,22 @@ void SceneRenderSystem::OnUpdate()
             rlPopMatrix();
         }
     }
+    
+    BeginShaderMode(ObjectLights.GetShader());
+    for (auto* mob : Mobs->GetSystemObjects())
+    {
+        auto* transform = mob->GetComponent<TransformComponent>();
+        if (!transform)
+            continue;
+
+        rlPushMatrix();
+        rlTranslatef(transform->Position.x, transform->Position.y, transform->Position.z + 0.375f);
+        rlRotatef(transform->Facing, 0,0,1);
+        DrawCube(Vector3Zeros, 0.25f, 0.25f, 0.75f, RED);
+        rlPopMatrix();
+    }
+
+    EndShaderMode();
 
     DrawDebugShapes();
     EndMode3D();

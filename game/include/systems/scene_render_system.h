@@ -6,6 +6,10 @@
 #include "services/model_manager.h"
 #include "raylib.h"
 
+class PlayerManagementSystem;
+class MapObjectSystem;
+class MobSystem;
+
 class SceneRenderSystem : public System
 {
 public:
@@ -22,8 +26,9 @@ protected:
 
 protected:
     MapRenderer Render;
-    class PlayerManagementSystem* PlayerManager = nullptr;
-    class MapObjectSystem* MapObjects = nullptr;
+    PlayerManagementSystem* PlayerManager = nullptr;
+    MapObjectSystem* MapObjects = nullptr;
+    MobSystem* Mobs = nullptr;
 
     Shader SkyboxShader = { 0 };
     Texture2D SkyboxTexture = { 0 };

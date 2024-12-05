@@ -7,11 +7,12 @@
 #include "services/table_manager.h"
 #include "services/model_manager.h"
 
+#include "components/door_controller_component.h"
+#include "components/map_object_component.h"
+#include "components/mobile_object_component.h"
 #include "components/spawn_point_component.h"
 #include "components/transform_component.h"
-#include "components/map_object_component.h"
 #include "components/trigger_component.h"
-#include "components/door_controller_component.h"
 
 #include "utilities/light_utils.h"
 
@@ -333,6 +334,14 @@ void ReadWorldTMX(const char* fileName, World& world)
             FindProperty("solid", object.getProperties(), modelComp->Solid);
         },
         "object");
+
+    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
+        {
+            auto* mapObject = world.AddObject();
+            SetObjectTransform(tmxMap, object, mapObject->AddComponent<TransformComponent>());
+            auto* modelComp = mapObject->AddComponent<MobComponent>();
+        },
+        "mob");
 
     DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
         {

@@ -12,6 +12,7 @@ Each system is updated in order as defined by how it's registered.
 class GameObject;
 class World;
 
+
 using SystemHash = std::hash<std::string_view>;
 
 #define DEFINE_SYSTEM(T) \
@@ -40,6 +41,8 @@ public:
     void RemoveObject(GameObject* object);  // called when an object is removed
 
     virtual size_t GetGUID() const = 0;
+
+    const std::set<GameObject*>& GetSystemObjects() const { return Objects; }
 
 protected:
     virtual void OnInit() {}
