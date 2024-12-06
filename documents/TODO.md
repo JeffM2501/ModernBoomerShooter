@@ -4,7 +4,7 @@
     * !Object Collisions
  * !Triggers
  * !Doors
- * Behaviors
+ * !Behaviors
  * Scripting
  * Pathfiding JPS(https://github.com/fgenesis/tinypile/blob/master/jps.hh)
  * Terminals
