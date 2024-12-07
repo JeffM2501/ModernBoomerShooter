@@ -17,6 +17,8 @@
 
 #include "utilities/light_utils.h"
 
+#include "LDtkLoader/Project.hpp"
+
 #include "tmxlite/Map.hpp"
 #include "tmxlite/TileLayer.hpp"
 #include "tmxlite/ObjectGroup.hpp"
@@ -207,15 +209,106 @@ Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rec
 
 void ReadWorldTMX(const char* fileName, World& world)
 {
-    tmx::SetAllowRelativePaths(true);
-    tmx::SetTMXFileReadCallback(ReadXMLDataCallback, ReleaseXMLDataCallback);
+//     tmx::SetAllowRelativePaths(true);
+//     tmx::SetTMXFileReadCallback(ReadXMLDataCallback, ReleaseXMLDataCallback);
 
     world.GetState() = WorldState::Loading;
     auto& map = world.GetMap();
     map.Clear();
 
-    tmx::Map tmxMap;
-    tmxMap.load(fileName);
+    ldtk::Project project;
+    auto resource = ResourceManager::OpenResource(fileName);
+    if(!resource)
+        return;
+
+    project.loadFromMemory(resource->DataBuffer, resource->DataSize);
+    ResourceManager::ReleaseResource(resource);
+
+  //  tmx::Map tmxMap;
+//    tmxMap.load(fileName);
+
+    auto& mapWorld = project.getWorld();
+
+    auto& level = *mapWorld.allLevels().begin();
+
+     map.LightInfo = LightingInfo();
+
+    const auto& floors = level.getLayer("Floor");
+    
+    auto& tileset = floors.getTileset();
+
+    std::string path = tileset.path;
+
+    while (path.substr(0, 3) == "../")
+        path = path.substr(3);
+
+    map.Tilemap = TextureManager::GetTexture(path);
+    map.TileSourceRects.clear();
+
+    for (int i = 0; i < 255; i++)
+    {
+        auto point = tileset.getTileTexturePos(i);
+        if (point.x >= tileset.texture_size.x || point.y >= tileset.texture_size.y)
+            break;
+
+        Rectangle tileRect;
+        tileRect.x = float(point.x) / tileset.texture_size.x;
+        tileRect.y = float(point.y) / tileset.texture_size.y;
+        tileRect.width = (float(point.x + tileset.tile_size) / float(tileset.texture_size.x));
+        tileRect.height = (float(point.y + tileset.tile_size) / float(tileset.texture_size.y));
+
+        map.TileSourceRects.push_back(tileRect);
+    }
+
+    float mapWidth = float(level.size.x / floors.getGridSize().x);
+    float mapHeight = float(level.size.y / floors.getGridSize().y);
+
+    map.Size.X = int(mapWidth);
+    map.Size.Y = int(mapHeight);
+    map.Cells.resize(size_t(mapWidth * mapHeight));
+
+    // get all the tiles in the Ground layer
+    for (auto floor : floors.allTiles())
+    {
+        auto coord = floor.getPosition();
+        coord.x /= int(mapWidth);
+        coord.y = int((mapHeight - (coord.y/mapHeight)) - 1);
+
+        int cellIndex = int(coord.y * mapWidth + coord.x);
+
+        map.Cells[cellIndex].State = MapCellState::Empty;
+        map.Cells[cellIndex].Tiles[0] = floor.tileId;
+    }
+
+    const auto& ceilings = level.getLayer("Celing");
+
+    // get all the tiles in the ceiling layer
+    for (auto ceiling : ceilings.allTiles())
+    {
+        auto coord = ceiling.getPosition();
+        coord.x /= int(mapWidth);
+        coord.y = int((mapHeight - (coord.y / mapHeight)) - 1);
+
+        int cellIndex = int(coord.y * mapWidth + coord.x);
+        map.Cells[cellIndex].Tiles[1] = ceiling.tileId;
+    }
+
+    const auto& walls = level.getLayer("Walls");
+
+    // get all the tiles in the walls layer
+    for (auto wall : walls.allTiles())
+    {
+        auto coord = wall.getPosition();
+        coord.x /= int(mapWidth);
+        coord.y = int((mapHeight - (coord.y / mapHeight)) - 1);
+
+        int cellIndex = int(coord.y * mapWidth + coord.x);
+
+        map.Cells[cellIndex].State = MapCellState::Wall;
+        map.Cells[cellIndex].Tiles[0] = wall.tileId;
+    }
+
+  /*  world.GetMap()
 
     map.Size.X = tmxMap.getTileCount().x;
     map.Size.Y = tmxMap.getTileCount().y;
@@ -223,22 +316,6 @@ void ReadWorldTMX(const char* fileName, World& world)
     size_t tileCount = tmxMap.getTileCount().x * tmxMap.getTileCount().y;
     map.Cells.resize(tileCount);
 
-    for (auto& tileset : tmxMap.getTilesets())
-    {
-        map.Tilemap = TextureManager::GetTexture(tileset.getImagePath());
-        map.TileSourceRects.clear();
-
-        for (const auto& tile : tileset.getTiles())
-        {
-            Rectangle tileRect;
-            tileRect.x = float(tile.imagePosition.x) / map.Tilemap.width;
-            tileRect.y = float(tile.imagePosition.y) / map.Tilemap.height;
-            tileRect.width = (float(tile.imageSize.x) + float(tile.imagePosition.x)) / map.Tilemap.width;
-            tileRect.height = (float(tile.imageSize.y) + float(tile.imagePosition.y)) / map.Tilemap.height;
-
-            map.TileSourceRects.push_back(tileRect);
-        }
-    }
 
     map.LightInfo = LightingInfo();
 
@@ -394,6 +471,7 @@ void ReadWorldTMX(const char* fileName, World& world)
 
     tmx::ClearTMXFileReadCallback();
     tmx::SetAllowRelativePaths(false);
+    */
 
     world.GetState() = WorldState::Playing;
 }
