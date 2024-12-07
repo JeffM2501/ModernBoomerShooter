@@ -63,8 +63,8 @@ function check_raylib()
     end
 end
 
-function use_library(libraryName, githubFolder)
-    libFolder = libraryName .. "-main"
+function use_library(libraryName, githubFolder, headName)
+    libFolder = libraryName .. "-" .. headName
     zipFile = libFolder .. ".zip"
 
     baseName = path.getbasename(os.getcwd());
@@ -80,7 +80,7 @@ function use_library(libraryName, githubFolder)
     if(os.isdir(libFolder) == false) then
         if(not os.isfile(zipFile)) then
             print(libraryName .. " not found, downloading from github")
-            local result_str, response_code = http.download("https://github.com/" .. githubFolder .. "/archive/refs/heads/main.zip", zipFile, {
+            local result_str, response_code = http.download("https://github.com/" .. githubFolder .. "/archive/refs/heads/" .. headName .. ".zip", zipFile, {
                 progress = download_progress,
                 headers = { "From: Premake", "Referer: Premake" }
             })
@@ -115,7 +115,7 @@ function use_library(libraryName, githubFolder)
 end
 
 function use_Box2dV3()
-    use_library("box2d", "erincatto/box2d")
+    use_library("box2d", "erincatto/box2d", "main")
 end
 
 workspaceName = path.getbasename(os.getcwd())

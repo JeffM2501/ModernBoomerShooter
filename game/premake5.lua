@@ -45,3 +45,4 @@ project (workspaceName)
 	
     link_raylib()
     link_to("model_lib")
+    use_library("LDtkLoader", "Madour/LDtkLoader", "master")
