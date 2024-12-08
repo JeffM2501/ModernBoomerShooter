@@ -19,11 +19,6 @@
 
 #include "LDtkLoader/Project.hpp"
 
-#include "tmxlite/Map.hpp"
-#include "tmxlite/TileLayer.hpp"
-#include "tmxlite/ObjectGroup.hpp"
-#include "tmxlite/FileReader.hpp"
-
 class MapReader
 {
 public:
@@ -390,21 +385,6 @@ public:
         return true;
     }
 };
-
-
-Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rect)
-{
-    Rectangle outRect;
-    outRect.x = rect.left / float(map.getTileSize().x);
-    outRect.y = map.getTileCount().y - (rect.top / float(map.getTileSize().y));
-
-    outRect.width = rect.width / float(map.getTileSize().x);
-    outRect.height = rect.height / float(map.getTileSize().y);
-
-    outRect.y -= outRect.height;
-
-    return outRect;
-}
 
 void ReadWorld(const char* fileName, World& world)
 {
