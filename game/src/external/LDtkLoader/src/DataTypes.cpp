@@ -94,6 +94,11 @@ auto EntityRef::operator->() const -> const Entity*
     return ref;
 }
 
+TileRef::TileRef(int id, int x, int y, int w, int h)
+    : tile_set_id(id)
+    , bounds(x, y, w, h)
+{}
+
 auto operator<<(std::ostream& os, const ldtk::Color& color) -> std::ostream&
 {
     os << "rgb(" << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ")";

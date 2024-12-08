@@ -138,6 +138,7 @@ namespace ldtk {
         Enum,
         FilePath,
         EntityRef,
+        TileRef,
         ArrayInt,
         ArrayFloat,
         ArrayBool,
@@ -193,6 +194,17 @@ namespace ldtk {
     private:
         friend class Project;
         const Entity* ref = nullptr;
+    };
+
+    struct TileRef
+    {
+        TileRef(int id, int x, int y, int w, int h);
+
+        int tile_set_id;
+        IntRect bounds;
+
+    private:
+        friend class Project;
     };
 
 } // namespace ldtk

@@ -62,10 +62,56 @@ private:
         return cellIndex;
     }
 
+    Rectangle ObjectBoundsToRect(const ldtk::Entity& object)
+    {
+        Vector2 pos = Convert(object.getPosition());
+        Vector2 size = ConvertNoFlip(object.getSize());
+        return Rectangle{ pos.x, pos.y - size.y, size.x, size.y };
+    }
+
+
+    Rectangle ObjectBoundsToRect(const ldtk::EntityRef& objectRef)
+    {
+        Vector2 pos = Convert(objectRef->getPosition());
+        Vector2 size = ConvertNoFlip(objectRef->getSize());
+        return Rectangle{ pos.x, pos.y - size.y, size.x, size.y };
+    }
+
+    uint8_t GetTileFromRect(int x, int y, int w, int h)
+    {
+        float scaleX = x / (float)TheMap.Tilemap.width;
+        float scaleY = y / (float)TheMap.Tilemap.height;
+
+        float epsilonX = 1 / (float)TheMap.Tilemap.width;
+        float epsilonY = 1 / (float)TheMap.Tilemap.height;
+
+        for (uint8_t index = 0; index < TheMap.TileSourceRects.size(); index++)
+        {
+            Rectangle& rect = TheMap.TileSourceRects[index];
+            if (fabsf(rect.x - scaleX) < epsilonX && fabs(rect.y - scaleY) < epsilonY)
+                return index;
+        }
+
+        return 0;
+    }
+
+
     template<class T>
     bool SetFromProperty(const std::string& name, const ldtk::FieldsContainer& container, T& value)
     {
         auto field = container.getField<T>(name);
+        if (field.is_null())
+            return false;
+
+        value = field.value();
+
+        return true;
+    }
+
+    template<class T>
+    bool SetFromProperty(const std::string& name, const ldtk::EntityRef& containerRef, T& value)
+    {
+        auto field = containerRef->getField<T>(name);
         if (field.is_null())
             return false;
 
@@ -158,25 +204,25 @@ private:
         spawn->AddComponent<SpawnPointComponent>();
     }
 
+    void AddMobObject(const ldtk::Entity& object)
+    {
+        auto* mobObject = TheWorld.AddObject();
+        SetObjectTransform(object, mobObject->AddComponent<TransformComponent>());
+        auto* modelComp = mobObject->AddComponent<MobComponent>();
+        mobObject->AddComponent<MobBehaviorComponent>();
+    }
+
     void AddTrigger(const ldtk::Entity& object)
     {
-        Vector2 pos = Convert(object.getPosition());
-        Vector2 size = ConvertNoFlip(object.getSize());
-
         auto* trigger = TheWorld.AddObject();
-        auto* transform = trigger->AddComponent<TransformComponent>();
-        transform->Position.x = pos.x;
-        transform->Position.y = pos.y;
-
         auto* volume = trigger->AddComponent<TriggerComponent>();
-        volume->Bounds = Rectangle{ pos.x, pos.y - size.y, size.x, size.y };
+        volume->Bounds = ObjectBoundsToRect(object);
+        SetFromProperty("trigger_id", object, volume->TriggerId);
     }
 
     void AddLightZoneObject(const ldtk::Entity& object)
     {
-        Vector2 pos = Convert(object.getPosition());
-        Vector2 size = ConvertNoFlip(object.getSize());
-        auto bounds = Rectangle{ pos.x, pos.y - size.y, size.x, size.y };
+        auto bounds = ObjectBoundsToRect(object);
 
         auto sequenceTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("light_sequences");
 
@@ -226,6 +272,71 @@ private:
         SetFromProperty("Solid", object, modelComp->Solid);
     }
 
+    void AddDoorObject(const ldtk::Entity& object)
+    {
+        auto triggerBounds = ObjectBoundsToRect(object);
+
+        auto trigger = TheWorld.AddObject();
+
+        trigger->AddComponent<TriggerComponent>(triggerBounds);
+        DoorControllerComponent* doorController = trigger->AddComponent<DoorControllerComponent>();
+
+        SetFromProperty("FullyOpenBeforeClose", object, doorController->MustOpenBeforClose);
+        SetFromProperty("OpenSpeed", object, doorController->OpenSpeed);
+        SetFromProperty("CloseSpeed", object, doorController->CloseSpeed);
+        SetFromProperty("StayOpen", object, doorController->StayOpen);
+        SetFromProperty("MinimumOpenTime", object, doorController->MiniumOpenTime);
+
+        // get doors
+        for (auto doorRef : object.getArrayField<ldtk::EntityRef>("Doors"))
+        {
+            if (doorRef.is_null())
+                continue;
+
+            const auto& door = doorRef.value();
+
+            auto doorBounds = ObjectBoundsToRect(door);
+
+            Vector2 center = { doorBounds.x, doorBounds.y };
+            
+            int doorX = int(center.x);
+            int doorY = int(center.y);
+
+
+            auto grid = door->getGridPosition();
+            grid.y = (TheMap.Size.Y - grid.y-1);
+
+
+            auto& doorCell = TheMap.GetCellRef(grid.x, grid.y);
+            doorCell.State = MapCellState::Door;
+
+            const auto& doorTexture = door->getField<ldtk::TileRef>("Texture");
+
+            if (!doorTexture.is_null())
+                doorCell.Tiles[2] = GetTileFromRect(doorTexture.value().bounds.x, doorTexture.value().bounds.y, doorTexture.value().bounds.width, doorTexture.value().bounds.height);
+            
+            if (door->getName() == "Door_X")
+                doorCell.Flags |= MapCellFlags::XAllignment;
+
+            bool backwards = false;
+            bool vertical = false;
+
+            SetFromProperty("Backwards", door, backwards);
+            SetFromProperty("Vertical", door, vertical);
+
+            if (backwards)
+                doorCell.Flags |= MapCellFlags::Reversed;
+
+            if (vertical)
+                doorCell.Flags |= MapCellFlags::HorizontalVertical;
+
+            doorCell.Flags |= MapCellFlags::Impassible;
+
+            doorController->Doors.push_back(TheMap.GetCellIndex(grid.x, grid.y));
+        }
+
+    }
+
 public:
     LDTKMapReader(World& world) : MapReader(world) {}
 
@@ -270,6 +381,10 @@ public:
                 AddLightZoneObject(object);
             else if (object.getName() == "Trigger")
                 AddTrigger(object);
+            else if (object.getName() == "MOB")
+                AddMobObject(object);
+            else if (object.getName() == "DoorTrigger")
+                AddDoorObject(object);
         }
 
         return true;
@@ -305,62 +420,3 @@ void ReadWorld(const char* fileName, World& world)
     world.GetState() = WorldState::Playing;
 }
 
-void ReadWorldTMX(const char* fileName, World& world)
-{
-  /*  world.GetMap()
-
-   
-
-    DoForEachTileInLayer(world, tmxMap, "doors", [&world, &map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
-        {
-            if (tile.ID != 0 && map.Cells[mapCellIndex].State == MapCellState::Empty)
-            {
-                map.Cells[mapCellIndex].State = MapCellState::Door;
-                map.Cells[mapCellIndex].Tiles[2] = tile.ID - 1;
-
-                bool isXAlligned = false;
-
-                if (map.Cells[ComputeTMXIndex(tmxCoord.X + 1, tmxCoord.Y, map.Size)].State != MapCellState::Empty)
-                    isXAlligned = true;
-
-                if (isXAlligned)
-                    map.Cells[mapCellIndex].Flags |= MapCellFlags::XAllignment;
-               
-                auto trigger = world.AddObject();
-                Rectangle triggerBounds = { 0,0 };
-                if (isXAlligned)
-                {
-                    triggerBounds.y = float(mapCoord.Y - 1);
-                    triggerBounds.x = float(mapCoord.X);
-                    triggerBounds.height = 3;
-                    triggerBounds.width = 1;
-                }
-                else
-                {
-                    triggerBounds.y = float(mapCoord.Y);
-                    triggerBounds.x = float(mapCoord.X-1);
-                    triggerBounds.height = 1;
-                    triggerBounds.width = 3;
-                }
-
-                trigger->AddComponent<TriggerComponent>(triggerBounds);
-                trigger->AddComponent<DoorControllerComponent>(mapCellIndex);
-                map.Cells[mapCellIndex].Flags |= MapCellFlags::Impassible;
-
-                map.DoorCells.push_back(mapCellIndex);
-            }
-        });
-
-    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
-        {
-            auto* mapObject = world.AddObject();
-            SetObjectTransform(tmxMap, object, mapObject->AddComponent<TransformComponent>());
-            auto* modelComp = mapObject->AddComponent<MobComponent>();
-            mapObject->AddComponent<MobBehaviorComponent>();
-        },
-        "mob");
-
-    */
-
-    world.GetState() = WorldState::Playing;
-}
