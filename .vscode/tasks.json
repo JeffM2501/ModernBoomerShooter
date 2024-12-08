@@ -11,7 +11,7 @@
                 "command": "mingw32-make.exe",
                 "args": [
                     "SHELL=cmd"
-                ],
+                ]
             },
             "group": {
                 "kind": "build",
