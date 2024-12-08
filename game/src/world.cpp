@@ -215,7 +215,7 @@ void World::CallEvent(size_t hash, GameObject* sender, GameObject* target)
         if (eventItr->LifetimeToken->IsValid())
         {
             eventItr->Handler(hash, sender, target);
-            eventItr++;
+            ++eventItr;
         }
         else
         {

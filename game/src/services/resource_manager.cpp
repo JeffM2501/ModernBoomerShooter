@@ -78,6 +78,9 @@ namespace ResourceManager
 
     std::shared_ptr<ResoureInfo> OpenResource(std::string_view filePath, bool asText)
     {
+        if (filePath.empty())
+            return nullptr;
+
         size_t pathHash = StringHasher(filePath);
 
         auto itr = OpenResources.find(pathHash);
@@ -130,7 +133,7 @@ namespace ResourceManager
 
     void ReleaseResourceByData(void* resourceData)
     {
-        for (ResourceMap::iterator itr = OpenResources.begin(); itr != OpenResources.end(); itr++)
+        for (ResourceMap::iterator itr = OpenResources.begin(); itr != OpenResources.end(); ++itr)
         {
             if (itr->second->DataBuffer == resourceData)
             {

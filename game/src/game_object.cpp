@@ -91,7 +91,7 @@ void GameObject::CallEvent(size_t hash, GameObject* target)
         if (eventItr->LifetimeToken->IsValid())
         {
             eventItr->Handler(hash, this, target);
-            eventItr++;
+            ++eventItr;
         }
         else
         {
