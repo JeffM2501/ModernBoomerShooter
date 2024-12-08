@@ -1,6 +1,7 @@
 #include "components/door_controller_component.h"
-#include "systems/map_object_system.h"
 #include "components/trigger_component.h"
+#include "systems/map_object_system.h"
+#include "services/game_time.h"
 #include "world.h"
 
 void DoorControllerComponent::OnAddedToObject()
@@ -71,14 +72,22 @@ void DoorControllerComponent::Update()
         // force close
         if (NeedCloseASAP)
         {
-            NeedCloseASAP = false;
-            OpenState = State::Closing;
-            GetOwner()->CallEvent(DoorClosing, nullptr);
+            if (MiniumOpenTime > 0)
+            {
+                Param = MiniumOpenTime;
+                OpenState = State::WaitingForClose;
+            }
+            else
+            {
+                NeedCloseASAP = false;
+                OpenState = State::Closing;
+                GetOwner()->CallEvent(DoorClosing, nullptr);
+            }
         }
         break;
 
     case DoorControllerComponent::State::Opening:
-        Param += GetFrameTime() / OpenSpeed;
+        Param += GameTime::GetDeltaTime() / OpenSpeed;
         if (Param >= 1)
         {
             Param = 1;
@@ -95,8 +104,19 @@ void DoorControllerComponent::Update()
         }
         break;
 
+    case DoorControllerComponent::State::WaitingForClose:
+        Param -= GameTime::GetDeltaTime();
+        if (Param <= 0)
+        {
+            Param = 1;
+            NeedCloseASAP = false;
+            OpenState = State::Closing;
+            GetOwner()->CallEvent(DoorClosing, nullptr);
+        }
+        break;
+
     case DoorControllerComponent::State::Closing:
-        Param -= GetFrameTime() / CloseSpeed;
+        Param -= GameTime::GetDeltaTime() / CloseSpeed;
         if (Param <= 0)
         {
             Param = 0;
@@ -149,10 +169,13 @@ void DoorControllerComponent::OnTriggerExit(GameObject* sender, GameObject* subj
     if (trigger && trigger->HasAnyObjects())
         return;
 
+    if (OpenState == State::Open && StayOpen)
+        return;
+
     // if the door must fully open before closing, then flag it as asap close
     if (MustOpenBeforClose && OpenState == State::Opening)
     {
-        NeedCloseASAP = true;
+        NeedCloseASAP = !StayOpen;
         return;
     }
 

@@ -41,7 +41,8 @@ project (workspaceName)
     includedirs { "./" }
     includedirs { "src" }
     includedirs { "include" }
-    includedirs { "src/external/tmxlite/include" }
+    includedirs { "src/external/LDtkLoader/include" }
 	
     link_raylib()
     link_to("model_lib")
+--   use_library("LDtkLoader", "Madour/LDtkLoader", "master")

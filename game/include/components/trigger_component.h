@@ -17,6 +17,7 @@ public:
     TriggerComponent(GameObject* owner, const Rectangle& bounds) : Component(owner), Bounds(bounds) {}
 
     Rectangle Bounds = { 0 };
+    int TriggerId = 0;
 
     static constexpr char TriggerEnter[] = "TriggerComponentEnter";
     static constexpr char TriggerExit[] = "TriggerComponentExit";

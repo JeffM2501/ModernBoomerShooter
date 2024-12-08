@@ -87,7 +87,7 @@ void World::Load(std::string_view map)
     WorldMap.Clear();
 
     if (!map.empty())
-        ReadWorldTMX(map.data(), *this);
+        ReadWorld(map.data(), *this);
 
     WorldRaycaster.SetMap(&WorldMap);
 
@@ -98,7 +98,7 @@ void World::ReloadMap()
 {
     WorldMap.Clear();
     if (!CurrentWorldMap.empty())
-        ReadWorldTMX(CurrentWorldMap.data(), *this);
+        ReadWorld(CurrentWorldMap.data(), *this);
 
     WorldRaycaster.SetMap(&WorldMap);
 }

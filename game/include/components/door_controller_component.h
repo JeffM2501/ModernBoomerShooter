@@ -18,6 +18,15 @@ public:
 
     std::vector<size_t> Doors = { 0 };
 
+    bool MustOpenBeforClose = true;
+
+    float OpenSpeed = 1;
+    float CloseSpeed = 1;
+
+    float MiniumOpenTime = 0;
+
+    bool StayOpen = false;
+
     void OnAddedToObject() override;
 
     void Update();
@@ -42,6 +51,7 @@ protected:
         Closed,
         Opening,
         Open,
+        WaitingForClose,
         Closing
     };
 
@@ -50,9 +60,4 @@ protected:
     bool NeedCloseASAP = false;
 
     float Param = 0;
-
-    float OpenSpeed = 1;
-    float CloseSpeed = 1;
-
-    bool MustOpenBeforClose = true;
 };
