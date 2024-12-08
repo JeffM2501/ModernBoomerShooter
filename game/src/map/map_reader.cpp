@@ -69,7 +69,7 @@ private:
         if (field.is_null())
             return false;
 
-        field = field.value();
+        value = field.value();
 
         return true;
     }
