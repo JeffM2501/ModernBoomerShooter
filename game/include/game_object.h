@@ -72,6 +72,17 @@ public:
     }
 
     template<class T>
+    inline const T* GetComponent() const
+    {
+        auto itr = Components.find(T::TypeID());
+        if (itr == Components.end())
+            return nullptr;
+
+        auto& comp = itr->second;
+        return static_cast<T*>(comp.get());
+    }
+
+    template<class T>
     inline T& MustGetComponent()
     {
         auto itr = Components.find(T::TypeID());

@@ -204,7 +204,18 @@ private:
         auto* mobObject = TheWorld.AddObject();
         SetObjectTransform(object, mobObject->AddComponent<TransformComponent>());
         auto* modelComp = mobObject->AddComponent<MobComponent>();
-        mobObject->AddComponent<MobBehaviorComponent>();
+        auto* behavior = mobObject->AddComponent<MobBehaviorComponent>();
+
+        SetFromProperty("FollowPath", object, behavior->FollowPath);
+        SetFromProperty("MoveSpeed", object, behavior->MoveSpeed);
+        SetFromProperty("RotationSpeed", object, behavior->RotationSpeed);
+
+        for (auto& point : object.getArrayField<ldtk::IntPoint>("Path"))
+        {
+            Vector2 pointPos = {point.value().x + 0.5f, (TheMap.Size.Y - (point.value().y)) - 0.5f };
+
+            behavior->Path.push_back(pointPos);
+        }
     }
 
     void AddTrigger(const ldtk::Entity& object)

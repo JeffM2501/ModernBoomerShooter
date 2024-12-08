@@ -39,6 +39,7 @@ public:
     virtual void OnAddedToObject() {}
 
     inline GameObject* GetOwner() { return Owner; }
+    inline const GameObject* GetOwner() const { return Owner; }
 
 
 protected:

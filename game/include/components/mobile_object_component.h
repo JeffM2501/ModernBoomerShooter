@@ -14,4 +14,6 @@ public:
     DEFINE_COMPONENT(MobComponent)
 
     void OnAddedToObject() override;
+
+    void Draw();
 };

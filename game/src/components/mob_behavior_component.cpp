@@ -2,8 +2,11 @@
 
 #include "components/transform_component.h"
 #include "systems/player_management_system.h"
+#include "systems/map_object_system.h"
 #include "services/game_time.h"
 #include "utilities/collision_utils.h"
+#include "game_object.h"
+
 #include "world.h"
 #include "map/map.h"
 
@@ -13,6 +16,39 @@ template <typename T>
 inline int sgn(T val) 
 {
     return (T(0) < val) - (val < T(0));
+}
+
+void MatchAngleSign(float& source, float destination)
+{
+    if (source >= 0 != destination >= 0)
+    {
+        if (source >= 0)
+            source -= 360.0f;
+        else
+            source += 360.0f;
+    }
+}
+
+float MobBehaviorComponent::GetAngleToPathPoint() const
+{
+    const auto* transform = GetOwner()->GetComponent<TransformComponent>();
+    if (!transform)
+        return 0;
+
+    float angle =  atan2f(transform->Position.y - Path[CurrentPathIndex].y, transform->Position.x - Path[CurrentPathIndex].x) * RAD2DEG + 90;
+
+    CollisionUtils::SetUnitAngleDeg(angle);
+
+    return angle;
+}
+
+float MobBehaviorComponent::GetDistanceToPlathPoint() const
+{
+    const auto* transform = GetOwner()->GetComponent<TransformComponent>();
+    if (!transform)
+        return 0;
+
+    return Vector2Distance(Vector2(transform->Position.x, transform->Position.y), Path[CurrentPathIndex]);
 }
 
 void MobBehaviorComponent::Process()
@@ -25,6 +61,19 @@ void MobBehaviorComponent::Process()
     
     switch (State)
     {
+    case MobBehaviorComponent::AIState::Unknown:
+        if (!FollowPath || Path.empty())
+        {
+            State = AIState::Waiting;
+        }
+        else
+        {
+            DesiredAngle = GetAngleToPathPoint();
+            CollisionUtils::SetUnitAngleDeg(transform->Facing);
+            State = AIState::Turning;
+        }
+        break;
+
     case MobBehaviorComponent::AIState::Turning:
         {
         bool atTarget = false;
@@ -44,7 +93,14 @@ void MobBehaviorComponent::Process()
         if (atTarget)
         {
             State = AIState::Moving;
-            DesiredPostion = transform->Position + (transform->GetForward() * float(GetRandomValue(1, 6)));
+            if (FollowPath && !Path.empty())
+            {
+                DesiredPostion = Vector3{ Path[CurrentPathIndex].x, Path[CurrentPathIndex].y, 0 };
+            }
+            else
+            {
+                DesiredPostion = transform->Position + (transform->GetForward() * float(GetRandomValue(1, 6)));
+            }
         }
     }
         break;
@@ -69,17 +125,35 @@ void MobBehaviorComponent::Process()
 
         desiredMotion = (desiredMotion/ distanceToTarget) * maxMoveThisFrame;
        
+        bool hitSomething = false;
         if (world->GetMap().MoveEntity(position, desiredMotion, 0.25f))
         {
-            done = true;
+            hitSomething = true;
+            done = !FollowPath;
         }
         
         transform->Position = position + desiredMotion;
 
+        GetOwner()->GetWorld()->GetSystem<MapObjectSystem>()->CheckTriggers(GetOwner(), 0.25f, hitSomething);
+
         if (done)
         {
-            State = AIState::Waiting;
-            WaitTime = float(GetRandomValue(1, 3));
+            if (FollowPath && !Path.empty())
+            {
+                ++CurrentPathIndex;
+                if (CurrentPathIndex >= Path.size())
+                    CurrentPathIndex = 0;
+
+                State = AIState::Turning;
+                CollisionUtils::SetUnitAngleDeg(transform->Facing);
+                DesiredAngle = GetAngleToPathPoint();
+                MatchAngleSign(DesiredAngle, transform->Facing);
+            }
+            else
+            {
+                State = AIState::Waiting;
+                WaitTime = float(GetRandomValue(1, 3));
+            }
         }
     }
         break;
@@ -97,13 +171,7 @@ void MobBehaviorComponent::Process()
             CollisionUtils::SetUnitAngleDeg(transform->Facing);
 
             // ensure that our desired angle has the same sign as our facing angle so we can short rot
-            if (DesiredAngle >= 0 != transform->Facing >= 0)
-            {
-                if (DesiredAngle >= 0)
-                    DesiredAngle -= 360.0f;
-                else
-                    DesiredAngle += 360.0f;
-            }
+            MatchAngleSign(DesiredAngle, transform->Facing);
         }
         break;
     }
