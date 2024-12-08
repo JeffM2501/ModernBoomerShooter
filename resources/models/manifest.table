@@ -1,3 +1,3 @@
-barrel;models/barrel.mesh
-barrel_pallete;models/barrels_rail.mesh
-chair;models/desk_chairArms.mesh
+Barrel;models/barrel.mesh
+Barrel_pallete;models/barrels_rail.mesh
+Chair;models/desk_chairArms.mesh

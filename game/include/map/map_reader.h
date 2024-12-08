@@ -2,4 +2,4 @@
 
 class World;
 
-void ReadWorldTMX(const char* fileName, World& world);
+void ReadWorld(const char* fileName, World& world);

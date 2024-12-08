@@ -24,174 +24,258 @@
 #include "tmxlite/ObjectGroup.hpp"
 #include "tmxlite/FileReader.hpp"
 
-void* ReadXMLDataCallback(const char* filePath, size_t& size)
+class MapReader
 {
-    auto resource = ResourceManager::OpenResource(filePath);
+public:
+    MapReader(World& world) :TheWorld(world), TheMap(world.GetMap()) {}
 
-    if (!resource)
-        return nullptr;
+    virtual bool Read(std::string_view filename) = 0;
 
-    size = resource->DataSize;
-    return resource->DataBuffer;
-}
+protected:
+    World& TheWorld;
+    Map& TheMap;
+};
 
-void ReleaseXMLDataCallback(const char* filePath, void* data)
+class LDTKMapReader : MapReader
 {
-    ResourceManager::ReleaseResource(filePath);
-}
+private:
+    int GridSize = 0;
 
-using LayerTileCallback = std::function<void(const tmx::TileLayer::Tile&, MapCoordinate, MapCoordinate, size_t)>;
-
-
-static size_t ComputeTMXIndex(int x, int y, MapCoordinate mapSize)
-{
-    return (mapSize.Y - y - 1)* mapSize.X + x;
-}
-
-void DoForEachTile(World& world, tmx::TileLayer& layer, LayerTileCallback callback)
-{
-    if (!callback)
-        return;
-
-    auto& tiles = layer.getTiles();
-
-    auto mapSize = world.GetMap().Size;
-
-    MapCoordinate tmxCoordinate(0, 0);
-    MapCoordinate mapCoordinate(0, mapSize.Y-1);
-
-    for (size_t i = 0; i < tiles.size(); i++)
+    Vector2 Convert(const ldtk::IntPoint& point) const
     {
-        size_t mapCellIndex = ComputeTMXIndex(tmxCoordinate.X, tmxCoordinate.Y, mapSize);
-
-        callback(tiles[i], tmxCoordinate, mapCoordinate, mapCellIndex);
-
-        tmxCoordinate.X++;
-        mapCoordinate.X++;
-
-        if (tmxCoordinate.X >= mapSize.X)
-        {
-            mapCoordinate.Y--;
-            tmxCoordinate.Y++;
-
-            mapCoordinate.X = tmxCoordinate.X = 0;
-        }
+        return Vector2{ (float)point.x / GridSize, TheMap.Size.Y - ((float)point.y / GridSize) };
     }
-}
 
-bool DoForEachTileInLayer(World& world, tmx::Map& map, std::string_view layerClass, LayerTileCallback callback)
-{
-    if (!callback)
-        return false;
-
-    for (auto& layer : map.getLayers())
+    Vector2 ConvertNoFlip(const ldtk::IntPoint& point) const
     {
-        if (layer->getType() != tmx::Layer::Type::Tile || layer->getClass() != layerClass)
-            continue;
+        return Vector2{ (float)point.x / GridSize, ((float)point.y / GridSize) };
+    }
 
-        DoForEachTile(world, layer->getLayerAs<tmx::TileLayer>(), callback);
+    size_t PositionToMapID(const ldtk::IntPoint& point)
+    {
+        auto coord = point;
+        coord.x /= TheMap.Size.X;
+        coord.y = int((TheMap.Size.Y - (coord.y / TheMap.Size.Y)) - 1);
+
+        size_t cellIndex = size_t(coord.y * TheMap.Size.X + coord.x);
+
+        return cellIndex;
+    }
+
+    template<class T>
+    bool SetFromProperty(const std::string& name, const ldtk::FieldsContainer& container, T& value)
+    {
+        auto field = container.getField<T>(name);
+        if (field.is_null())
+            return false;
+
+        field = field.value();
 
         return true;
     }
 
-    return false;
-}
-
-using LayerObjectCallback = std::function<void(const tmx::Object&)>;
-void DoForEachObject(World& world, tmx::ObjectGroup& group, LayerObjectCallback callback, std::string_view objectClass = "")
-{
-    if (!callback)
-        return;
-
-    for (auto& object : group.getObjects())
+    void SetObjectTransform(const ldtk::Entity& object, TransformComponent* transform)
     {
-        if (objectClass.empty() || object.getClass() == objectClass)
-            callback(object);
+        if (!transform)
+            return;
+
+        Vector2 convertedPos = Convert(object.getPosition());
+
+        transform->Position.x = convertedPos.x;
+        transform->Position.y = convertedPos.y;
+        transform->Position.z = 0;
+
+        SetFromProperty("Facing", object, transform->Facing);
     }
-}
 
-bool DoForEachObjectInLayer(World& world, tmx::Map& map, std::string_view layerClass, LayerObjectCallback callback, std::string_view objectClass = "")
-{
-    if (!callback)
-        return false;
-
-    for (auto& layer : map.getLayers())
+    void SetupLightInfo(const ldtk::Level & level)
     {
-        if (layer->getType() != tmx::Layer::Type::Object || layer->getClass() != layerClass)
-            continue;
+        TheMap.LightInfo = LightingInfo();
 
-        DoForEachObject(world, layer->getLayerAs<tmx::ObjectGroup>(), callback, objectClass);
+        SetFromProperty("skybox", level, TheMap.LightInfo.SkyboxTextureName);
+        SetFromProperty("extereor_ambient_level", level, TheMap.LightInfo.ExteriorAmbientLevel);
+        SetFromProperty("interior_ambient_level", level, TheMap.LightInfo.InteriorAmbientLevel);
+        SetFromProperty("ambient_direction_angle", level, TheMap.LightInfo.AmbientAngle);
+    }
+
+    void ReadTileset(const ldtk::Layer& layer)
+    {
+        auto& tileset = layer.getTileset();
+
+        std::string path = tileset.path;
+
+        while (path.substr(0, 3) == "../")
+            path = path.substr(3);
+
+        TheMap.Tilemap = TextureManager::GetTexture(path);
+        TheMap.TileSourceRects.clear();
+
+        for (int i = 0; i < 255; i++)
+        {
+            auto point = tileset.getTileTexturePos(i);
+            if (point.x >= tileset.texture_size.x || point.y >= tileset.texture_size.y)
+                break;
+
+            Rectangle tileRect;
+            tileRect.x = float(point.x) / tileset.texture_size.x;
+            tileRect.y = float(point.y) / tileset.texture_size.y;
+            tileRect.width = (float(point.x + tileset.tile_size) / float(tileset.texture_size.x));
+            tileRect.height = (float(point.y + tileset.tile_size) / float(tileset.texture_size.y));
+
+            TheMap.TileSourceRects.push_back(tileRect);
+        }
+    }
+
+    void ReadEmptyLayer(const ldtk::Layer& layer, int tileIndex)
+    {
+        for (auto cell : layer.allTiles())
+        {
+            auto coord = Convert(cell.getPosition());
+            auto cellIndex = PositionToMapID(cell.getPosition());
+
+            TheMap.Cells[cellIndex].State = MapCellState::Empty;
+            TheMap.Cells[cellIndex].Tiles[tileIndex] = cell.tileId;
+        }
+    }
+
+    void ReadWallsLayer(const ldtk::Layer& layer)
+    {
+        for (auto cell : layer.allTiles())
+        {
+            auto coord = Convert(cell.getPosition());
+            auto cellIndex = PositionToMapID(cell.getPosition());
+
+            TheMap.Cells[cellIndex].State = MapCellState::Wall;
+            TheMap.Cells[cellIndex].Tiles[0] = cell.tileId;
+        }
+    }
+
+    void AddSpawnObject(const ldtk::Entity& object)
+    {
+        auto* spawn = TheWorld.AddObject();
+
+        SetObjectTransform(object, spawn->AddComponent<TransformComponent>());
+        spawn->AddComponent<SpawnPointComponent>();
+    }
+
+    void AddTrigger(const ldtk::Entity& object)
+    {
+        Vector2 pos = Convert(object.getPosition());
+        Vector2 size = ConvertNoFlip(object.getSize());
+
+        auto* trigger = TheWorld.AddObject();
+        auto* transform = trigger->AddComponent<TransformComponent>();
+        transform->Position.x = pos.x;
+        transform->Position.y = pos.y;
+
+        auto* volume = trigger->AddComponent<TriggerComponent>();
+        volume->Bounds = Rectangle{ pos.x, pos.y - size.y, size.x, size.y };
+    }
+
+    void AddLightZoneObject(const ldtk::Entity& object)
+    {
+        Vector2 pos = Convert(object.getPosition());
+        Vector2 size = ConvertNoFlip(object.getSize());
+        auto bounds = Rectangle{ pos.x, pos.y - size.y, size.x, size.y };
+
+        auto sequenceTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("light_sequences");
+
+        LightZoneInfo zone;
+        if (sequenceTable)
+        {
+            const auto sequence = object.getField<ldtk::EnumValue>("light_sequence");
+            if (!sequence.is_null())
+            {
+                zone.SequenceValues = LightUtils::ParseLightSequence(sequenceTable->GetField(sequence.value().name));
+            }  
+        }
+
+        SetFromProperty("max_level", object, zone.MaxLevel);
+        SetFromProperty("min_level", object, zone.MinLevel);
+
+        float len = 0;
+        if (SetFromProperty("sequence_lenght", object, len) && len > 0)
+        {
+            zone.SequenceLenght = len;
+
+            zone.SequenceFrameTime = zone.SequenceLenght / zone.SequenceValues.size();
+        }
+
+        for (int y = int(bounds.y); y < int(bounds.y + bounds.height); y++)
+        {
+            for (int x = int(bounds.x); x < int(bounds.x + bounds.width); x++)
+            {
+                TheMap.GetCellRef(x, y).LightZone = uint8_t(TheMap.LightZones.size());
+            }
+        }
+
+        zone.Reset();
+
+        TheMap.LightZones.push_back(zone);
+    }
+
+    void AddModelObject(const ldtk::Entity& object, ldtk::Project& project)
+    {
+        auto* mapObject = TheWorld.AddObject();
+
+        SetObjectTransform(object, mapObject->AddComponent<TransformComponent>());
+
+        auto field = object.getField<ldtk::EnumValue>("Model");
+
+        auto* modelComp = mapObject->AddComponent<MapObjectComponent>(field.value().name);
+        SetFromProperty("Solid", object, modelComp->Solid);
+    }
+
+public:
+    LDTKMapReader(World& world) : MapReader(world) {}
+
+    bool Read(std::string_view filename) override
+    {
+        ldtk::Project project;
+        auto resource = ResourceManager::OpenResource(filename.data());
+        if (!resource)
+            return false;
+
+        project.loadFromMemory(resource->DataBuffer, resource->DataSize);
+        ResourceManager::ReleaseResource(resource);
+        const auto& mapWorld = project.getWorld();
+        const auto& level = *mapWorld.allLevels().begin();
+        SetupLightInfo(level);
+
+        const auto& floorLayer = level.getLayer("Floors");
+        GridSize = floorLayer.getGridSize().x;
+
+        ReadTileset(floorLayer);
+
+        float mapWidth = float(level.size.x / floorLayer.getGridSize().x);
+        float mapHeight = float(level.size.y / floorLayer.getGridSize().y);
+
+        TheMap.Size.X = int(mapWidth);
+        TheMap.Size.Y = int(mapHeight);
+        TheMap.Cells.resize(size_t(mapWidth * mapHeight));
+
+        ReadEmptyLayer(floorLayer, 0);
+        ReadEmptyLayer(level.getLayer("Ceilings"), 1);
+        ReadWallsLayer(level.getLayer("Walls"));
+
+        const auto& objects = level.getLayer("Objects");
+
+        for (auto& object : objects.allEntities())
+        {
+            if (object.getName() == "PlayerSpawn")
+                AddSpawnObject(object);
+            else if (object.getName() == "Model")
+                AddModelObject(object, project);
+            else if (object.getName() == "LightZone")
+                AddLightZoneObject(object);
+            else if (object.getName() == "Trigger")
+                AddTrigger(object);
+        }
 
         return true;
     }
+};
 
-    return false;
-}
-
-bool FindProperty(std::string_view name, const std::vector<tmx::Property>& properties, std::string& stringValue)
-{
-    for (auto& property : properties)
-    {
-        if (property.getType() != tmx::Property::Type::String)
-            continue;
-
-        if (property.getName() == name)
-        {
-            stringValue = property.getStringValue();
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool FindProperty(std::string_view name, const std::vector<tmx::Property>& properties, float& floatValue)
-{
-    for (auto& property : properties)
-    {
-        if (property.getType() != tmx::Property::Type::Float)
-            continue;
-
-        if (property.getName() == name)
-        {
-            floatValue = property.getFloatValue();
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-bool FindProperty(std::string_view name, const std::vector<tmx::Property>& properties, bool& boolValue)
-{
-    for (auto& property : properties)
-    {
-        if (property.getType() != tmx::Property::Type::Boolean)
-            continue;
-
-        if (property.getName() == name)
-        {
-            boolValue = property.getBoolValue();
-            return true;
-        }
-    }
-
-    return false;
-}
-
-void SetObjectTransform(const tmx::Map& map, const tmx::Object& object, TransformComponent* transform)
-{
-    if (!transform)
-        return;
-
-    transform->Position.x = object.getPosition().x / float(map.getTileSize().x);
-    transform->Position.y = map.getTileCount().y - (object.getPosition().y / float(map.getTileSize().y));
-
-    FindProperty("height", object.getProperties(), transform->Position.z);
-
-    FindProperty("facing", object.getProperties(), transform->Facing);
-}
 
 Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rect)
 {
@@ -207,151 +291,25 @@ Rectangle ConvertObjectAABBToRect(const tmx::Map& map, const tmx::FloatRect& rec
     return outRect;
 }
 
-void ReadWorldTMX(const char* fileName, World& world)
+void ReadWorld(const char* fileName, World& world)
 {
-//     tmx::SetAllowRelativePaths(true);
-//     tmx::SetTMXFileReadCallback(ReadXMLDataCallback, ReleaseXMLDataCallback);
-
     world.GetState() = WorldState::Loading;
     auto& map = world.GetMap();
     map.Clear();
+    map.LightZones.clear();
 
-    ldtk::Project project;
-    auto resource = ResourceManager::OpenResource(fileName);
-    if(!resource)
-        return;
+    LDTKMapReader reader(world);
 
-    project.loadFromMemory(resource->DataBuffer, resource->DataSize);
-    ResourceManager::ReleaseResource(resource);
+    reader.Read(fileName);
 
-  //  tmx::Map tmxMap;
-//    tmxMap.load(fileName);
+    world.GetState() = WorldState::Playing;
+}
 
-    auto& mapWorld = project.getWorld();
-
-    auto& level = *mapWorld.allLevels().begin();
-
-     map.LightInfo = LightingInfo();
-
-    const auto& floors = level.getLayer("Floor");
-    
-    auto& tileset = floors.getTileset();
-
-    std::string path = tileset.path;
-
-    while (path.substr(0, 3) == "../")
-        path = path.substr(3);
-
-    map.Tilemap = TextureManager::GetTexture(path);
-    map.TileSourceRects.clear();
-
-    for (int i = 0; i < 255; i++)
-    {
-        auto point = tileset.getTileTexturePos(i);
-        if (point.x >= tileset.texture_size.x || point.y >= tileset.texture_size.y)
-            break;
-
-        Rectangle tileRect;
-        tileRect.x = float(point.x) / tileset.texture_size.x;
-        tileRect.y = float(point.y) / tileset.texture_size.y;
-        tileRect.width = (float(point.x + tileset.tile_size) / float(tileset.texture_size.x));
-        tileRect.height = (float(point.y + tileset.tile_size) / float(tileset.texture_size.y));
-
-        map.TileSourceRects.push_back(tileRect);
-    }
-
-    float mapWidth = float(level.size.x / floors.getGridSize().x);
-    float mapHeight = float(level.size.y / floors.getGridSize().y);
-
-    map.Size.X = int(mapWidth);
-    map.Size.Y = int(mapHeight);
-    map.Cells.resize(size_t(mapWidth * mapHeight));
-
-    // get all the tiles in the Ground layer
-    for (auto floor : floors.allTiles())
-    {
-        auto coord = floor.getPosition();
-        coord.x /= int(mapWidth);
-        coord.y = int((mapHeight - (coord.y/mapHeight)) - 1);
-
-        int cellIndex = int(coord.y * mapWidth + coord.x);
-
-        map.Cells[cellIndex].State = MapCellState::Empty;
-        map.Cells[cellIndex].Tiles[0] = floor.tileId;
-    }
-
-    const auto& ceilings = level.getLayer("Celing");
-
-    // get all the tiles in the ceiling layer
-    for (auto ceiling : ceilings.allTiles())
-    {
-        auto coord = ceiling.getPosition();
-        coord.x /= int(mapWidth);
-        coord.y = int((mapHeight - (coord.y / mapHeight)) - 1);
-
-        int cellIndex = int(coord.y * mapWidth + coord.x);
-        map.Cells[cellIndex].Tiles[1] = ceiling.tileId;
-    }
-
-    const auto& walls = level.getLayer("Walls");
-
-    // get all the tiles in the walls layer
-    for (auto wall : walls.allTiles())
-    {
-        auto coord = wall.getPosition();
-        coord.x /= int(mapWidth);
-        coord.y = int((mapHeight - (coord.y / mapHeight)) - 1);
-
-        int cellIndex = int(coord.y * mapWidth + coord.x);
-
-        map.Cells[cellIndex].State = MapCellState::Wall;
-        map.Cells[cellIndex].Tiles[0] = wall.tileId;
-    }
-
+void ReadWorldTMX(const char* fileName, World& world)
+{
   /*  world.GetMap()
 
-    map.Size.X = tmxMap.getTileCount().x;
-    map.Size.Y = tmxMap.getTileCount().y;
-
-    size_t tileCount = tmxMap.getTileCount().x * tmxMap.getTileCount().y;
-    map.Cells.resize(tileCount);
-
-
-    map.LightInfo = LightingInfo();
-
-    auto& mapProps = tmxMap.getProperties();
-    FindProperty("skybox", mapProps, map.LightInfo.SkyboxTextureName);
-    FindProperty("ambient_direction_angle", mapProps, map.LightInfo.AmbientAngle);
-    FindProperty("extereor_ambient_level", mapProps, map.LightInfo.ExteriorAmbientLevel);
-    FindProperty("interior_ambient_level", mapProps, map.LightInfo.InteriorAmbientLevel);
-
-    DoForEachTileInLayer(world, tmxMap, "floors", [&map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
-        {
-            if (tile.ID != 0 && map.Cells[mapCellIndex].State != MapCellState::Wall)
-            {
-                map.Cells[mapCellIndex].State = MapCellState::Empty;
-                map.Cells[mapCellIndex].Tiles[0] = tile.ID - 1;
-            }
-        });
-
-    DoForEachTileInLayer(world, tmxMap, "ceilings", [&map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
-        {
-            if (tile.ID != 0 && map.Cells[mapCellIndex].State != MapCellState::Wall)
-            {
-                map.Cells[mapCellIndex].State = MapCellState::Empty;
-                map.Cells[mapCellIndex].Tiles[1] = tile.ID - 1;
-            }
-        });
-
-
-    DoForEachTileInLayer(world, tmxMap, "walls", [&map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoordy, size_t mapCellIndex)
-        {
-            if (tile.ID != 0)
-            {
-                map.Cells[mapCellIndex].State = MapCellState::Wall;
-                map.Cells[mapCellIndex].Tiles[0] = tile.ID - 1;
-            }
-        });
+   
 
     DoForEachTileInLayer(world, tmxMap, "doors", [&world, &map](const tmx::TileLayer::Tile& tile, MapCoordinate tmxCoord, MapCoordinate mapCoord, size_t mapCellIndex)
         {
@@ -395,26 +353,6 @@ void ReadWorldTMX(const char* fileName, World& world)
 
     DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
         {
-            auto* spawn = world.AddObject();
-            SetObjectTransform(tmxMap, object, spawn->AddComponent<TransformComponent>());
-            spawn->AddComponent<SpawnPointComponent>();
-        },
-        "spawn");
-
-    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
-        {
-            auto* mapObject = world.AddObject();
-            SetObjectTransform(tmxMap, object, mapObject->AddComponent<TransformComponent>());
-
-            std::string model;
-            FindProperty("model", object.getProperties(), model);
-            auto* modelComp = mapObject->AddComponent<MapObjectComponent>(model);
-            FindProperty("solid", object.getProperties(), modelComp->Solid);
-        },
-        "object");
-
-    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
-        {
             auto* mapObject = world.AddObject();
             SetObjectTransform(tmxMap, object, mapObject->AddComponent<TransformComponent>());
             auto* modelComp = mapObject->AddComponent<MobComponent>();
@@ -422,55 +360,6 @@ void ReadWorldTMX(const char* fileName, World& world)
         },
         "mob");
 
-    DoForEachObjectInLayer(world, tmxMap, "objects", [&world, &map, &tmxMap](const tmx::Object& object)
-        {
-            auto* trigger = world.AddObject();
-            SetObjectTransform(tmxMap, object, trigger->AddComponent<TransformComponent>());
-            auto* volume = trigger->AddComponent<TriggerComponent>();
-            volume->Bounds = ConvertObjectAABBToRect(tmxMap, object.getAABB());
-        },
-        "trigger");
-
-    auto sequenceTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("light_sequences");
-
-    map.LightZones.clear();
-
-    DoForEachObjectInLayer(world, tmxMap, "lightzone", [&world, &map, &tmxMap, sequenceTable](const tmx::Object& object)
-        {
-            LightZoneInfo zone;
-            if (sequenceTable)
-            {
-                std::string sequence;
-                if (FindProperty("light_sequence", object.getProperties(), sequence))
-                    zone.SequenceValues = LightUtils::ParseLightSequence(sequenceTable->GetField(sequence));
-            }
-
-            FindProperty("max_level", object.getProperties(), zone.MaxLevel);
-            FindProperty("min_level", object.getProperties(), zone.MinLevel);
-            
-            if (FindProperty("sequence_lenght", object.getProperties(), zone.SequenceLenght))
-            {
-                zone.SequenceFrameTime = zone.SequenceLenght / zone.SequenceValues.size();
-            }
-            
-            auto bounds = ConvertObjectAABBToRect(tmxMap, object.getAABB());
-
-            for (int y = int(bounds.y); y < int(bounds.y + bounds.height); y++)
-            {
-                for (int x = int(bounds.x); x < int(bounds.x + bounds.width); x++)
-                {
-                    map.GetCellRef(x, y).LightZone = uint8_t(map.LightZones.size());
-                }
-            }
-
-            zone.Reset();
-
-            map.LightZones.push_back(zone);
-        },
-        "zone");
-
-    tmx::ClearTMXFileReadCallback();
-    tmx::SetAllowRelativePaths(false);
     */
 
     world.GetState() = WorldState::Playing;
