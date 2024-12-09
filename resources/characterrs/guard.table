@@ -1,5 +1,5 @@
 type;billboard
 sheet;textures/guard.png
-frame_count;4,1
-states;idle
-idle;1:0,1,2,3
+sheet_layout;4,1
+sequences;idle
+idle;0:1:2:3

@@ -9,6 +9,7 @@
 #include "services/table_manager.h"
 #include "services/game_time.h"
 #include "services/model_manager.h"
+#include "services/character_manager.h"
 
 #include "systems/input_system.h"
 
@@ -45,6 +46,7 @@ namespace App
         // initialize the GPU shared resource managers
         TextureManager::Init();
         ModelManager::Init();
+        CharacterManager::Init();
 
         // Setup all systems
         GameWorld.Init();
