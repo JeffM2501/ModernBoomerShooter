@@ -4,6 +4,8 @@ https://www.youtube.com/watch?v=SV8uBtUHAkQ
 
 This is an OpenGL Wolfenstein3d like system using raylib.
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/62fb4c547c4b4208a32282a98cbb89b4)](https://app.codacy.com/gh/JeffM2501/ModernBoomerShooter/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 # Features
 * Reads levels from Tiled
 * Data Driven design
