@@ -30,7 +30,7 @@
             },
             "linux": {
               "program": "${workspaceFolder}/bin/Debug/${workspaceFolderBasename}",
-              "miDebuggerPath": "/usr/bin/gdb",
+              "miDebuggerPath": "/usr/bin/gdb"
             },
             "preLaunchTask": "build debug"
           },
@@ -57,7 +57,7 @@
               "program": "${workspaceFolder}/bin/Release/${workspaceFolderBasename}",
               "miDebuggerPath": "/usr/bin/gdb"
             },
-            "preLaunchTask": "build release",
+            "preLaunchTask": "build release"
           }
         ]
       }

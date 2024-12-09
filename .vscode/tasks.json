@@ -31,16 +31,16 @@
                 "args": [
                     "SHELL=cmd",
                     "config=release_x64"
-                ],
+                ]
             },
             "linux": {
                 "args": [
                     "config=release_x64"
-                ],
+                ]
             },
             "osx": {
                 "args": [
-                ],
+                ]
             },
             "group": "build",
             "problemMatcher": [
