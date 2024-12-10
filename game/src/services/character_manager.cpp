@@ -17,7 +17,7 @@ namespace CharacterManager
     {
         auto* characterTable = CharacterManifestTable->GetFieldAsTable(key);
         if (!characterTable)
-            return;
+            return nullptr;
 
         if (characterTable->GetField("type") == "billboard")
         {
@@ -27,7 +27,7 @@ namespace CharacterManager
             character->Defintion.TextureName = characterTable->GetField("sheet");
             character->Defintion.SpriteSheet = TextureManager::GetTexture(character->Defintion.TextureName);
 
-            auto sheetLayout = StringUtils::SplitString(characterTable->GetField("sheet"), ",");
+            auto sheetLayout = StringUtils::SplitString(characterTable->GetField("sheet_layout"), ",");
             int sheetTilesX = 1;
             int sheetTilesY = 1;
 
@@ -103,6 +103,8 @@ namespace CharacterManager
         auto itr = CharacterCache.find(name);
         if (itr != CharacterCache.end())
             return itr->second;
+
+        return LoadCharacter(name);
     }
 
     void UnloadAll()
