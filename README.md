@@ -7,10 +7,29 @@ This is an OpenGL Wolfenstein3d like system using raylib.
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/62fb4c547c4b4208a32282a98cbb89b4)](https://app.codacy.com/gh/JeffM2501/ModernBoomerShooter/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 # Features
-* Reads levels from Tiled
+* Reads levels from LDtk (https://ldtk.io/)
 * Data Driven design
 * Resource and Texture Management
 * Fake lighting and Ambient Occlusion
+
+# Building
+This project uses game-premake for raylib (https://github.com/raylib-extras/game-premake) and is configured using premake.
+
+## Building for Windows (Visual Studio)
+Run the premake-VisualStudio.bat to generate the .sln, then open it.
+
+## Building for Windows (MinGW-W64)
+Run the premake-mingw.bat to generate the makefile, then run make in the folder. If you get shell errors then run make SHELL=cmd
+
+## Building for Linux
+Run run ./premake5 gmake2, then run make in the folder
+
+## Building for MacOS
+Run run ./premake5.osx gmake2, then run make in the folder
+
+## Building with VSCode
+Open the folder in vscode and build
+
 
 # Code Design
 
