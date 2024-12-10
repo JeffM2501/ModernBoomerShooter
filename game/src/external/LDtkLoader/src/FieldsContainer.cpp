@@ -182,14 +182,13 @@ void FieldsContainer::parseValueField(
             addField<int>(name, null);
         }
         else {
-            int id = field["tilesetUid"].get<int>();
-
-            int x = field["x"].get<int>();
-            int y = field["y"].get<int>();
-            int w = field["w"].get<int>();
-            int h = field["h"].get<int>();
-
-            addField<TileRef>(name, { id, x, y, w, h });
+            addField<TileRef>(
+                name,
+                {field["tilesetUid"].get<int>(),
+                field["x"].get<int>(),
+                field["y"].get<int>(),
+                field["w"].get<int>(),
+                field["h"].get<int>()});
         }
     }
 }
