@@ -182,28 +182,12 @@ void FieldsContainer::parseValueField(
             addField<int>(name, null);
         }
         else {
+            int id = field["tilesetUid"].get<int>();
 
-            int x = 0;
-            int y = 0;
-            int w = 0;
-            int h = 0;
-            int id = 0;
-
-  
-            if (!field["tilesetUid"].is_null())
-                id = field["tilesetUid"].get<int>();
-
-            if (!field["x"].is_null())
-                x = field["x"].get<int>();
-
-            if (!field["y"].is_null())
-                y = field["y"].get<int>();
-
-            if (!field["w"].is_null())
-                w = field["w"].get<int>();
-
-            if (!field["h"].is_null())
-                h = field["w"].get<int>();
+            int x = field["x"].get<int>();
+            int y = field["y"].get<int>();
+            int w = field["w"].get<int>();
+            int h = field["h"].get<int>();
 
             addField<TileRef>(name, { id, x, y, w, h });
         }
