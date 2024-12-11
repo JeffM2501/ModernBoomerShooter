@@ -33,7 +33,7 @@ void PlayerManagementSystem::OnSetup()
     {
         TransformComponent& transform = Spawn->GetOwner()->MustGetComponent<TransformComponent>();
         PlayerTransform->Position = transform.Position;
-        PlayerTransform->Facing = transform.Facing;
+        PlayerTransform->Forward = transform.Forward;
     }
 
     WorldPtr->GetSystem<AudioSystem>()->GetSound("spawn")->Play();
@@ -50,17 +50,9 @@ Vector3 PlayerManagementSystem::GetPlayerPos() const
 Vector3 PlayerManagementSystem::GetPlayerFacing() const
 {
     if (PlayerTransform)
-        return PlayerTransform->GetForward();
+        return PlayerTransform->Forward;
 
     return Vector3UnitY;
-}
-
-float PlayerManagementSystem::GetPlayerYaw() const
-{
-    if (PlayerTransform)
-        return PlayerTransform->Facing;
-
-    return 0;
 }
 
 float PlayerManagementSystem::GetPlayerPitch() const
@@ -81,14 +73,8 @@ void PlayerManagementSystem::OnUpdate()
     
     if (!GlobalVars::UseMouseDrag || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
-        PlayerTransform->Facing += Input->GetActionValue(Actions::Yaw);
+        PlayerTransform->Rotate(Input->GetActionValue(Actions::Yaw));
         PlayerPitch += Input->GetActionValue(Actions::Pitch);
-
-        // unwind angle
-        while (PlayerTransform->Facing > 180)
-            PlayerTransform->Facing -= 360;
-        while (PlayerTransform->Facing < -180)
-            PlayerTransform->Facing += 360;
 
         // clamp
         if (PlayerPitch > 89)
@@ -101,8 +87,8 @@ void PlayerManagementSystem::OnUpdate()
     if (speed < 0)
         speed *= 0.5f;
 
-    Vector3 forward = PlayerTransform->GetForward() * speed;
-    Vector3 sideways = Vector3RotateByAxisAngle(PlayerTransform->GetForward(), Vector3UnitZ, -90 * DEG2RAD);
+    Vector3 forward = PlayerTransform->Forward * speed;
+    Vector3 sideways = Vector3RotateByAxisAngle(PlayerTransform->Forward, Vector3UnitZ, -90 * DEG2RAD);
 
     sideways *= (PlayerSideStepSpeed * GameTime::Scale(Input->GetActionValue(Actions::Sideways)));
 

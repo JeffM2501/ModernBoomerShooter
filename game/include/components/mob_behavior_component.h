@@ -13,15 +13,16 @@ public:
     bool LoopPath = true;
 
     float MoveSpeed = 2;
-    float RotationSpeed = 45;
+    float RotationSpeed = 180;
 
     std::vector<Vector2> Path;
+
+    void DrawDebugInfo();
 
 protected:
     enum class AIState
     {
         Unknown,
-        Turning,
         Moving,
         Waiting,
     };

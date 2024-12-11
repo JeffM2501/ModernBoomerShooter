@@ -16,7 +16,6 @@ public:
     Vector3 GetPlayerPos() const;
     Vector3 GetPlayerFacing() const;
 
-    float GetPlayerYaw() const;
     float GetPlayerPitch() const;
 
     static constexpr char PlayerHitWall[] = "PlayerHitWall";

@@ -56,7 +56,7 @@ void ModelInstance::Draw(TransformComponent& transform)
 {
     rlPushMatrix();
     rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
-    rlRotatef(transform.Facing, 0, 0, 1);
+    rlRotatef(transform.GetFacing(), 0, 0, 1);
     for (int mesh = 0; mesh < Geometry->Geometry.meshCount; mesh++)
     {
         DrawMesh(Geometry->Geometry.meshes[mesh], MaterialOverrides[Geometry->Geometry.meshMaterial[mesh]], ModelIdentity);

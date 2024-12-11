@@ -115,6 +115,8 @@ void World::Reset()
 
 void World::Cleanup()
 {
+    RootObject = nullptr;
+
     for (auto& [id, system] : Systems)
     {
         system->Cleanup();

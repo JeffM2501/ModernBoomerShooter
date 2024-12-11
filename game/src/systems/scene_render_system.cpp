@@ -16,6 +16,9 @@
 #include "components/map_object_component.h"
 #include "components/trigger_component.h"
 #include "components/mobile_object_component.h"
+#include "components/mob_behavior_component.h"
+
+#include "utilities/debug_draw_utility.h"
 
 #include "game_object.h"
 #include "world.h"
@@ -89,6 +92,8 @@ float GetFOVX(float fovY)
 static constexpr float DebugFloorHeight = 0.01f;
 void SceneRenderSystem::DrawDebugShapes()
 {
+    DebugDrawUtility::Draw3D(Render.Viepoint);
+
     if (GlobalVars::ShowTriggerVolumes)
     {
         for (auto* trigger : MapObjects->Triggers.Components)
@@ -121,7 +126,7 @@ void SceneRenderSystem::OnUpdate()
         zone.Advance();
 
     if (PlayerManager)
-        Render.SetViewpoint(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerYaw(), PlayerManager->GetPlayerPitch());
+        Render.SetViewpoint(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerPitch(), PlayerManager->GetPlayerFacing());
 
     WorldPtr->GetRaycaster().SetOutputSize(GetScreenWidth(), GetFOVX(Render.Viepoint.fovy));
 
@@ -170,6 +175,10 @@ void SceneRenderSystem::OnUpdate()
     for (auto mob : Mobs->Mobs.Components)
     {
         mob->Draw();
+
+        auto* behavior = mob->GetOwner()->GetComponent<MobBehaviorComponent>();
+        if (behavior)
+            behavior->DrawDebugInfo();
     }
 
     EndShaderMode();

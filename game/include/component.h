@@ -13,6 +13,8 @@ public:
 
     virtual size_t GetTypeID() const = 0;
 
+    virtual std::string_view GetName() const = 0;
+
     template <class T>
     inline bool Is()
     {
@@ -50,11 +52,13 @@ protected:
     T(GameObject* owner) : Component(owner){} \
     static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
     size_t GetTypeID() const override {return T::TypeID();} \
+    std::string_view GetName() const override {return #T;} \
     static std::unique_ptr<Component> Create(GameObject* owner){ return std::make_unique<T>(owner);}
 
 #define DEFINE_COMPONENT_WITH_SYSTEM(T, S) \
     T(GameObject* owner) : Component(owner){} \
     static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
     size_t GetTypeID() const override {return T::TypeID();} \
+    std::string_view GetName() const override {return #T;} \
     static std::unique_ptr<Component> Create(GameObject* owner) { return std::make_unique<T>(owner); } \
     void OnAddedToObject() override { AddToSystem<S>(); }

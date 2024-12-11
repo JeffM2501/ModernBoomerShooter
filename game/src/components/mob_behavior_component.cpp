@@ -4,6 +4,7 @@
 #include "systems/player_management_system.h"
 #include "systems/map_object_system.h"
 #include "services/game_time.h"
+#include "utilities/ai_utils.h"
 #include "utilities/collision_utils.h"
 #include "game_object.h"
 
@@ -11,6 +12,7 @@
 #include "map/map.h"
 
 #include "raylib.h"
+#include "rlgl.h"
 
 template <typename T> 
 inline int sgn(T val) 
@@ -51,6 +53,11 @@ float MobBehaviorComponent::GetDistanceToPlathPoint() const
     return Vector2Distance(Vector2(transform->Position.x, transform->Position.y), Path[CurrentPathIndex]);
 }
 
+void MobBehaviorComponent::DrawDebugInfo()
+{
+    DrawSphereWires(DesiredPostion + Vector3UnitZ * 0.5f, 0.125f, 3, 4, FollowPath ? RED : PURPLE);
+}
+
 void MobBehaviorComponent::Process()
 {
     auto* transform = GetOwner()->GetComponent<TransformComponent>();
@@ -68,41 +75,9 @@ void MobBehaviorComponent::Process()
         }
         else
         {
-            DesiredAngle = GetAngleToPathPoint();
-            CollisionUtils::SetUnitAngleDeg(transform->Facing);
-            State = AIState::Turning;
-        }
-        break;
-
-    case MobBehaviorComponent::AIState::Turning:
-        {
-        bool atTarget = false;
-        float maxRotationThisFrame = RotationSpeed * GameTime::GetDeltaTime();
-
-        float delta = DesiredAngle - transform->Facing;
-        if (fabsf(delta) <= maxRotationThisFrame)
-        {
-            transform->Facing = DesiredAngle;
-            atTarget = true;
-        }
-        else
-        {
-            transform->Facing += sgn(delta) * maxRotationThisFrame;
-        }
-
-        if (atTarget)
-        {
+            DesiredPostion = Vector3{ Path[CurrentPathIndex].x, Path[CurrentPathIndex].y, 0 };
             State = AIState::Moving;
-            if (FollowPath && !Path.empty())
-            {
-                DesiredPostion = Vector3{ Path[CurrentPathIndex].x, Path[CurrentPathIndex].y, 0 };
-            }
-            else
-            {
-                DesiredPostion = transform->Position + (transform->GetForward() * float(GetRandomValue(1, 6)));
-            }
         }
-    }
         break;
 
     case MobBehaviorComponent::AIState::Moving:
@@ -110,29 +85,21 @@ void MobBehaviorComponent::Process()
         bool done = false;
 
         float maxMoveThisFrame = MoveSpeed * GameTime::GetDeltaTime();
+        float maxRotationThisFrame = RotationSpeed * GameTime::GetDeltaTime();
 
-        Vector3 position = transform->Position;
-        Vector3 desiredMotion = DesiredPostion - transform->Position;
+        Vector3 desiredMotion = AIUtils::MoveTo(transform->Position, transform->Forward, DesiredPostion, maxMoveThisFrame, maxRotationThisFrame);
 
-        float distanceToTarget = Vector3Length(desiredMotion);
-
-        // we would overshoot this frame so clamp
-        if (maxMoveThisFrame > distanceToTarget)
-        {
-            maxMoveThisFrame = distanceToTarget;
+        if (Vector3LengthSqr((desiredMotion + transform->Position) - DesiredPostion) < 0.001f)
             done = true;
-        }
 
-        desiredMotion = (desiredMotion/ distanceToTarget) * maxMoveThisFrame;
-       
         bool hitSomething = false;
-        if (world->GetMap().MoveEntity(position, desiredMotion, 0.25f))
+        if (world->GetMap().MoveEntity(transform->Position, desiredMotion, 0.25f))
         {
             hitSomething = true;
             done = !FollowPath;
         }
-        
-        transform->Position = position + desiredMotion;
+
+        transform->Position += desiredMotion;
 
         GetOwner()->GetWorld()->GetSystem<MapObjectSystem>()->CheckTriggers(GetOwner(), 0.25f, hitSomething);
 
@@ -144,15 +111,20 @@ void MobBehaviorComponent::Process()
                 if (CurrentPathIndex >= Path.size())
                     CurrentPathIndex = 0;
 
-                State = AIState::Turning;
-                CollisionUtils::SetUnitAngleDeg(transform->Facing);
-                DesiredAngle = GetAngleToPathPoint();
-                MatchAngleSign(DesiredAngle, transform->Facing);
+                DesiredPostion = Vector3{ Path[CurrentPathIndex].x, Path[CurrentPathIndex].y, 0 };
             }
             else
             {
-                State = AIState::Waiting;
-                WaitTime = float(GetRandomValue(1, 3));
+                if (hitSomething)
+                {
+                    transform->SetFacing(transform->GetFacing() + float(GetRandomValue(180 - 30, 180 + 30)));
+                    DesiredPostion = transform->Position + transform->Forward * float(GetRandomValue(1, 3));
+                }
+                else
+                {
+                    State = AIState::Waiting;
+                    WaitTime = float(GetRandomValue(1, 3));
+                }
             }
         }
     }
@@ -164,14 +136,11 @@ void MobBehaviorComponent::Process()
         if (WaitTime <= 0)
         {
             WaitTime = 0;
-            State = AIState::Turning;
+            State = AIState::Moving;
 
-            DesiredAngle = float(GetRandomValue(0, 3) * 90);
-            CollisionUtils::SetUnitAngleDeg(DesiredAngle);
-            CollisionUtils::SetUnitAngleDeg(transform->Facing);
-
-            // ensure that our desired angle has the same sign as our facing angle so we can short rot
-            MatchAngleSign(DesiredAngle, transform->Facing);
+            float angle = transform->GetFacing() + float(GetRandomValue(180 - 30, 180 + 30));
+            Vector3 newVec = { cosf((angle + 90) * DEG2RAD), sinf((angle + 90) * DEG2RAD), 0 };
+            DesiredPostion = transform->Position + newVec * float(GetRandomValue(4, 10));
         }
         break;
     }

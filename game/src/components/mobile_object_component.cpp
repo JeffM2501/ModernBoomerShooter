@@ -18,7 +18,7 @@ void MobComponent::Draw()
 
     rlPushMatrix();
     rlTranslatef(transform->Position.x, transform->Position.y, transform->Position.z + 0.375f);
-    rlRotatef(transform->Facing, 0, 0, 1);
+    rlRotatef(transform->GetFacing(), 0, 0, 1);
     DrawCube(Vector3Zeros, 0.25f, 0.25f, 0.75f, RED);
     DrawCube(Vector3UnitY * 0.125f + Vector3UnitZ * 0.3f, 0.25f, 0.005f, 0.125f, YELLOW);
     DrawCube(Vector3UnitZ * 0.125f, 0.5f, 0.125f, 0.125f, MAROON);

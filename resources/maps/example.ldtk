@@ -1883,7 +1883,7 @@
 						},
 						{
 							"__identifier": "MOB",
-							"__grid": [33,22],
+							"__grid": [43,30],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": { "tilesetUid": 6, "x": 272, "y": 160, "w": 16, "h": 16 },
@@ -1892,7 +1892,7 @@
 							"width": 32,
 							"height": 32,
 							"defUid": 26,
-							"px": [2112,1408],
+							"px": [2752,1920],
 							"fieldInstances": [
 								{ "__identifier": "Facing", "__type": "Float", "__value": 90, "__tile": null, "defUid": 27, "realEditorValues": [{ "id": "V_Float", "params": [90] }] },
 								{ "__identifier": "Characters", "__type": "LocalEnum.Characters", "__value": "Guard", "__tile": null, "defUid": 29, "realEditorValues": [{
@@ -1900,35 +1900,27 @@
 									"params": ["Guard"]
 								}] },
 								{ "__identifier": "Path", "__type": "Array<Point>", "__value": [
-									{ "cx": 35, "cy": 22 },
-									{ "cx": 37, "cy": 22 },
-									{ "cx": 39, "cy": 26 },
-									{ "cx": 34, "cy": 27 },
-									{ "cx": 31, "cy": 27 },
+									{ "cx": 40, "cy": 26 },
+									{ "cx": 36, "cy": 28 },
+									{ "cx": 32, "cy": 27 },
 									{ "cx": 27, "cy": 27 },
-									{ "cx": 27, "cy": 24 },
-									{ "cx": 29, "cy": 22 },
-									{ "cx": 31, "cy": 22 }
+									{ "cx": 23, "cy": 28 },
+									{ "cx": 23, "cy": 33 },
+									{ "cx": 29, "cy": 34 },
+									{ "cx": 33, "cy": 36 },
+									{ "cx": 42, "cy": 33 }
 								], "__tile": null, "defUid": 52, "realEditorValues": [
 									{
 										"id": "V_String",
-										"params": ["35,22"]
+										"params": ["40,26"]
 									},
 									{
 										"id": "V_String",
-										"params": ["37,22"]
+										"params": ["36,28"]
 									},
 									{
 										"id": "V_String",
-										"params": ["39,26"]
-									},
-									{
-										"id": "V_String",
-										"params": ["34,27"]
-									},
-									{
-										"id": "V_String",
-										"params": ["31,27"]
+										"params": ["32,27"]
 									},
 									{
 										"id": "V_String",
@@ -1936,15 +1928,23 @@
 									},
 									{
 										"id": "V_String",
-										"params": ["27,24"]
+										"params": ["23,28"]
 									},
 									{
 										"id": "V_String",
-										"params": ["29,22"]
+										"params": ["23,33"]
 									},
 									{
 										"id": "V_String",
-										"params": ["31,22"]
+										"params": ["29,34"]
+									},
+									{
+										"id": "V_String",
+										"params": ["33,36"]
+									},
+									{
+										"id": "V_String",
+										"params": ["42,33"]
 									}
 								] },
 								{ "__identifier": "FollowPath", "__type": "Bool", "__value": true, "__tile": null, "defUid": 53, "realEditorValues": [{
@@ -1954,8 +1954,8 @@
 								{ "__identifier": "MoveSpeed", "__type": "Float", "__value": 1, "__tile": null, "defUid": 54, "realEditorValues": [{ "id": "V_Float", "params": [1] }] },
 								{ "__identifier": "RotationSpeed", "__type": "Float", "__value": 90, "__tile": null, "defUid": 55, "realEditorValues": [{ "id": "V_Float", "params": [90] }] }
 							],
-							"__worldX": 2112,
-							"__worldY": 1408
+							"__worldX": 2752,
+							"__worldY": 1920
 						},
 						{
 							"__identifier": "DoorTrigger",

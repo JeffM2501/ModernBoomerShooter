@@ -126,7 +126,9 @@ private:
         transform->Position.y = convertedPos.y;
         transform->Position.z = 0;
 
-        SetFromProperty("Facing", object, transform->Facing);
+        float angle = 0;
+        if (SetFromProperty("Facing", object, angle))
+            transform->SetFacing(angle);
     }
 
     void SetupLightInfo(const ldtk::Level & level)

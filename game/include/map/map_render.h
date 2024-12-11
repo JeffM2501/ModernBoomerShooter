@@ -17,7 +17,7 @@ public:
 
     void Render();
 
-    void SetViewpoint(Vector3 position, float yaw, float pitch);
+    void SetViewpoint(Vector3 position, float pitch, const Vector3& facing);
 
     void SetEyeHeight(float height);
 
