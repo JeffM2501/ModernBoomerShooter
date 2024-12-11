@@ -1,7 +1,9 @@
 #include "systems/console_render_system.h"
 #include "services/game_time.h"
 #include "services/global_vars.h"
+#include "components/trigger_component.h"
 #include "utilities/string_utils.h"
+#include "utilities/debug_draw_utility.h"
 
 #include "world.h"
 #include "raylib.h"
@@ -103,11 +105,11 @@ void ConsoleRenderSystem::OnSetup()
             OutputMessage("Map Reloaded");
         });
 
-	RegisterCommand(ConsoleCommands::ToggleCollisionVolumes,
+	RegisterCommand(ConsoleCommands::ToggleDebug,
         [this](std::string_view command, const std::vector<std::string>& args)
         {
-			GlobalVars::ShowCollisionVolumes = !GlobalVars::ShowCollisionVolumes;
-			OutputVarState("ShowCollisionVolumes", GlobalVars::ShowCollisionVolumes);
+			GlobalVars::ShowDebugDraw = !GlobalVars::ShowDebugDraw;
+			OutputVarState("ShowDebugDraw", GlobalVars::ShowDebugDraw);
         });	
 	
 	RegisterCommand(ConsoleCommands::ToggleShowCoordinates,
@@ -115,13 +117,6 @@ void ConsoleRenderSystem::OnSetup()
         {
             GlobalVars::ShowCoordinates = !GlobalVars::ShowCoordinates;
             OutputVarState("ShowCoordinates", GlobalVars::ShowCoordinates);
-        });
-
-    RegisterCommand(ConsoleCommands::ToggleTriggers,
-        [this](std::string_view command, const std::vector<std::string>& args)
-        {
-            GlobalVars::ShowTriggerVolumes = !GlobalVars::ShowTriggerVolumes;
-            OutputVarState("ShowTriggerVolumes", GlobalVars::ShowTriggerVolumes);
         });
 
     RegisterCommand(ConsoleCommands::ListCommands,

@@ -62,3 +62,16 @@ protected:
     std::string_view GetName() const override {return #T;} \
     static std::unique_ptr<Component> Create(GameObject* owner) { return std::make_unique<T>(owner); } \
     void OnAddedToObject() override { AddToSystem<S>(); }
+
+#define DEFINE_COMPONENT_NO_CONSTRUCTOR(T) \
+    static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
+    size_t GetTypeID() const override {return T::TypeID();} \
+    std::string_view GetName() const override {return #T;} \
+    static std::unique_ptr<Component> Create(GameObject* owner){ return std::make_unique<T>(owner);}
+
+#define DEFINE_COMPONENT_WITH_SYSTEM_NO_CONSTRUCTOR(T, S) \
+    static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
+    size_t GetTypeID() const override {return T::TypeID();} \
+    std::string_view GetName() const override {return #T;} \
+    static std::unique_ptr<Component> Create(GameObject* owner) { return std::make_unique<T>(owner); } \
+    void OnAddedToObject() override { AddToSystem<S>(); }

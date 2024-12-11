@@ -2,6 +2,38 @@
 
 #include <algorithm>
 
+TriggerComponent::TriggerComponent(GameObject* owner)
+    : Component(owner), Visualizer(this)
+{
+}
+
+TriggerComponent::TriggerComponent(GameObject* owner, const Rectangle& bounds) 
+    : Component(owner), Bounds(bounds), Visualizer(this)
+{
+    Visualizer.SetDrawFunctions([this](const Camera&) {DrawDebug(); });
+}
+
+static constexpr float DebugFloorHeight = 0.01f;
+
+void TriggerComponent::DrawDebug()
+{
+    DrawLine3D(Vector3{ Bounds.x, Bounds.y, DebugFloorHeight },
+        Vector3{ Bounds.x + Bounds.width, Bounds.y, DebugFloorHeight },
+        RED);
+
+    DrawLine3D(Vector3{ Bounds.x + Bounds.width, Bounds.y, DebugFloorHeight },
+        Vector3{ Bounds.x + Bounds.width, Bounds.y + Bounds.height, DebugFloorHeight },
+        RED);
+
+    DrawLine3D(Vector3{ Bounds.x + Bounds.width, Bounds.y + Bounds.height, DebugFloorHeight },
+        Vector3{ Bounds.x, Bounds.y + Bounds.height, DebugFloorHeight },
+        RED);
+
+    DrawLine3D(Vector3{ Bounds.x, Bounds.y + Bounds.height, DebugFloorHeight },
+        Vector3{ Bounds.x, Bounds.y, DebugFloorHeight },
+        RED);
+}
+
 void TriggerComponent::AddObject(ObjectLifetimeToken::Ptr token)
 {
     if (token->IsValid())

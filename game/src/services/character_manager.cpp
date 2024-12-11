@@ -1,6 +1,7 @@
 #include "services/character_manager.h"
 #include "services/table_manager.h"
 #include "services/texture_manager.h"
+#include "utilities/collision_utils.h"
 #include "utilities/string_utils.h"
 #include "world.h"
 
@@ -42,26 +43,32 @@ namespace CharacterManager
 
             for (auto& sequenceName : StringUtils::SplitString(characterTable->GetField("sequences"), ","))
             {
-                auto sequenceList = characterTable->GetField(sequenceName);
-                if (sequenceList.empty())
+                auto sequenceFrameString = characterTable->GetField(sequenceName);
+                if (sequenceFrameString.empty())
                     continue;
 
                 BillboardFrameSequence sequence;
 
-                for (auto& frameset : StringUtils::SplitString(sequenceList, ":"))
+                auto sequenceFrameList = StringUtils::SplitString(sequenceFrameString, ",");
+
+                for (auto& sequenceFrame : sequenceFrameList)
                 {
-                    float angleDelta = frameset.size() / 360.0f;
+                    auto frameList = StringUtils::SplitString(sequenceFrame, ":");
+
+                    float angleDelta = 360.0f / frameList.size();
                     sequence.Frames.push_back(std::map<float, Rectangle>());
 
-                    for (float a = 0; a <= 360; a += angleDelta)
+                    for(int index = 0; index < frameList.size(); index++)
                     {
-                        int frame = atoi(frameset.c_str());
+                        float angle = angleDelta * index;
+                        CollisionUtils::SetUnitAngleDeg(angle);
+                        int frame = atoi(frameList[index].c_str());
 
-                        int frameY = frame % sheetTilesX;
+                        int frameY = frame / sheetTilesX;
                         int frameX = frame - (frameY * sheetTilesX);
 
                         Rectangle rect = { frameX * sheetFrameX , frameY * sheetFrameY, sheetFrameX, sheetFrameY };
-                        sequence.Frames.back().insert_or_assign(a, rect);
+                        sequence.Frames.back().insert_or_assign(angle, rect);
                     }
                 }
 

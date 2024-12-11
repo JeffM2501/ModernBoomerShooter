@@ -2,6 +2,8 @@
 
 #include "component.h"
 
+#include "services/global_vars.h"
+
 #include <vector>
 #include <unordered_map>
 
@@ -56,6 +58,9 @@ namespace DebugDrawUtility
 
     void Draw2D()
     {
+        if (!GlobalVars::ShowDebugDraw)
+            return;
+
 #if defined(_DEBUG)
         for (auto& item : DebugItems)
         {
@@ -66,6 +71,9 @@ namespace DebugDrawUtility
     }
     void Draw3D(const Camera3D& camera)
     {
+        if (!GlobalVars::ShowDebugDraw)
+            return;
+
 #if defined(_DEBUG)
         for (auto& item : DebugItems)
         {

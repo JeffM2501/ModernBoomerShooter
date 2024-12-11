@@ -89,34 +89,6 @@ float GetFOVX(float fovY)
     return 2.0f * atanf(tanf(fovY * DEG2RAD * 0.5f) * aspectRatio) * RAD2DEG;
 }
 
-static constexpr float DebugFloorHeight = 0.01f;
-void SceneRenderSystem::DrawDebugShapes()
-{
-    DebugDrawUtility::Draw3D(Render.Viepoint);
-
-    if (GlobalVars::ShowTriggerVolumes)
-    {
-        for (auto* trigger : MapObjects->Triggers.Components)
-        {
-            DrawLine3D(Vector3{ trigger->Bounds.x, trigger->Bounds.y, DebugFloorHeight },
-                Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y, DebugFloorHeight },
-                RED);
-
-            DrawLine3D(Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y, DebugFloorHeight },
-                Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
-                RED);
-
-            DrawLine3D(Vector3{ trigger->Bounds.x + trigger->Bounds.width, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
-                Vector3{ trigger->Bounds.x, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
-                RED);
-
-            DrawLine3D(Vector3{ trigger->Bounds.x, trigger->Bounds.y + trigger->Bounds.height, DebugFloorHeight },
-                Vector3{ trigger->Bounds.x, trigger->Bounds.y, DebugFloorHeight },
-                RED);
-        }
-    }
-}
-
 void SceneRenderSystem::OnUpdate()
 {
     if (!WorldPtr || WorldPtr->GetState() != WorldState::Playing)
@@ -162,7 +134,7 @@ void SceneRenderSystem::OnUpdate()
         auto& transform = mapObjet->GetOwner()->MustGetComponent<TransformComponent>();
         mapObjet->Instance->Draw(transform);
 
-        if (mapObjet->Solid && GlobalVars::ShowCollisionVolumes)
+        if (mapObjet->Solid && GlobalVars::ShowDebugDraw)
         {
             rlPushMatrix();
             rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
@@ -175,14 +147,11 @@ void SceneRenderSystem::OnUpdate()
     for (auto mob : Mobs->Mobs.Components)
     {
         mob->Draw();
-
-        auto* behavior = mob->GetOwner()->GetComponent<MobBehaviorComponent>();
-        if (behavior)
-            behavior->DrawDebugInfo();
     }
 
     EndShaderMode();
 
-    DrawDebugShapes();
+    DebugDrawUtility::Draw3D(Render.Viepoint);
+
     EndMode3D();
 }

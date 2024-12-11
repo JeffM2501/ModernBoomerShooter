@@ -33,13 +33,13 @@ namespace DebugDrawUtility
 
     void DisableComponent(size_t componentHash);
     template<class T>
-    inline void DisableComponent() { DisableComponent(T::GetTypeID()); }
+    inline void DisableComponent() { DisableComponent(T::TypeID()); }
 
     void EnableComponent(size_t componentHash);
     template<class T>
-    inline void EnableComponent() { EnableComponent(T::GetTypeID()); }
+    inline void EnableComponent() { EnableComponent(T::TypeID()); }
 
     bool IsComponentEnabled(size_t componentHash);
     template<class T>
-    inline bool IsComponentEnabled() { IsComponentEnabled(T::GetTypeID()); }
+    inline bool IsComponentEnabled() { return IsComponentEnabled(T::TypeID()); }
 }

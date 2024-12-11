@@ -214,7 +214,7 @@ private:
 
         for (auto& point : object.getArrayField<ldtk::IntPoint>("Path"))
         {
-            Vector2 pointPos = {point.value().x + 0.5f, (TheMap.Size.Y - (point.value().y)) - 0.5f };
+            Vector3 pointPos = {point.value().x + 0.5f, (TheMap.Size.Y - (point.value().y)) - 0.5f, 0 };
 
             behavior->Path.push_back(pointPos);
         }

@@ -50,12 +50,28 @@ float MobBehaviorComponent::GetDistanceToPlathPoint() const
     if (!transform)
         return 0;
 
-    return Vector2Distance(Vector2(transform->Position.x, transform->Position.y), Path[CurrentPathIndex]);
+    return Vector3Distance(transform->Position, Path[CurrentPathIndex]);
 }
 
-void MobBehaviorComponent::DrawDebugInfo()
+MobBehaviorComponent::MobBehaviorComponent(GameObject* owner)
+    : Component(owner)
+    , Visualizer(this)
 {
-    DrawSphereWires(DesiredPostion + Vector3UnitZ * 0.5f, 0.125f, 3, 4, FollowPath ? RED : PURPLE);
+    Visualizer.SetDrawFunctions([this](const Camera&) 
+        {
+            DrawSphereWires(DesiredPostion + Vector3UnitZ * 0.125f, 0.125f * 0.5f, 3, 4, FollowPath ? RED : PURPLE);
+
+            if (FollowPath)
+            {
+                rlPushMatrix();
+                rlTranslatef(0, 0, 0.125f);
+                for (int i = 0; i < Path.size()-1; i++)
+                {
+                    DrawLine3D(Path[i], Path[i + 1], WHITE);
+                }
+                rlPopMatrix();
+            }
+        });
 }
 
 void MobBehaviorComponent::Process()

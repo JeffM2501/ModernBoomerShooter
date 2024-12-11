@@ -140,7 +140,7 @@ bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, floa
 
         // check bounds
 
-        if (GlobalVars::ShowCollisionVolumes)
+        if (false)
         {
             Rectangle rect = { 0,0,0,0 };
             rect.x = transform.Position.x + bbox.min.x;

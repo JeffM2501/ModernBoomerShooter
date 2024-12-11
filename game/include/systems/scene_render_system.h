@@ -22,8 +22,6 @@ protected:
     void OnSetup() override;
     void OnUpdate() override;
 
-    void DrawDebugShapes();
-
 protected:
     MapRenderer Render;
     PlayerManagementSystem* PlayerManager = nullptr;
