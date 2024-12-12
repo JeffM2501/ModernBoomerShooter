@@ -4,10 +4,12 @@
 
 #include "model.h"
 
+#include "rlImGui.h"
+#include "imgui.h"
+
 namespace App
 {
     bool Run = false;
-
 
     Model TheModel = { 0 };
 
@@ -21,6 +23,8 @@ namespace App
         SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE);
         InitWindow(1280, 800, "Model Tool");
         SetTargetFPS(300);
+
+        rlImGuiSetup(true);
 
         ViewCamera.fovy = 45;
         ViewCamera.up.z = 1;
@@ -93,19 +97,43 @@ namespace App
         }
     }
 
+    void DrawImGui()
+    {
+        ImGui::BeginMainMenuBar();
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Exit", "Alt+F4"))
+            {
+                exit(0);
+            }
+
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+
+
+        ImGui::ShowDemoWindow(nullptr);
+    }
+
     void NewFrame()
     {
-        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-            UpdateCamera(&ViewCamera, CAMERA_THIRD_PERSON);
+        if (!ImGui::GetIO().WantCaptureMouse)
+        {
+            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+                UpdateCamera(&ViewCamera, CAMERA_THIRD_PERSON);
+        }
 
-        if (IsKeyPressed(KEY_R))
-            RotateMesh(90, Vector3UnitX);
-        
-        if (IsKeyPressed(KEY_F))
-            FloorMesh();
+        if (!ImGui::GetIO().WantCaptureKeyboard)
+        {
+            if (IsKeyPressed(KEY_R))
+                RotateMesh(90, Vector3UnitX);
 
-        if (IsKeyPressed(KEY_O))
-            WriteModel(TheModel, ModelName);
+            if (IsKeyPressed(KEY_F))
+                FloorMesh();
+
+            if (IsKeyPressed(KEY_O))
+                WriteModel(TheModel, ModelName);
+        }
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
@@ -125,11 +153,16 @@ namespace App
 
         EndMode3D();
 
+        rlImGuiBegin();
+        DrawImGui();
+        rlImGuiEnd();
+
         EndDrawing();
     }
 
     void Cleanup()
     {
+        rlImGuiShutdown();
         CloseWindow();
     }
 
@@ -161,7 +194,11 @@ int main(int argc, char* argv[])
 {
     App::Init();
 
-    if (argc == 1)
+    std::string command;
+    if (argc > 1)
+        command = argv[1];
+
+    if (command == "-generate")
     { 
         auto files = LoadDirectoryFilesEx("assets/models", ".glb", false);
         for (size_t i = 0; i < files.count; i++)
@@ -169,9 +206,9 @@ int main(int argc, char* argv[])
             ProcessModel(files.paths[i]);
         }
     }
-    else
+    else if (!command.empty())
     {
-        ProcessModel(argv[1]);
+        ProcessModel(command.c_str());
     }
     
     while (!App::Quit())

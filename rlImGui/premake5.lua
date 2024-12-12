@@ -18,29 +18,19 @@
 baseName = path.getbasename(os.getcwd());
 
 project (baseName)
-    kind "ConsoleApp"
+    kind "StaticLib"
     location "./"
     targetdir "../bin/%{cfg.buildcfg}"
 
-    filter "action:vs*"
-        debugdir "$(SolutionDir)"
-
-
-
-    filter{}
-
     vpaths 
     {
-        ["Header Files/*"] = { "include/**.h",  "include/**.hpp", "src/**.h", "src/**.hpp", "**.h", "**.hpp"},
-        ["Source Files/*"] = {"src/**.c", "src/**.cpp","**.c", "**.cpp"},
+        ["Header Files/*"] = { "include/**.h", "include/**.hpp", "**.h", "**.hpp"},
+        ["Source Files/*"] = { "src/**.cpp", "src/**.c", "**.cpp","**.c"},
     }
-    files {"**.c", "**.cpp", "**.h", "**.hpp"}
-  
+    files {"**.hpp", "**.h", "**.cpp","**.c"}
+
     includedirs { "./" }
-    includedirs { "src" }
-    includedirs { "include" }
-    includedirs { "src/external/tmxlite/include" }
-	
-    link_raylib()
-    link_to("model_lib")
-    link_to("rlImGui")
+    includedirs { "./src" }
+    includedirs { "./include" }
+
+    include_raylib()

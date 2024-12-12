@@ -45,8 +45,21 @@ Compute billboard characters and faces from relative rotation/facing
 ## Support rotation/flip of walls and floors
 Allow faces to be rotated or flipped based on tmx flags?
 
+## Add Height zones
+Add zones to maps that let you define the ceiling and floor height
+ 
+## Add height to movement
+Basic gravity and fall to the floor
+
+
 # In Progress
 --------------------------------------------------------------
+## Remove billboards
+Just stick with models for now.
+
+## Add Model Animations
+Load Animations for character models
+
 
 
 # Commplete
