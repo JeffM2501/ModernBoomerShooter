@@ -2,10 +2,15 @@
 #include "raymath.h"
 #include "rlgl.h"
 
+#include "app.h"
+#include "transform_tools.h"
 #include "model.h"
 
-#include "rlImGui.h"
 #include "imgui.h"
+
+#include <string>
+
+void ProcessModel(const char* name);
 
 namespace App
 {
@@ -13,10 +18,26 @@ namespace App
 
     Model TheModel = { 0 };
 
-    Camera3D ViewCamera = { 0 };
-
     const char* ModelName = nullptr;
 
+    void InitGui();
+    void ShowGui();
+    void CleanupGui();
+    void InitRender();
+    void CleanupRender();
+    void UpdateRender();
+    void DrawRender();
+
+    Model& GetModel()
+    {
+        return TheModel;
+    }
+
+    void RequestQuit()
+    {
+        Run = false;
+    }
+    
     void Init()
     {
         Run = true;
@@ -24,145 +45,41 @@ namespace App
         InitWindow(1280, 800, "Model Tool");
         SetTargetFPS(300);
 
-        rlImGuiSetup(true);
-
-        ViewCamera.fovy = 45;
-        ViewCamera.up.z = 1;
-
-        ViewCamera.position.z = 2;
-        ViewCamera.position.y = -2;
-    }
-
-    void CenterMesh()
-    {
-        BoundingBox bbox = GetModelBoundingBox(TheModel);
-        Vector3 center = (bbox.max - bbox.min)/2 + bbox.min;
-
-        for (size_t meshIndex = 0; meshIndex < TheModel.meshCount; meshIndex++)
-        {
-            Mesh& mesh = TheModel.meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
-            {
-                mesh.vertices[vertIndex * 3 + 0] -= center.x;
-                mesh.vertices[vertIndex * 3 + 1] -= center.y;
-                mesh.vertices[vertIndex * 3 + 2] -= center.z;
-            }
-
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
-        }
-    }
-
-    void FloorMesh()
-    {
-        BoundingBox bbox = GetModelBoundingBox(TheModel);
-
-        for (size_t meshIndex = 0; meshIndex < TheModel.meshCount; meshIndex++)
-        {
-            Mesh& mesh = TheModel.meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
-            {
-                mesh.vertices[vertIndex * 3 + 2] -= bbox.min.z;
-            }
-
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
-        }
-    }
-
-    void RotateMesh(float angle, Vector3 axis)
-    {
-        Matrix mat = MatrixRotate(axis, angle * DEG2RAD);
-
-        for (size_t meshIndex = 0; meshIndex < TheModel.meshCount; meshIndex++)
-        {
-            Mesh& mesh = TheModel.meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
-            {
-                Vector3 vert = { mesh.vertices[vertIndex * 3 + 0] , mesh.vertices[vertIndex * 3 + 1] , mesh.vertices[vertIndex * 3 + 2] };
-                Vector3 norm = { mesh.normals[vertIndex * 3 + 0] , mesh.normals[vertIndex * 3 + 1] , mesh.normals[vertIndex * 3 + 2] };
-
-                vert = vert * mat;
-                norm = norm * mat;
-
-                mesh.vertices[vertIndex * 3 + 0] = vert.x;
-                mesh.vertices[vertIndex * 3 + 1] = vert.y;
-                mesh.vertices[vertIndex * 3 + 2] = vert.z;
-
-                mesh.normals[vertIndex * 3 + 0] = norm.x;
-                mesh.normals[vertIndex * 3 + 1] = norm.y;
-                mesh.normals[vertIndex * 3 + 2] = norm.z;
-            }
-
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
-            UpdateMeshBuffer(mesh, 2, mesh.normals, mesh.vertexCount * 3 * sizeof(float), 0);
-        }
-    }
-
-    void DrawImGui()
-    {
-        ImGui::BeginMainMenuBar();
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Exit", "Alt+F4"))
-            {
-                exit(0);
-            }
-
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-
-
-        ImGui::ShowDemoWindow(nullptr);
+        InitGui();
+        InitRender();
     }
 
     void NewFrame()
     {
-        if (!ImGui::GetIO().WantCaptureMouse)
-        {
-            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-                UpdateCamera(&ViewCamera, CAMERA_THIRD_PERSON);
-        }
+        UpdateRender();
 
         if (!ImGui::GetIO().WantCaptureKeyboard)
         {
-            if (IsKeyPressed(KEY_R))
-                RotateMesh(90, Vector3UnitX);
-
-            if (IsKeyPressed(KEY_F))
-                FloorMesh();
-
-            if (IsKeyPressed(KEY_O))
-                WriteModel(TheModel, ModelName);
+//             if (IsKeyPressed(KEY_R))
+//                 RotateMesh(90, Vector3UnitX);
+// 
+//             if (IsKeyPressed(KEY_F))
+//                 FloorMesh();
+// 
+//             if (IsKeyPressed(KEY_O))
+//                 WriteModel(TheModel, ModelName);
         }
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
 
-        BeginMode3D(ViewCamera);
+        DrawRender();
 
-        rlPushMatrix();
-        rlRotatef(90, 1, 0, 0);
-        DrawGrid(20, 1);
-        rlPopMatrix();
-        DrawLine3D(Vector3Zeros, Vector3{ 0, 0, 10 }, DARKGREEN);
-
-        DrawModel(TheModel, Vector3Zeros, 1, WHITE);
-
-        BoundingBox bbox = GetModelBoundingBox(TheModel);
-        DrawBoundingBox(bbox, PURPLE);
-
-        EndMode3D();
-
-        rlImGuiBegin();
-        DrawImGui();
-        rlImGuiEnd();
+        ShowGui();
 
         EndDrawing();
     }
 
     void Cleanup()
     {
-        rlImGuiShutdown();
+        CleanupRender();
+        CleanupGui();
+        
         CloseWindow();
     }
 
@@ -170,22 +87,27 @@ namespace App
     {
         return !Run || WindowShouldClose();
     }
+
+    void LoadModel(const char* filename)
+    {
+        if (IsModelValid(App::TheModel))
+            UnloadModel(App::TheModel);
+
+        App::ModelName = GetFileNameWithoutExt(filename);
+
+        App::TheModel = ::LoadModel(filename);
+    }
 }
 
 void ProcessModel(const char* name)
 {
-    if (IsModelValid(App::TheModel))
-        UnloadModel(App::TheModel);
-
-    App::ModelName = GetFileNameWithoutExt(name);
-
-    App::TheModel = LoadModel(name);
+    App::LoadModel(name);
 
     if (IsModelValid(App::TheModel))
     {
-        App::CenterMesh();
-        App::RotateMesh(90, Vector3UnitX);
-        App::FloorMesh();
+        TransformTools::CenterMesh();
+        TransformTools::RotateMesh(90, Vector3UnitX);
+        TransformTools::FloorMesh();
         WriteModel(App::TheModel, App::ModelName);
     }
 }
