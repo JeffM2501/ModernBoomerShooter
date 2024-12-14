@@ -2,7 +2,8 @@
 
 #include "app.h"
 
-#include "imgui.h";
+#include "imgui.h"
+#include "extras/IconsFontAwesome6.h"
 
 #include "raylib.h"
 #include "raymath.h"
@@ -78,7 +79,11 @@ namespace TransformTools
 
 TransformPanel::TransformPanel()
 {
-    Name = "Transforms";
+    Name = "Transformations";
+    Icon = ICON_FA_UP_DOWN_LEFT_RIGHT;
+    MinSize = { 250,100 };
+
+    ExtraWindowFlags = ImGuiWindowFlags_NoResize;
 }
 
 void TransformPanel::OnShowContents()

@@ -9,6 +9,12 @@ class Panel
 {
 public:
     std::string Name;
+    std::string Icon;
+
+    uint32_t ExtraWindowFlags = 0;
+
+    Vector2 MinSize = { -1. - 1 };
+
     bool Open = true;
 
     virtual ~Panel() = default;

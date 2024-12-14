@@ -7,6 +7,7 @@
 #include "tinyfiledialogs.h"
 
 #include "transform_tools.h"
+#include "model_info.h"
 
 #include <vector>
 
@@ -67,7 +68,7 @@ namespace App
             auto* panelPtr = panel.get();
 
             windowMenu.Add<Commands::SimpleToggleTriggerCommand>(panel->Name.c_str()
-                , ICON_FA_WINDOW_RESTORE
+                , panel->Icon.c_str()
                 , panel->Name.c_str()
                 , ImGuiKey_None
                 , [panelPtr]() { panelPtr->Open = !panelPtr->Open; }
@@ -81,6 +82,7 @@ namespace App
         rlImGuiSetup(true);
 
         AddPanel<TransformPanel>();
+        AddPanel<ModelInfoPanel>();
 
         SetupMenu();
     }
@@ -110,9 +112,14 @@ void Panel::Show()
     if (!Open)
         return;
 
-    // todo min/max sizes
+    if (MinSize.x > 0 && MinSize.y > 0)
+        ImGui::SetNextWindowSizeConstraints(ImVec2(MinSize.x, MinSize.y), ImVec2(float(GetScreenWidth()), float(GetScreenHeight())));
 
-    if (ImGui::Begin(Name.c_str(), &Open))
+    const char* uniqueName = TextFormat("%s  %s###%s_panel", Icon.c_str(), Name.c_str(), Name.c_str());
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_None | ExtraWindowFlags;
+
+    if (ImGui::Begin(Name.c_str(), &Open, flags))
     {
         OnShowContents();
     }
