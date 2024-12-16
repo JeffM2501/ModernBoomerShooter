@@ -11,6 +11,8 @@ namespace Menus
         if (!ImGui::BeginMainMenuBar())
             return;
 
+        Height = ImGui::GetWindowSize().y;
+
         for (auto& menu : Contents)
         {
             if (menu->GetItemType() == Commands::CommandItemType::Item || !menu->IsActive())

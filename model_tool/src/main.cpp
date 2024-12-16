@@ -33,6 +33,11 @@ namespace App
         return TheModel;
     }
 
+    void SetModel(Model& model)
+    {
+        TheModel = model;
+    }
+
     void RequestQuit()
     {
         Run = false;

@@ -13,6 +13,8 @@ namespace Menus
 
         void ProcessShortcuts();
 
+        float Height = 0;
+
     protected:
         void ShowSubmenu(CommandContainer* container);
         void ShowGroup(CommandContainer* container, bool first);

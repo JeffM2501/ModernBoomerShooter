@@ -5,6 +5,13 @@
 
 #include "raylib.h"
 
+enum class PanelDockingType
+{
+    Floating = 0,
+    LeftDock,
+    RightDock,
+};
+
 class Panel
 {
 public:
@@ -14,6 +21,8 @@ public:
     uint32_t ExtraWindowFlags = 0;
 
     Vector2 MinSize = { -1. - 1 };
+
+    PanelDockingType DockingType = PanelDockingType::Floating;
 
     bool Open = true;
 
@@ -28,6 +37,7 @@ protected:
 namespace App
 {
     Model& GetModel();
+    void SetModel(Model& model);
 
     void LoadModel(const char* filename);
 

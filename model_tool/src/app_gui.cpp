@@ -112,12 +112,41 @@ void Panel::Show()
     if (!Open)
         return;
 
-    if (MinSize.x > 0 && MinSize.y > 0)
-        ImGui::SetNextWindowSizeConstraints(ImVec2(MinSize.x, MinSize.y), ImVec2(float(GetScreenWidth()), float(GetScreenHeight())));
-
     const char* uniqueName = TextFormat("%s  %s###%s_panel", Icon.c_str(), Name.c_str(), Name.c_str());
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_None | ExtraWindowFlags;
+
+    float windowStartY = App::MainMenu.Height + ImGui::GetTextLineHeight();
+
+    float windowEndY = GetScreenHeight() - windowStartY - ImGui::GetTextLineHeight();
+
+    switch (DockingType)
+    {
+    case PanelDockingType::Floating:
+        if (MinSize.x > 0 && MinSize.y > 0)
+            ImGui::SetNextWindowSizeConstraints(ImVec2(MinSize.x, MinSize.y), ImVec2(float(GetScreenWidth()), float(GetScreenHeight())));
+        break;
+
+    case PanelDockingType::LeftDock:
+        if (MinSize.x < 0)
+            MinSize.x = 150;
+
+        ImGui::SetNextWindowPos(ImVec2(0, windowStartY));
+        ImGui::SetNextWindowSize(ImVec2(MinSize.x, windowEndY));
+
+        flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+        break;
+
+    case PanelDockingType::RightDock:
+        if (MinSize.x < 0)
+            MinSize.x = 150;
+
+        ImGui::SetNextWindowPos(ImVec2(GetScreenWidth()-MinSize.x, windowStartY));
+        ImGui::SetNextWindowSize(ImVec2(MinSize.x, windowEndY));
+
+        flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+        break;
+    }
 
     if (ImGui::Begin(Name.c_str(), &Open, flags))
     {
