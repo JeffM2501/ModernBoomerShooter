@@ -19,12 +19,17 @@ namespace TransformTools
 {
     void CenterMesh()
     {
-        BoundingBox bbox = GetModelBoundingBox(App::GetModel());
+        auto& model = App::GetModel();
+        if (!IsModelValid(model))
+            return;
+
+        BoundingBox bbox = GetModelBoundingBox(model);
+
         Vector3 center = (bbox.max - bbox.min) / 2 + bbox.min;
 
-        for (size_t meshIndex = 0; meshIndex < App::GetModel().meshCount; meshIndex++)
+        for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
         {
-            Mesh& mesh = App::GetModel().meshes[meshIndex];
+            Mesh& mesh = model.meshes[meshIndex];
             for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
             {
                 mesh.vertices[vertIndex * 3 + 0] -= center.x;
@@ -34,15 +39,26 @@ namespace TransformTools
 
             UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
         }
+
+        for (int i = 0; i < model.boneCount; i++)
+        {
+            model.bindPose[i].translation -= center;
+        }
+
+        App::SetSeletedMesh(App::GetSelectedMesh());
     }
 
     void FloorMesh()
     {
-        BoundingBox bbox = GetModelBoundingBox(App::GetModel());
+        auto& model = App::GetModel();
+        if (!IsModelValid(model))
+            return;
 
-        for (size_t meshIndex = 0; meshIndex < App::GetModel().meshCount; meshIndex++)
+        BoundingBox bbox = GetModelBoundingBox(model);
+
+        for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
         {
-            Mesh& mesh = App::GetModel().meshes[meshIndex];
+            Mesh& mesh = model.meshes[meshIndex];
             for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
             {
                 mesh.vertices[vertIndex * 3 + 2] -= bbox.min.z;
@@ -50,15 +66,38 @@ namespace TransformTools
 
             UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
         }
+
+        for (int i = 0; i < model.boneCount; i++)
+        {
+            model.bindPose[i].translation.z -= bbox.min.z;
+        }
+
+        for (auto anim : App::GetAnimations().Animations)
+        {
+            for (int f = 0; f < anim->frameCount; f++)
+            {
+                for (int i = 0; i < model.boneCount; i++)
+                {
+                    anim->framePoses[f][i].translation.z -= bbox.min.z;
+                }
+            }
+        }
+
+        App::SetSeletedMesh(App::GetSelectedMesh());
     }
 
     void RotateMesh(float angle, Vector3 axis)
     {
         Matrix mat = MatrixRotate(axis, angle * DEG2RAD);
+        Quaternion rot = QuaternionFromMatrix(mat);
 
-        for (size_t meshIndex = 0; meshIndex < App::GetModel().meshCount; meshIndex++)
+        auto& model = App::GetModel();
+        if (!IsModelValid(model))
+            return;
+
+        for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
         {
-            Mesh& mesh = App::GetModel().meshes[meshIndex];
+            Mesh& mesh = model.meshes[meshIndex];
             for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
             {
                 Vector3 vert = { mesh.vertices[vertIndex * 3 + 0] , mesh.vertices[vertIndex * 3 + 1] , mesh.vertices[vertIndex * 3 + 2] };
@@ -79,6 +118,32 @@ namespace TransformTools
             UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
             UpdateMeshBuffer(mesh, 2, mesh.normals, mesh.vertexCount * 3 * sizeof(float), 0);
         }
+
+
+        std::vector<Quaternion> origonalBoneTransforms;
+        for (int i = 0; i < model.boneCount; i++)
+        {
+            model.bindPose[i].translation *= mat;
+            origonalBoneTransforms.push_back(model.bindPose[i].rotation);
+            model.bindPose[i].rotation = QuaternionMultiply(model.bindPose[i].rotation, rot);
+        }
+
+        for (auto anim : App::GetAnimations().Animations)
+        {
+            for (int f = 0; f < anim->frameCount; f++)
+            {
+                for (int i = 0; i < model.boneCount; i++)
+                {
+                    anim->framePoses[f][i].translation *= mat;
+
+                    Quaternion globalRot = /*origonalBoneTransforms[i] + */anim->framePoses[f][i].rotation;
+                    globalRot = QuaternionMultiply(rot, globalRot);
+                    anim->framePoses[f][i].rotation = /*model.bindPose[i].rotation - */globalRot;
+                }
+            }
+        }
+
+        App::SetSeletedMesh(App::GetSelectedMesh());
     }
 
     static std::hash<std::string_view> Hasher;
@@ -105,7 +170,6 @@ namespace TransformTools
 
         return hash1 == hash2;
     }
-
 
     bool IsSameMaterial(Material& mat1, Material& mat2)
     {
@@ -210,7 +274,7 @@ namespace TransformTools
             }
         }
 
-        // collapse the materials down to the minium list
+        // collapse the materials down to the minimum list
         MemFree(model.materials);
         model.materials = (Material*)MemAlloc((unsigned int)(sizeof(Material) * matLib.size()));
         model.materialCount = int(matLib.size());
@@ -337,6 +401,61 @@ namespace TransformTools
         UnloadModel(model);
 
         App::SetModel(newModel);
+        App::SetSeletedMesh(-1);
+    }
+
+    void ScaleMeshes(Vector3 scale)
+    {
+        auto& model = App::GetModel();
+        if (!IsModelValid(model))
+            return;
+
+        for (size_t meshIndex = 0; meshIndex < App::GetModel().meshCount; meshIndex++)
+        {
+            Mesh& mesh = App::GetModel().meshes[meshIndex];
+            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
+            {
+                mesh.vertices[vertIndex * 3 + 0] *= scale.x;
+                mesh.vertices[vertIndex * 3 + 1] *= scale.y;
+                mesh.vertices[vertIndex * 3 + 2] *= scale.z;
+            }
+
+            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
+        }
+
+        for (int i = 0; i < model.boneCount; i++)
+        {
+            model.bindPose[i].translation *= scale;
+        }
+
+        for (auto anim : App::GetAnimations().Animations)
+        {
+            for (int f = 0; f < anim->frameCount; f++)
+            {
+                for (int i = 0; i < model.boneCount; i++)
+                {
+                    anim->framePoses[f][i].translation *= scale;
+                }
+            }
+        }
+
+        App::SetSeletedMesh(App::GetSelectedMesh());
+    }
+
+    void ScaleZTo(float z)
+    {
+        auto& model = App::GetModel();
+        if (!IsModelValid(model))
+            return;
+
+        BoundingBox bbox = GetModelBoundingBox(model);
+
+        if (bbox.max.z < z)
+            return;
+
+        float scale = z / bbox.max.z;
+
+        ScaleMeshes(Vector3{ scale, scale, scale });
     }
 }
 
@@ -370,4 +489,13 @@ void TransformPanel::OnShowContents()
     
     if (ImGui::Button("Merge"))
         TransformTools::MergeMeshes();
+
+    ImGui::TextUnformatted("Scale Z To");
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(50);
+    ImGui::InputFloat("###ScaleTo", &ZSize);
+    ImGui::SameLine();
+    if (ImGui::Button("Apply"))
+        TransformTools::ScaleZTo(ZSize);
+    
 }

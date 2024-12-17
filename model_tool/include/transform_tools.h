@@ -11,6 +11,8 @@ namespace TransformTools
     void BakeMaterialColors();
     void CombineIdenticalMaterials();
     void MergeMeshes();
+
+    void ScaleMeshes(Vector3 scale);
 }
 
 class TransformPanel : public Panel
@@ -20,4 +22,6 @@ public:
 
 protected:
     void OnShowContents() override;
+
+    float ZSize = 0.75f;
 };

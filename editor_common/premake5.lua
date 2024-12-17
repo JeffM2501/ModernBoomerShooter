@@ -32,6 +32,8 @@ project (baseName)
     includedirs { "./" }
     includedirs { "./src" }
     includedirs { "./include" }
+	
+	links("raylib.res")
 
     include_raylib()
     link_to("rlImGui")

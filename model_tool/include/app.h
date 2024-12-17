@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "raylib.h"
 
@@ -38,6 +39,22 @@ namespace App
 {
     Model& GetModel();
     void SetModel(Model& model);
+
+    void SetSeletedMesh(int mesh);
+    int GetSelectedMesh();
+
+    void SetSeletedBone(int bone);
+    int GetSelectedBone();
+    
+    struct AnimationState
+    {
+        int Sequence = -1;
+        int Frame = -1;
+        std::vector<ModelAnimation*> Animations;
+    };
+    AnimationState& GetAnimations();
+
+    void RebuildAnimFrame();
 
     void LoadModel(const char* filename);
 

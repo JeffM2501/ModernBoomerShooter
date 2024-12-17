@@ -18,6 +18,52 @@ namespace App
 
     int AmbientLoc = 0;
 
+    int SelectedMeshIndex = -1;
+    int SelectedBoneIndex = -1;
+
+    bool ShowBones = true;
+
+    BoundingBox SelectedMeshBBox = { 0 };
+
+    void SetSeletedMesh(int mesh)
+    {
+        SelectedMeshIndex = mesh;
+
+        auto& model = GetModel();
+        if (IsModelValid(model) && mesh >= 0 && mesh < model.meshCount)
+        {
+            SelectedMeshBBox = GetMeshBoundingBox(model.meshes[mesh]);
+        }
+        else
+        {
+            SelectedMeshIndex = -1;
+        }
+    }
+
+    int GetSelectedMesh()
+    {
+        return SelectedMeshIndex;
+    }
+
+    void SetSeletedBone(int bone)
+    {
+        SelectedBoneIndex = bone;
+    }
+
+    int GetSelectedBone()
+    {
+        return SelectedBoneIndex;
+    }
+
+    void RebuildAnimFrame()
+    {
+        auto& anim = GetAnimations();
+        if (anim.Animations.empty() || anim.Frame < 0 || anim.Sequence < 0)
+            return;
+
+        UpdateModelAnimation(GetModel(), *anim.Animations[anim.Sequence], anim.Frame);
+    }
+
     void InitRender()
     {
         ViewCamera.fovy = 45;
@@ -73,6 +119,32 @@ namespace App
         }
     }
 
+    void DrawPose(Transform* pose)
+    {
+        auto& model = GetModel();
+
+        for (int boneId = 0; boneId < model.boneCount; boneId++)
+        {
+            Transform& bone = pose[boneId];
+            int boneParent = model.bones[boneId].parent;
+
+            Vector3 pos = bone.translation;
+
+            DrawSphere(pos, 0.01f, boneId == SelectedBoneIndex ? YELLOW : MAROON);
+
+            Vector3 vec = Vector3RotateByQuaternion(Vector3{ 0, 0.125f, 0 }, bone.rotation);
+            DrawLine3D(pos, Vector3Add(vec, pos), BLUE);
+
+            if (boneParent >= 0)
+            {
+                Transform& parentBone = pose[boneParent];
+                Vector3 parentPos = parentBone.translation;
+
+                DrawLine3D(pos, parentPos, boneId == SelectedBoneIndex ? ORANGE : PURPLE);
+            }
+        }
+    }
+
     void DrawRender()
     {
         auto& model = GetModel();
@@ -85,7 +157,6 @@ namespace App
         SetShaderValue(LightingShader, AmbientLoc, Ambient, SHADER_UNIFORM_VEC4);
         SetShaderValue(LightingShader, LightingShader.locs[SHADER_LOC_VECTOR_VIEW], &ViewCamera.position, SHADER_UNIFORM_VEC3);
 
-
         BeginMode3D(ViewCamera);
 
         rlPushMatrix();
@@ -96,10 +167,25 @@ namespace App
 
         DrawModel(GetModel(), Vector3Zeros, 1, WHITE);
 
-        DrawModelWires(model, Vector3Zeros, 1, SKYBLUE);
+        if (SelectedMeshIndex >= 0)
+        {
+            DrawBoundingBox(SelectedMeshBBox, BLUE);
+        }
 
-        BoundingBox bbox = GetModelBoundingBox(GetModel());
-        DrawBoundingBox(bbox, PURPLE);
+        if (model.boneCount > 0 && ShowBones)
+        {
+            rlDrawRenderBatchActive();
+            rlDisableDepthTest();
+
+            auto& anims = GetAnimations();
+            if (anims.Animations.empty() || anims.Frame < 0 || anims.Sequence < 0)
+                DrawPose(model.bindPose);
+            else
+                DrawPose(anims.Animations[anims.Sequence]->framePoses[anims.Frame]);
+            
+            rlDrawRenderBatchActive();
+            rlEnableDepthTest();
+        }
 
         EndMode3D();
     }

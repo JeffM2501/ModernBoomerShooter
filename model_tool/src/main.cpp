@@ -18,6 +18,11 @@ namespace App
 
     Model TheModel = { 0 };
 
+    AnimationState TheAnimations;
+
+    ModelAnimation* AnimPtr = nullptr;
+    int AnimCount = 0;
+
     const char* ModelName = nullptr;
 
     void InitGui();
@@ -101,6 +106,36 @@ namespace App
         App::ModelName = GetFileNameWithoutExt(filename);
 
         App::TheModel = ::LoadModel(filename);
+
+        SetSeletedMesh(-1);
+        SetSeletedBone(-1);
+
+        if (AnimPtr)
+        {
+            UnloadModelAnimations(AnimPtr, AnimCount);
+            AnimPtr = nullptr;
+            AnimCount = 0;
+        }
+
+        TheAnimations.Frame = -1;
+        TheAnimations.Sequence = -1;
+        TheAnimations.Animations.clear();
+
+        if (TheModel.boneCount > 0)
+        {
+            AnimPtr = LoadModelAnimations(filename, &AnimCount);
+
+            if (AnimPtr)
+            {
+                for (int i = 0; i < AnimCount; i++)
+                    TheAnimations.Animations.push_back(AnimPtr + i);
+            }
+        }
+    }
+
+    AnimationState& GetAnimations()
+    {
+        return TheAnimations;
     }
 }
 
