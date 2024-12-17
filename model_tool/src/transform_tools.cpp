@@ -119,12 +119,9 @@ namespace TransformTools
             UpdateMeshBuffer(mesh, 2, mesh.normals, mesh.vertexCount * 3 * sizeof(float), 0);
         }
 
-
-        std::vector<Quaternion> origonalBoneTransforms;
         for (int i = 0; i < model.boneCount; i++)
         {
             model.bindPose[i].translation *= mat;
-            origonalBoneTransforms.push_back(model.bindPose[i].rotation);
             model.bindPose[i].rotation = QuaternionMultiply(model.bindPose[i].rotation, rot);
         }
 
@@ -135,10 +132,7 @@ namespace TransformTools
                 for (int i = 0; i < model.boneCount; i++)
                 {
                     anim->framePoses[f][i].translation *= mat;
-
-                    Quaternion globalRot = /*origonalBoneTransforms[i] + */anim->framePoses[f][i].rotation;
-                    globalRot = QuaternionMultiply(rot, globalRot);
-                    anim->framePoses[f][i].rotation = /*model.bindPose[i].rotation - */globalRot;
+                    anim->framePoses[f][i].rotation = QuaternionMultiply(anim->framePoses[f][i].rotation, rot);
                 }
             }
         }
