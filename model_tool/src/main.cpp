@@ -133,6 +133,15 @@ namespace App
         }
     }
 
+    void SaveStandardResource()
+    {
+        WriteModel(App::TheModel, App::ModelName);
+        if (App::AnimPtr != nullptr)
+        {
+            WriteModelAnimations(AnimPtr, AnimCount, ModelName);
+        }
+    }
+
     AnimationState& GetAnimations()
     {
         return TheAnimations;
@@ -148,7 +157,7 @@ void ProcessModel(const char* name)
         TransformTools::CenterMesh();
         TransformTools::RotateMesh(90, Vector3UnitX);
         TransformTools::FloorMesh();
-        WriteModel(App::TheModel, App::ModelName);
+        App::SaveStandardResource();
     }
 }
 

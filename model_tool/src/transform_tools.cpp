@@ -89,7 +89,7 @@ namespace TransformTools
     void RotateMesh(float angle, Vector3 axis)
     {
         Matrix mat = MatrixRotate(axis, angle * DEG2RAD);
-        Quaternion rot = QuaternionFromMatrix(mat);
+        Quaternion rot = QuaternionFromAxisAngle(axis, angle * DEG2RAD);
 
         auto& model = App::GetModel();
         if (!IsModelValid(model))
@@ -129,7 +129,7 @@ namespace TransformTools
         {
             for (int f = 0; f < anim->frameCount; f++)
             {
-                for (int i = 0; i < model.boneCount; i++)
+                for (int i = 0; i < anim->boneCount; i++)
                 {
                     anim->framePoses[f][i].translation *= mat;
                     anim->framePoses[f][i].rotation = QuaternionMultiply(anim->framePoses[f][i].rotation, rot);

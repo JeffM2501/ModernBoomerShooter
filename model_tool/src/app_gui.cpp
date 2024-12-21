@@ -45,11 +45,22 @@ namespace App
     {
         Menus::SubMenu& fileMenu = MainMenu.Add<Menus::SubMenu>("File");
 
-        fileMenu.Add<Commands::SimpleTriggerCommand>("Open"
+        auto& readGroup = fileMenu.Add<Commands::CommandContainer>("ReadGroup");
+
+        readGroup.Add<Commands::SimpleTriggerCommand>("Open"
             , ICON_FA_UPLOAD
             , "Open File"
             , ImGuiKey_O | ImGuiKey_ModCtrl
             , []() { OpenModel(); });
+
+
+        auto& writeGroup = fileMenu.Add<Commands::CommandContainer>("WriteGroup");
+
+        writeGroup.Add<Commands::SimpleTriggerCommand>("Save Resource"
+            , ICON_FA_DOWNLOAD
+            , "Save Resource"
+            , ImGuiKey_S | ImGuiKey_ModCtrl
+            , []() { SaveStandardResource(); });
 
         auto& exitGroup = fileMenu.Add<Commands::CommandContainer>("Exit");
 

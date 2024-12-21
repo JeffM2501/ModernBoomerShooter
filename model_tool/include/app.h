@@ -58,6 +58,8 @@ namespace App
 
     void LoadModel(const char* filename);
 
+    void SaveStandardResource();
+
     void RequestQuit();
 
     void AddPanel(std::unique_ptr<Panel> panel);
