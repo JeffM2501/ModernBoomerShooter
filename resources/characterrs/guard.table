@@ -1,5 +1,3 @@
-type;billboard
-sheet;textures/guard.png
-sheet_layout;4,1
-sequences;idle
-idle;0:1:2:3
+type;model
+model;models/robot_z.mesh
+anims;model/robot_z.anims

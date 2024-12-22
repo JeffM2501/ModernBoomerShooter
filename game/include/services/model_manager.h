@@ -5,13 +5,15 @@
 #include <memory>
 #include <vector>
 #include <string_view>
-
+#include <unordered_map>
 
 class ModelInstance;
 
 class ModelRecord
 {
 public:
+    virtual ~ModelRecord() = default;
+
     Model Geometry;
 
     BoundingBox GetBounds();
@@ -29,22 +31,55 @@ protected:
     void CheckBounds();
 };
 
+class AnimatedModelRecord : public ModelRecord
+{
+public:
+    ModelAnimation* AnimationsPointer = nullptr;
+    size_t AnimationsCount = 0;
+
+    std::unordered_map<std::string, ModelAnimation*> AnimationSequences;
+};
+
 class ModelInstance
 {
 public:
-    ~ModelInstance();
+    virtual ~ModelInstance();
 public:
     ModelRecord* Geometry;
-    void Draw(class TransformComponent& transform);
+    virtual void Draw(class TransformComponent& transform);
 
     ModelInstance(ModelRecord* geomeetry);
 
     void SetShader(Shader shader);
 
-private:
+protected:
     Shader ModelShader = { 0 };
 
     std::vector<Material> MaterialOverrides;
+};
+
+class AnimatedModelInstance : public ModelInstance
+{
+public:
+    AnimatedModelRecord* AnimatedModel = nullptr;
+
+    AnimatedModelInstance(AnimatedModelRecord* model);
+
+    void Advance(float dt);
+    void Draw(class TransformComponent& transform) override;
+    
+    void SetSequence(const std::string& name, int startFrame = 0);
+
+    void SetAnimationFPS(int fps) { AnimationFPS = fps; }
+
+protected:
+    std::vector<Matrix> PoseMatricies;
+
+    int AnimationFPS = 30;
+
+    ModelAnimation* CurrentSequence = nullptr;
+    int CurrentFrame = 0;
+    float CurrentParam = 0;
 };
 
 namespace ModelManager
@@ -53,5 +88,6 @@ namespace ModelManager
     void Cleanup();
 
     std::shared_ptr<ModelInstance> GetModel(std::string_view name);
+    std::shared_ptr<AnimatedModelInstance> GetAnimatedModel(std::string_view name);
     void UnloadAll();
 };
