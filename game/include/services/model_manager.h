@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <string_view>
+#include <string>
 #include <unordered_map>
 
 class ModelInstance;

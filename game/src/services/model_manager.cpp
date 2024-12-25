@@ -79,13 +79,35 @@ ModelInstance::ModelInstance(ModelRecord* geometry)
     }
 }
 
+AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* model)
+    : ModelInstance(model)
+    , AnimatedModel(model)
+{
+}
+
+void AnimatedModelInstance::Advance(float dt)
+{
+
+}
+
+void AnimatedModelInstance::Draw(class TransformComponent& transform)
+{
+
+}
+
+void AnimatedModelInstance::SetSequence(const std::string& name, int startFrame)
+{
+
+}
+
 namespace ModelManager
 {
     static bool PreloadModels = true;
 
-    std::shared_ptr<ModelRecord> DefaultModel;
+    std::shared_ptr<AnimatedModelRecord> DefaultModel;
 
     std::unordered_map<std::string, std::shared_ptr<ModelRecord>> ModelCache;
+    std::unordered_map<std::string, std::shared_ptr<AnimatedModelRecord>> AnimatedModelCache;
 
     ModelRecord* FindModel(std::string_view name, std::string_view file)
     {
@@ -113,9 +135,35 @@ namespace ModelManager
         return modelRecord.get();
     }
 
+    AnimatedModelRecord* FindAnimModel(std::string_view name, std::string_view file)
+    {
+        std::string nameRecord(name);
+
+        auto itr = AnimatedModelCache.find(nameRecord);
+        if (itr != AnimatedModelCache.end())
+            return itr->second.get();
+
+        auto resource = ResourceManager::OpenResource(file);
+        if (!resource)
+            return DefaultModel.get();
+
+        auto modelRecord = std::make_shared<AnimatedModelRecord>();
+        ReadModel(modelRecord->Geometry, resource->DataBuffer, resource->DataSize);
+
+        for (int mesh = 0; mesh < modelRecord->Geometry.meshCount; mesh++)
+        {
+            UploadMesh(&modelRecord->Geometry.meshes[mesh], true);
+        }
+
+        ResourceManager::ReleaseResource(resource);
+
+        ModelCache.insert_or_assign(nameRecord, modelRecord);
+        return modelRecord.get();
+    }
+
     void Init()
     {
-        DefaultModel = std::make_shared<ModelRecord>();
+        DefaultModel = std::make_shared<AnimatedModelRecord>();
         auto meshRecord = std::make_shared<ModelRecord>();
         DefaultModel->Geometry = LoadModelFromMesh(GenMeshCube(0.5f, 0.5f, 0.5f));
         DefaultModel->Geometry.materials[0].maps[MATERIAL_MAP_ALBEDO].color = MAGENTA;
@@ -159,6 +207,29 @@ namespace ModelManager
         return std::make_shared<ModelInstance>(model);
     }
 
+    std::shared_ptr<AnimatedModelInstance> GetAnimatedModel(std::string_view name)
+    {
+        AnimatedModelRecord* model = nullptr;
+
+        std::string nameRecord(name);
+
+        auto itr = AnimatedModelCache.find(nameRecord);
+        if (itr != AnimatedModelCache.end())
+        {
+            model = itr->second.get();
+        }
+        else if (!ModelManifestTable || !ModelManifestTable->HasField(nameRecord))
+        {
+            return nullptr;
+        }
+        else
+        {
+            model = FindAnimModel(name, ModelManifestTable->GetField(nameRecord));
+        }
+
+        return std::make_shared<AnimatedModelInstance>(model);
+    }
+
     void UnloadAll()
     {
         for (auto& [key, value] : ModelCache)
@@ -166,4 +237,5 @@ namespace ModelManager
             UnloadModel(value->Geometry);
         }
     }
+
 };
