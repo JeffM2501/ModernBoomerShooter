@@ -81,6 +81,8 @@ protected:
     ModelAnimation* CurrentSequence = nullptr;
     int CurrentFrame = 0;
     float CurrentParam = 0;
+
+    float AnimationAccumulator = 0;
 };
 
 namespace ModelManager

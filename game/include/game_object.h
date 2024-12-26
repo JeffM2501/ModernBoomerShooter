@@ -134,13 +134,13 @@ template<class T>
 class SystemComponentList
 {
 public:
-    std::vector<T*> Components;
+    std::set<T*> Components;
 
     inline T* Add(GameObject* object)
     {
         T* comp = object->GetComponent<T>();
         if (comp)
-            Components.push_back(comp);
+            Components.insert(comp);
 
         return comp;
     }

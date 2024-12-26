@@ -9,7 +9,6 @@
 void WriteModel(Model& model, std::string_view file);
 void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimation = false);
 
-
 void WriteModelAnimations(ModelAnimation* animations, size_t count, std::string_view file);
 ModelAnimation* ReadModelAnimations(size_t& count, uint8_t* buffer, size_t size);
 

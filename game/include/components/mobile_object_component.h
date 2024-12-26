@@ -8,6 +8,8 @@
 #include <string>
 #include <memory>
 
+class AnimatedModelInstance;
+
 class MobComponent : public Component
 {
 public:
@@ -16,4 +18,10 @@ public:
     void OnAddedToObject() override;
 
     void Draw();
+
+protected:
+    void OnCreate() override;
+
+protected:
+    std::shared_ptr<AnimatedModelInstance> Instance = nullptr;
 };

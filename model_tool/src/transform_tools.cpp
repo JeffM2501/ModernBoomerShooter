@@ -377,15 +377,13 @@ namespace TransformTools
 
                     indexOffset += dupeItr->second.triangleCount * 3;
                 }
-
-                UploadMesh(newModel.meshes + newMeshIndex, true);
-
                 // delete the dupe
                 meshes.erase(meshes.find(dupeItr->first));
 
                 newModel.meshMaterial[newMeshIndex] = model.meshMaterial[itr->first];
             }
 
+            UploadMesh(newModel.meshes + newMeshIndex, true);
             newMeshIndex++;
         }
     

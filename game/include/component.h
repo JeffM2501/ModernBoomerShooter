@@ -43,13 +43,15 @@ public:
     inline GameObject* GetOwner() { return Owner; }
     inline const GameObject* GetOwner() const { return Owner; }
 
-
 protected:
     GameObject* Owner = nullptr;
+
+protected:
+    virtual void OnCreate() {};
 };
 
 #define DEFINE_COMPONENT(T) \
-    T(GameObject* owner) : Component(owner){} \
+    T(GameObject* owner) : Component(owner){OnCreate();} \
     static size_t TypeID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
     size_t GetTypeID() const override {return T::TypeID();} \
     std::string_view GetName() const override {return #T;} \

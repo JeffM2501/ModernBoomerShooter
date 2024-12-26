@@ -1,3 +1,4 @@
 Barrel;models/barrel.mesh
 Barrel_pallete;models/barrels_rail.mesh
 Chair;models/desk_chairArms.mesh
+Robot;models/robot_z.mesh:models/robot_z.anim

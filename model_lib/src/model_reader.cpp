@@ -101,12 +101,12 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
             bufferSize = mesh.vertexCount * 3 * sizeof(float);
             mesh.normals = (float*)MemAlloc(bufferSize);
             memcpy(mesh.normals, buffer + offset, bufferSize);
-            offset += mesh.vertexCount * 3 * sizeof(float);
+            offset += bufferSize;
         }
 
         if (hasColors)
         {
-            bufferSize = mesh.vertexCount * 3 * sizeof(uint8_t);
+            bufferSize = mesh.vertexCount * 4 * sizeof(uint8_t);
             mesh.colors = (uint8_t*)MemAlloc(bufferSize);
             memcpy(mesh.colors, buffer + offset, bufferSize);
             offset += bufferSize;
@@ -130,9 +130,9 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
 
         if (hasBoneIDs)
         {
-            bufferSize = mesh.vertexCount * 34 * sizeof(uint8_t);
-            mesh.boneIds = (uint8_t*)MemAlloc(mesh.vertexCount * 4 * sizeof(unsigned char));
-            memcpy(mesh.boneWeights, buffer + offset, mesh.vertexCount * 4 * sizeof(float));
+            bufferSize = mesh.vertexCount * 4 * sizeof(uint8_t);
+            mesh.boneIds = (uint8_t*)MemAlloc(bufferSize);
+            memcpy(mesh.boneWeights, buffer + offset, bufferSize);
             offset += bufferSize;
         }
     }

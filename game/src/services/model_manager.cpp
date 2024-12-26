@@ -4,6 +4,7 @@
 #include "components/transform_component.h"
 
 #include "utilities/mesh_utils.h"
+#include "utilities/string_utils.h"
 
 #include "model.h"
 
@@ -87,17 +88,45 @@ AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* model)
 
 void AnimatedModelInstance::Advance(float dt)
 {
+    if (CurrentSequence == nullptr)
+        return;
 
+    float animFrameTime = 1.0f / AnimationFPS;
+
+    AnimationAccumulator += dt;
+    while (AnimationAccumulator >= animFrameTime)
+    {
+        AnimationAccumulator -= animFrameTime;
+
+        CurrentFrame++;
+        if (CurrentFrame > CurrentSequence->frameCount)
+            CurrentFrame = 0;
+    }
+
+    CurrentParam = AnimationAccumulator / animFrameTime;
+    // TODO compute the interpolated frame data here (this can be in a thread)
 }
 
 void AnimatedModelInstance::Draw(class TransformComponent& transform)
 {
+    if (CurrentSequence == nullptr)
+        return;
 
+    // TODO, replace this with new animation drawing function when accepted into raylib
+    UpdateModelAnimationBones(AnimatedModel->Geometry, *CurrentSequence, CurrentFrame);
+
+    DrawModelEx(Geometry->Geometry, transform.Position, Vector3UnitZ, transform.GetFacing(), Vector3Ones, WHITE);
 }
 
 void AnimatedModelInstance::SetSequence(const std::string& name, int startFrame)
 {
+    auto itr = AnimatedModel->AnimationSequences.find(name);
+    if (itr == AnimatedModel->AnimationSequences.end())
+        return;
 
+    CurrentSequence = itr->second;
+    CurrentFrame = startFrame % CurrentSequence->frameCount;
+    AnimationAccumulator = 0;
 }
 
 namespace ModelManager
@@ -135,13 +164,20 @@ namespace ModelManager
         return modelRecord.get();
     }
 
-    AnimatedModelRecord* FindAnimModel(std::string_view name, std::string_view file)
+    AnimatedModelRecord* FindAnimModel(std::string_view name, std::string_view record)
     {
         std::string nameRecord(name);
 
         auto itr = AnimatedModelCache.find(nameRecord);
         if (itr != AnimatedModelCache.end())
             return itr->second.get();
+
+        auto parts = StringUtils::SplitString(record, ":");
+
+        std::string file = parts[0];
+        std::string anim;
+        if (parts.size() > 1)
+            anim = parts[1];
 
         auto resource = ResourceManager::OpenResource(file);
         if (!resource)
@@ -157,7 +193,21 @@ namespace ModelManager
 
         ResourceManager::ReleaseResource(resource);
 
-        ModelCache.insert_or_assign(nameRecord, modelRecord);
+        if (!anim.empty())
+        {
+            resource = ResourceManager::OpenResource(anim);
+            if (resource)
+            {
+                modelRecord->AnimationsPointer = ReadModelAnimations(modelRecord->AnimationsCount, resource->DataBuffer, resource->DataSize);
+
+                for (int i = 0; i < modelRecord->AnimationsCount; i++)
+                {
+                    modelRecord->AnimationSequences.insert_or_assign(std::string(modelRecord->AnimationsPointer[i].name), modelRecord->AnimationsPointer + i);
+                }
+            }
+        }
+
+        AnimatedModelCache.insert_or_assign(nameRecord, modelRecord);
         return modelRecord.get();
     }
 
@@ -236,6 +286,15 @@ namespace ModelManager
         {
             UnloadModel(value->Geometry);
         }
-    }
 
+        ModelCache.clear();
+
+        for (auto& [key, value] : AnimatedModelCache)
+        {
+            UnloadModel(value->Geometry);
+            UnloadModelAnimations(value->AnimationsPointer, int(value->AnimationsCount));
+        }
+
+        AnimatedModelCache.clear();
+    }
 };
