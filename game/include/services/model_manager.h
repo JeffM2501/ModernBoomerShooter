@@ -1,5 +1,6 @@
 #pragma once
 
+#include "model.h"
 #include "raylib.h"
 #include "raymath.h"
 #include <memory>
@@ -9,6 +10,7 @@
 #include <unordered_map>
 
 class ModelInstance;
+
 
 class ModelRecord
 {
@@ -35,10 +37,8 @@ protected:
 class AnimatedModelRecord : public ModelRecord
 {
 public:
-    ModelAnimation* AnimationsPointer = nullptr;
-    size_t AnimationsCount = 0;
-
-    std::unordered_map<std::string, ModelAnimation*> AnimationSequences;
+    Models::AnimateableModel AnimationModel;
+    Models::AnimationSet Animations;
 };
 
 class ModelInstance
@@ -76,13 +76,14 @@ public:
     void SetAnimationFPSMultiplyer(float value) { AnimationFPSMultiply = value; }
 
 protected:
-    std::vector<Matrix> PoseMatricies;
-
     int AnimationFPS = 90;
 
-    ModelAnimation* CurrentSequence = nullptr;
     int CurrentFrame = 0;
     float CurrentParam = 0;
+
+    Models::AnimatableSequence* CurrentAnimaton = nullptr;
+
+    Models::AnimateablePose CurrentPose;
 
     float AnimationAccumulator = 0;
 

@@ -155,7 +155,7 @@ void MobBehaviorComponent::Process()
                 else
                 {
                     State = AIState::Waiting;
-                    WaitTime = float(GetRandomValue(1, 3));
+                    WaitTime = float(GetRandomValue(2, 10));
                     if (mob)
                     {
                         mob->SetSpeedFactor(1);

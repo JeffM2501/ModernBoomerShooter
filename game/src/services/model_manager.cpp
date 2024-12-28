@@ -74,9 +74,12 @@ void ModelInstance::SetShader(Shader shader)
 ModelInstance::ModelInstance(ModelRecord* geometry)
     :Geometry(geometry)
 {
-    for (size_t i = 0; i < geometry->Geometry.materialCount; i++)
+    if (geometry)
     {
-        MaterialOverrides.push_back(geometry->Geometry.materials[i]);
+        for (size_t i = 0; i < geometry->Geometry.materialCount; i++)
+        {
+            MaterialOverrides.push_back(geometry->Geometry.materials[i]);
+        }
     }
 }
 
@@ -84,16 +87,17 @@ AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* geometry)
     : ModelInstance(geometry)
     , AnimatedModel(geometry)
 {
-
-    for (size_t i = 0; i < geometry->Geometry.materialCount; i++)
-    {
-        MaterialOverrides.push_back(geometry->Geometry.materials[i]);
-    }
+    MaterialOverrides = AnimatedModel->AnimationModel.Materials;
+    CurrentPose = Models::GetDefaultPose(AnimatedModel->AnimationModel);
+//     for (size_t i = 0; i < AnimatedModel->AnimationModel.Materials.size(); i++)
+//     {
+//         MaterialOverrides.push_back(geometry->Geometry.materials[i]);
+//     }
 }
 
 void AnimatedModelInstance::Advance(float dt)
 {
-    if (CurrentSequence == nullptr)
+    if (CurrentAnimaton == nullptr)
         return;
 
     float animFrameTime = 1.0f / AnimationFPS;
@@ -106,43 +110,43 @@ void AnimatedModelInstance::Advance(float dt)
         AnimationAccumulator -= animFrameTime;
 
         CurrentFrame++;
-        if (CurrentFrame > CurrentSequence->frameCount)
+        if (CurrentFrame >= CurrentAnimaton->Frames.size())
             CurrentFrame = 0;
     }
 
     CurrentParam = AnimationAccumulator / animFrameTime;
-    // TODO compute the interpolated frame data here (this can be in a thread)
+
+    int lastFrame = CurrentFrame - 1;
+    if (lastFrame < 0)
+        lastFrame = int(CurrentAnimaton->Frames.size()) - 1;
+
+    Models::InterpolatePose(AnimatedModel->AnimationModel, CurrentPose, CurrentAnimaton->Frames[lastFrame], CurrentAnimaton->Frames[CurrentFrame], CurrentParam);
 }
 
 void AnimatedModelInstance::Draw(class TransformComponent& transform)
 {
-    if (CurrentSequence == nullptr)
+    if (CurrentAnimaton == nullptr)
         return;
-
-    // TODO, replace this with new animation drawing function when accepted into raylib
-    UpdateModelAnimationBones(AnimatedModel->Geometry, *CurrentSequence, CurrentFrame);
 
     rlPushMatrix();
     rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
     rlRotatef(transform.GetFacing(), 0, 0, 1);
     rlMultMatrixf(MatrixToFloatV(AnimatedModel->Geometry.transform).v);
 
-    for (int mesh = 0; mesh < Geometry->Geometry.meshCount; mesh++)
-    {
-        // TODO, replace with code that runs from a pose
-        DrawMesh(Geometry->Geometry.meshes[mesh], MaterialOverrides[Geometry->Geometry.meshMaterial[mesh]], ModelIdentity);
-    }
+    Models::DrawAnimatableModel(AnimatedModel->AnimationModel, ModelIdentity, &CurrentPose, &MaterialOverrides);
+
     rlPopMatrix();
 }
 
 void AnimatedModelInstance::SetSequence(const std::string& name, int startFrame)
 {
-    auto itr = AnimatedModel->AnimationSequences.find(name);
-    if (itr == AnimatedModel->AnimationSequences.end())
+    auto itr = AnimatedModel->Animations.Sequences.find(name);
+    if (itr == AnimatedModel->Animations.Sequences.end())
         return;
 
-    CurrentSequence = itr->second;
-    CurrentFrame = startFrame % CurrentSequence->frameCount;
+
+    CurrentAnimaton = &(itr->second);
+    CurrentFrame = startFrame % CurrentAnimaton->Frames.size();
     AnimationAccumulator = 0;
 }
 
@@ -210,18 +214,23 @@ namespace ModelManager
 
         ResourceManager::ReleaseResource(resource);
 
+        ModelAnimation* anims = nullptr;
+        size_t animCount = 0;
         if (!anim.empty())
         {
             resource = ResourceManager::OpenResource(anim);
             if (resource)
             {
-                modelRecord->AnimationsPointer = ReadModelAnimations(modelRecord->Geometry, modelRecord->AnimationsCount, resource->DataBuffer, resource->DataSize);
-
-                for (int i = 0; i < modelRecord->AnimationsCount; i++)
-                {
-                    modelRecord->AnimationSequences.insert_or_assign(std::string(modelRecord->AnimationsPointer[i].name), modelRecord->AnimationsPointer + i);
-                }
+                anims = ReadModelAnimations(modelRecord->Geometry, animCount, resource->DataBuffer, resource->DataSize);
+                ResourceManager::ReleaseResource(resource);
             }
+        }
+
+        Models::LoadFromModel(modelRecord->AnimationModel, modelRecord->Geometry);
+        if (anims)
+        {
+            Models::LoadFromAnimation(modelRecord->Animations, modelRecord->AnimationModel, anims, animCount);
+            MemFree(anims);
         }
 
         AnimatedModelCache.insert_or_assign(nameRecord, modelRecord);
@@ -308,8 +317,8 @@ namespace ModelManager
 
         for (auto& [key, value] : AnimatedModelCache)
         {
-            UnloadModel(value->Geometry);
-            UnloadModelAnimations(value->AnimationsPointer, int(value->AnimationsCount));
+//             UnloadModel(value->Geometry);
+//             UnloadModelAnimations(value->AnimationsPointer, int(value->AnimationsCount));
         }
 
         AnimatedModelCache.clear();
