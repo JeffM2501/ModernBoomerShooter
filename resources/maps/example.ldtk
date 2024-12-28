@@ -2626,7 +2626,7 @@
 								}] },
 								{ "__identifier": "Path", "__type": "Array<Point>", "__value": [], "__tile": null, "defUid": 52, "realEditorValues": [] },
 								{ "__identifier": "FollowPath", "__type": "Bool", "__value": false, "__tile": null, "defUid": 53, "realEditorValues": [] },
-								{ "__identifier": "MoveSpeed", "__type": "Float", "__value": 2, "__tile": null, "defUid": 54, "realEditorValues": [] },
+								{ "__identifier": "MoveSpeed", "__type": "Float", "__value": 1, "__tile": null, "defUid": 54, "realEditorValues": [{ "id": "V_Float", "params": [1] }] },
 								{ "__identifier": "RotationSpeed", "__type": "Float", "__value": 45, "__tile": null, "defUid": 55, "realEditorValues": [] }
 							],
 							"__worldX": 1920,

@@ -78,7 +78,7 @@ public:
 protected:
     std::vector<Matrix> PoseMatricies;
 
-    int AnimationFPS = 60;
+    int AnimationFPS = 90;
 
     ModelAnimation* CurrentSequence = nullptr;
     int CurrentFrame = 0;
