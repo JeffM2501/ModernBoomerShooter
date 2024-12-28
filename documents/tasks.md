@@ -30,18 +30,6 @@ Bucket the vis list by the distance the line has walked so that it can be sorted
 ## Transperant cells
 Add option to give a cell a transpeerant wall and floor.
 
-## Only draw meshes in visable cells
-Map each mesh's bbox to the vis cell list.
-
-## Sort cells far to near
-Bucket the vis list by the distance the line has walked so that it can be sorted far to near for transperancy.
-
-## Transperant cells
-Add option to give a cell a transpeerant wall and floor.
-
-## Add Billobard system
-Compute billboard characters and faces from relative rotation/facing
-
 ## Support rotation/flip of walls and floors
 Allow faces to be rotated or flipped based on tmx flags?
 
@@ -54,11 +42,6 @@ Basic gravity and fall to the floor
 
 # In Progress
 --------------------------------------------------------------
-## Remove billboards
-Just stick with models for now.
-
-## Add Model Animations
-Load Animations for character models
 
 
 
@@ -75,3 +58,9 @@ Use the lighting shadder for ambient, but still apply AO and lighting zones.
 
 ## Add MOB system
 Mob components and mob processing system, seperate from map object system
+
+## Remove billboards
+Just stick with models for now.
+
+## Add Model Animations
+Load Animations for character models

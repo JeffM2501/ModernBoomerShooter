@@ -20,9 +20,6 @@
  * Music
  * User Prefs/keymaps
  * Package System
- * 
-
- Kill Billboards, move to model instances, use robot as test
  
  
  # Ideas
