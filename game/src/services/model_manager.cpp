@@ -42,7 +42,29 @@ void ModelRecord::CheckBounds()
 {
     if (BoundsValid)
         return;
-    Bounds = GetModelBoundingBox(Geometry);
+
+    if (!ModelGeometry.Meshes.empty())
+    {
+        BoundsValid = true;
+
+        Vector3 temp = { 0 };
+        Bounds = GetMeshBoundingBox(ModelGeometry.Meshes[0].Geometry);
+
+        for (size_t i = 1; i < ModelGeometry.Meshes.size(); i++)
+        {
+            BoundingBox tempBounds = GetMeshBoundingBox(ModelGeometry.Meshes[i].Geometry);
+
+            temp.x = (Bounds.min.x < tempBounds.min.x) ? Bounds.min.x : tempBounds.min.x;
+            temp.y = (Bounds.min.y < tempBounds.min.y) ? Bounds.min.y : tempBounds.min.y;
+            temp.z = (Bounds.min.z < tempBounds.min.z) ? Bounds.min.z : tempBounds.min.z;
+            Bounds.min = temp;
+
+            temp.x = (Bounds.max.x > tempBounds.max.x) ? Bounds.max.x : tempBounds.max.x;
+            temp.y = (Bounds.max.y > tempBounds.max.y) ? Bounds.max.y : tempBounds.max.y;
+            temp.z = (Bounds.max.z > tempBounds.max.z) ? Bounds.max.z : tempBounds.max.z;
+            Bounds.max = temp;
+        }
+    }
 }
 
 ModelInstance::~ModelInstance()
@@ -58,10 +80,9 @@ void ModelInstance::Draw(TransformComponent& transform)
     rlPushMatrix();
     rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
     rlRotatef(transform.GetFacing(), 0, 0, 1);
-    for (int mesh = 0; mesh < Geometry->Geometry.meshCount; mesh++)
-    {
-        DrawMesh(Geometry->Geometry.meshes[mesh], MaterialOverrides[Geometry->Geometry.meshMaterial[mesh]], ModelIdentity);
-    }
+    rlMultMatrixf(MatrixToFloatV(Geometry->OrientationTransform).v);
+
+    Models::DrawAnimatableModel(Geometry->ModelGeometry, ModelIdentity, nullptr, &MaterialOverrides);
     rlPopMatrix();
 }
 
@@ -76,10 +97,7 @@ ModelInstance::ModelInstance(ModelRecord* geometry)
 {
     if (geometry)
     {
-        for (size_t i = 0; i < geometry->Geometry.materialCount; i++)
-        {
-            MaterialOverrides.push_back(geometry->Geometry.materials[i]);
-        }
+        MaterialOverrides = geometry->ModelGeometry.Materials;
     }
 }
 
@@ -87,12 +105,8 @@ AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* geometry)
     : ModelInstance(geometry)
     , AnimatedModel(geometry)
 {
-    MaterialOverrides = AnimatedModel->AnimationModel.Materials;
-    CurrentPose = Models::GetDefaultPose(AnimatedModel->AnimationModel);
-//     for (size_t i = 0; i < AnimatedModel->AnimationModel.Materials.size(); i++)
-//     {
-//         MaterialOverrides.push_back(geometry->Geometry.materials[i]);
-//     }
+    MaterialOverrides = Geometry->ModelGeometry.Materials;
+    CurrentPose = Models::GetDefaultPose(Geometry->ModelGeometry);
 }
 
 void AnimatedModelInstance::Advance(float dt)
@@ -120,7 +134,7 @@ void AnimatedModelInstance::Advance(float dt)
     if (lastFrame < 0)
         lastFrame = int(CurrentAnimaton->Frames.size()) - 1;
 
-    Models::InterpolatePose(AnimatedModel->AnimationModel, CurrentPose, CurrentAnimaton->Frames[lastFrame], CurrentAnimaton->Frames[CurrentFrame], CurrentParam);
+    Models::InterpolatePose(Geometry->ModelGeometry, CurrentPose, CurrentAnimaton->Frames[lastFrame], CurrentAnimaton->Frames[CurrentFrame], CurrentParam);
 }
 
 void AnimatedModelInstance::Draw(class TransformComponent& transform)
@@ -131,9 +145,9 @@ void AnimatedModelInstance::Draw(class TransformComponent& transform)
     rlPushMatrix();
     rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
     rlRotatef(transform.GetFacing(), 0, 0, 1);
-    rlMultMatrixf(MatrixToFloatV(AnimatedModel->Geometry.transform).v);
+    rlMultMatrixf(MatrixToFloatV(Geometry->OrientationTransform).v);
 
-    Models::DrawAnimatableModel(AnimatedModel->AnimationModel, ModelIdentity, &CurrentPose, &MaterialOverrides);
+    Models::DrawAnimatableModel(Geometry->ModelGeometry, ModelIdentity, &CurrentPose, &MaterialOverrides);
 
     rlPopMatrix();
 }
@@ -172,14 +186,17 @@ namespace ModelManager
             return DefaultModel.get();
 
         auto modelRecord = std::make_shared<ModelRecord>();
-        ReadModel(modelRecord->Geometry, resource->DataBuffer, resource->DataSize);
 
-        for (int mesh = 0; mesh < modelRecord->Geometry.meshCount; mesh++)
+        Model tempModel = { 0 };
+        ReadModel(tempModel, resource->DataBuffer, resource->DataSize);
+        ResourceManager::ReleaseResource(resource);
+
+        for (int mesh = 0; mesh < tempModel.meshCount; mesh++)
         {
-            UploadMesh(&modelRecord->Geometry.meshes[mesh], true);
+            UploadMesh(&tempModel.meshes[mesh], true);
         }
 
-        ResourceManager::ReleaseResource(resource);
+        Models::LoadFromModel(modelRecord->ModelGeometry, tempModel);
 
         ModelCache.insert_or_assign(nameRecord, modelRecord);
         return modelRecord.get();
@@ -205,14 +222,15 @@ namespace ModelManager
             return DefaultModel.get();
 
         auto modelRecord = std::make_shared<AnimatedModelRecord>();
-        ReadModel(modelRecord->Geometry, resource->DataBuffer, resource->DataSize);
 
-        for (int mesh = 0; mesh < modelRecord->Geometry.meshCount; mesh++)
-        {
-            UploadMesh(&modelRecord->Geometry.meshes[mesh], true);
-        }
-
+        Model tempModel = { 0 };
+        ReadModel(tempModel, resource->DataBuffer, resource->DataSize);
         ResourceManager::ReleaseResource(resource);
+
+        for (int mesh = 0; mesh < tempModel.meshCount; mesh++)
+        {
+            UploadMesh(&tempModel.meshes[mesh], true);
+        }
 
         ModelAnimation* anims = nullptr;
         size_t animCount = 0;
@@ -221,15 +239,15 @@ namespace ModelManager
             resource = ResourceManager::OpenResource(anim);
             if (resource)
             {
-                anims = ReadModelAnimations(modelRecord->Geometry, animCount, resource->DataBuffer, resource->DataSize);
+                anims = ReadModelAnimations(tempModel, animCount, resource->DataBuffer, resource->DataSize);
                 ResourceManager::ReleaseResource(resource);
             }
         }
 
-        Models::LoadFromModel(modelRecord->AnimationModel, modelRecord->Geometry);
+        Models::LoadFromModel(modelRecord->ModelGeometry, tempModel);
         if (anims)
         {
-            Models::LoadFromAnimation(modelRecord->Animations, modelRecord->AnimationModel, anims, animCount);
+            Models::LoadFromAnimation(modelRecord->Animations, modelRecord->ModelGeometry, anims, animCount);
             MemFree(anims);
         }
 
@@ -241,8 +259,10 @@ namespace ModelManager
     {
         DefaultModel = std::make_shared<AnimatedModelRecord>();
         auto meshRecord = std::make_shared<ModelRecord>();
-        DefaultModel->Geometry = LoadModelFromMesh(GenMeshCube(0.5f, 0.5f, 0.5f));
-        DefaultModel->Geometry.materials[0].maps[MATERIAL_MAP_ALBEDO].color = MAGENTA;
+
+        Model tempModel = LoadModelFromMesh(GenMeshCube(0.5f, 0.5f, 0.5f));
+        Models::LoadFromModel(DefaultModel->ModelGeometry, tempModel);
+        DefaultModel->ModelGeometry.Materials[0].maps[MATERIAL_MAP_ALBEDO].color = MAGENTA;
 
         ModelManifestTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("model_manifest");
 
@@ -308,19 +328,7 @@ namespace ModelManager
 
     void UnloadAll()
     {
-        for (auto& [key, value] : ModelCache)
-        {
-            UnloadModel(value->Geometry);
-        }
-
         ModelCache.clear();
-
-        for (auto& [key, value] : AnimatedModelCache)
-        {
-//             UnloadModel(value->Geometry);
-//             UnloadModelAnimations(value->AnimationsPointer, int(value->AnimationsCount));
-        }
-
         AnimatedModelCache.clear();
     }
 };

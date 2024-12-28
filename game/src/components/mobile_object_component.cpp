@@ -55,7 +55,7 @@ void MobComponent::OnCreate()
         return;
 
     Instance = ModelManager::GetAnimatedModel(Character->ModelName);
-    Instance->Geometry->Geometry.transform = MatrixRotate(Vector3UnitZ, Character->RotationOffset * DEG2RAD);
+    Instance->Geometry->OrientationTransform = MatrixRotate(Vector3UnitZ, Character->RotationOffset * DEG2RAD);
 
     SetAnimationState(CharacterAnimationState::Idle);
 }

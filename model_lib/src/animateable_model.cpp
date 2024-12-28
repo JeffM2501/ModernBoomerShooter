@@ -60,8 +60,11 @@ namespace Models
                 animModel.Bones[bone.ParentBoneId].Children.push_back(&bone);
         }
 
-        MemFree(model.bones);
-        MemFree(model.bindPose);
+        if (model.bones)
+            MemFree(model.bones);
+
+        if (model.bindPose)
+            MemFree(model.bindPose);
     }
 
     void LoadFromAnimation(AnimationSet& animSet, const AnimateableModel& model, ModelAnimation* animationsPointer, size_t count)

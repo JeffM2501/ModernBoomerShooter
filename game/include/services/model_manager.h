@@ -17,9 +17,11 @@ class ModelRecord
 public:
     virtual ~ModelRecord() = default;
 
-    Model Geometry;
+    Models::AnimateableModel ModelGeometry;
 
     BoundingBox GetBounds();
+
+    Matrix OrientationTransform = MatrixIdentity();
 
 protected:
     size_t ReferenceCount = 0;
@@ -37,7 +39,6 @@ protected:
 class AnimatedModelRecord : public ModelRecord
 {
 public:
-    Models::AnimateableModel AnimationModel;
     Models::AnimationSet Animations;
 };
 
