@@ -80,10 +80,15 @@ ModelInstance::ModelInstance(ModelRecord* geometry)
     }
 }
 
-AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* model)
-    : ModelInstance(model)
-    , AnimatedModel(model)
+AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* geometry)
+    : ModelInstance(geometry)
+    , AnimatedModel(geometry)
 {
+
+    for (size_t i = 0; i < geometry->Geometry.materialCount; i++)
+    {
+        MaterialOverrides.push_back(geometry->Geometry.materials[i]);
+    }
 }
 
 void AnimatedModelInstance::Advance(float dt)
@@ -92,6 +97,8 @@ void AnimatedModelInstance::Advance(float dt)
         return;
 
     float animFrameTime = 1.0f / AnimationFPS;
+
+    animFrameTime /= AnimationFPSMultiply;
 
     AnimationAccumulator += dt;
     while (AnimationAccumulator >= animFrameTime)
@@ -115,7 +122,17 @@ void AnimatedModelInstance::Draw(class TransformComponent& transform)
     // TODO, replace this with new animation drawing function when accepted into raylib
     UpdateModelAnimationBones(AnimatedModel->Geometry, *CurrentSequence, CurrentFrame);
 
-    DrawModelEx(Geometry->Geometry, transform.Position, Vector3UnitZ, transform.GetFacing(), Vector3Ones, WHITE);
+    rlPushMatrix();
+    rlTranslatef(transform.Position.x, transform.Position.y, transform.Position.z);
+    rlRotatef(transform.GetFacing(), 0, 0, 1);
+    rlMultMatrixf(MatrixToFloatV(AnimatedModel->Geometry.transform).v);
+
+    for (int mesh = 0; mesh < Geometry->Geometry.meshCount; mesh++)
+    {
+        // TODO, replace with code that runs from a pose
+        DrawMesh(Geometry->Geometry.meshes[mesh], MaterialOverrides[Geometry->Geometry.meshMaterial[mesh]], ModelIdentity);
+    }
+    rlPopMatrix();
 }
 
 void AnimatedModelInstance::SetSequence(const std::string& name, int startFrame)
@@ -198,7 +215,7 @@ namespace ModelManager
             resource = ResourceManager::OpenResource(anim);
             if (resource)
             {
-                modelRecord->AnimationsPointer = ReadModelAnimations(modelRecord->AnimationsCount, resource->DataBuffer, resource->DataSize);
+                modelRecord->AnimationsPointer = ReadModelAnimations(modelRecord->Geometry, modelRecord->AnimationsCount, resource->DataBuffer, resource->DataSize);
 
                 for (int i = 0; i < modelRecord->AnimationsCount; i++)
                 {

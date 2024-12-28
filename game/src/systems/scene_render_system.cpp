@@ -73,12 +73,25 @@ void SceneRenderSystem::OnSetup()
     SkyboxMaterial.maps[MATERIAL_MAP_CUBEMAP].texture = SkyboxTexture;
     SkyboxMaterial.shader = SkyboxShader;
 
+    auto& worldShader = Render.GetWorldShader();
+
+    AnimationShaderLocation = GetShaderLocation(worldShader, "animate");
+    int val = 0;
+    SetShaderValue(worldShader, AnimationShaderLocation, &val, SHADER_UNIFORM_INT);
+
     ObjectLights.SetShader(Render.GetWorldShader());
     ObjectLights.ClearLights();
 
     for (auto* mapObjet : MapObjects->MapObjects.Components)
     {
         mapObjet->Instance->SetShader(Render.GetWorldShader());
+    }
+
+    for (auto* mobObject : Mobs->Mobs.Components)
+    {
+        auto* instance = mobObject->GetModelInstance();
+        if (instance)
+            instance->SetShader(Render.GetWorldShader());
     }
 }
 
@@ -125,6 +138,10 @@ void SceneRenderSystem::OnUpdate()
 
     ObjectLights.ApplyLights(Render.Viepoint);
 
+    int val = 0;
+    SetShaderValue(ObjectLights.GetShader(), AnimationShaderLocation, &val, SHADER_UNIFORM_INT);
+
+
     Render.Render();
 
     BeginMode3D(Render.Viepoint);
@@ -142,14 +159,12 @@ void SceneRenderSystem::OnUpdate()
             rlPopMatrix();
         }
     }
-    
-    BeginShaderMode(ObjectLights.GetShader());
+    val = 1;
+    SetShaderValue(ObjectLights.GetShader(), AnimationShaderLocation, &val, SHADER_UNIFORM_INT);
     for (auto mob : Mobs->Mobs.Components)
     {
         mob->Draw();
     }
-
-    EndShaderMode();
 
     DebugDrawUtility::Draw3D(Render.Viepoint);
 

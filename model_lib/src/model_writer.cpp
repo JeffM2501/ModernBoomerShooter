@@ -81,7 +81,6 @@ void WriteModel(Model& model, std::string_view file)
 
         if (mesh.boneIds)
             fwrite(mesh.boneIds, sizeof(unsigned char) * mesh.vertexCount * 4, 1, out);
-
     }
 
     std::hash<std::string_view> hasher;

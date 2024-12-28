@@ -35,4 +35,6 @@ protected:
 
     LightScene ObjectLights;
     Shader MapShader = { 0 };
+
+    int AnimationShaderLocation = 0;
 };

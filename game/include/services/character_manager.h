@@ -9,42 +9,24 @@
 #include <memory>
 
 
-struct BillboardFrameSequence
+enum class CharacterAnimationState
 {
-    std::vector<std::map<float, Rectangle>> Frames;
+    None,
+    Idle,
+    Walking,
+    Running,
+    Turning
 };
 
-struct BillboardDefintion
-{
-    std::string TextureName;
-    Texture SpriteSheet = { 0 };
-    std::unordered_map<std::string, BillboardFrameSequence> Sequences;
-};
-
-struct BillboardCharacterInstance
-{
-    BillboardDefintion& Defintion;
-
-    BillboardFrameSequence* CurrentSequence = nullptr;
-    size_t CurrentFrame = 0;
-    float AnimationSpeed = 1.0f / 15.0f;
-
-    void Draw(float facingAngle, float cameraAngle, Vector3& position, Camera3D& camera);
-};
 
 struct CharacterInfo
 {
     virtual ~CharacterInfo() = default;
 
     std::string Name;
-    bool IsBillboard = true;
-};
-
-struct BillboardCharacterInfo : public CharacterInfo
-{
-    BillboardDefintion Defintion;
-
-    std::shared_ptr<BillboardCharacterInstance> GetInstance();
+    std::string ModelName;
+    float RotationOffset = 0;
+    std::unordered_map<CharacterAnimationState, std::string> SequenceNames;
 };
 
 namespace CharacterManager

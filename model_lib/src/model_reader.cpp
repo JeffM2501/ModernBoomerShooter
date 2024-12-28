@@ -130,9 +130,9 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
 
         if (hasBoneIDs)
         {
-            bufferSize = mesh.vertexCount * 4 * sizeof(uint8_t);
-            mesh.boneIds = (uint8_t*)MemAlloc(bufferSize);
-            memcpy(mesh.boneWeights, buffer + offset, bufferSize);
+            bufferSize = mesh.vertexCount * 4 * sizeof(unsigned char);
+            mesh.boneIds = (unsigned char*)MemAlloc(bufferSize);
+            memcpy(mesh.boneIds, buffer + offset, bufferSize);
             offset += bufferSize;
         }
     }
@@ -202,7 +202,7 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
     }
 }
 
-ModelAnimation* ReadModelAnimations(size_t& count, uint8_t* buffer, size_t size)
+ModelAnimation* ReadModelAnimations(const Model& model, size_t& count, uint8_t* buffer, size_t size)
 {
     size_t offset = 0;
 
@@ -226,6 +226,10 @@ ModelAnimation* ReadModelAnimations(size_t& count, uint8_t* buffer, size_t size)
         anim.frameCount = ReadData<int>(buffer, offset, size);
 
         anim.framePoses = (Transform**)MemAlloc(sizeof(Transform*) *  anim.frameCount);
+
+        anim.bones = (BoneInfo*)MemAlloc(sizeof(BoneInfo) * model.boneCount);
+
+        memcpy(anim.bones, model.bones, sizeof(BoneInfo) * model.boneCount);
 
         for (size_t frameIndex = 0; frameIndex < anim.frameCount; frameIndex++)
         {

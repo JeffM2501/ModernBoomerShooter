@@ -16,70 +16,36 @@ namespace CharacterManager
 
     std::shared_ptr<CharacterInfo> LoadCharacter(const std::string& key)
     {
+        if (!CharacterManifestTable)
+            return nullptr;
+
         auto* characterTable = CharacterManifestTable->GetFieldAsTable(key);
         if (!characterTable)
             return nullptr;
 
-        if (characterTable->GetField("type") == "billboard")
-        {
-            auto character = std::make_shared<BillboardCharacterInfo>();
-            character->Name = key;
-            character->IsBillboard = true;
-            character->Defintion.TextureName = characterTable->GetField("sheet");
-            character->Defintion.SpriteSheet = TextureManager::GetTexture(character->Defintion.TextureName);
+        auto character = std::make_shared<CharacterInfo>();
+        character->Name = key;
 
-            auto sheetLayout = StringUtils::SplitString(characterTable->GetField("sheet_layout"), ",");
-            int sheetTilesX = 1;
-            int sheetTilesY = 1;
+        character->ModelName = characterTable->GetField("model");
 
-            if (sheetLayout.size() > 0 && !sheetLayout[0].empty())
-                sheetTilesX = atoi(sheetLayout[0].c_str());
+        if (characterTable->HasField("rotation_offset"))
+            character->RotationOffset = float(atof(characterTable->GetField("rotation_offset").data()));
 
-            if (sheetLayout.size() > 1 && !sheetLayout[1].empty())
-                sheetTilesY = atoi(sheetLayout[1].c_str());
+        if (characterTable->HasField("idle"))
+            character->SequenceNames.insert_or_assign(CharacterAnimationState::Idle, std::string(characterTable->GetField("idle")));
 
-            float sheetFrameX = character->Defintion.SpriteSheet.width / float(sheetTilesX);
-            float sheetFrameY = character->Defintion.SpriteSheet.height / float(sheetTilesY);
+        if (characterTable->HasField("walk"))
+            character->SequenceNames.insert_or_assign(CharacterAnimationState::Walking, std::string(characterTable->GetField("walk")));
 
-            for (auto& sequenceName : StringUtils::SplitString(characterTable->GetField("sequences"), ","))
-            {
-                auto sequenceFrameString = characterTable->GetField(sequenceName);
-                if (sequenceFrameString.empty())
-                    continue;
+        if (characterTable->HasField("run"))
+            character->SequenceNames.insert_or_assign(CharacterAnimationState::Running, std::string(characterTable->GetField("run")));
 
-                BillboardFrameSequence sequence;
+        if (characterTable->HasField("turn"))
+            character->SequenceNames.insert_or_assign(CharacterAnimationState::Turning, std::string(characterTable->GetField("turn")));
 
-                auto sequenceFrameList = StringUtils::SplitString(sequenceFrameString, ",");
+        CharacterCache.insert_or_assign(key, character);
 
-                for (auto& sequenceFrame : sequenceFrameList)
-                {
-                    auto frameList = StringUtils::SplitString(sequenceFrame, ":");
-
-                    float angleDelta = 360.0f / frameList.size();
-                    sequence.Frames.push_back(std::map<float, Rectangle>());
-
-                    for(int index = 0; index < frameList.size(); index++)
-                    {
-                        float angle = angleDelta * index;
-                        CollisionUtils::SetUnitAngleDeg(angle);
-                        int frame = atoi(frameList[index].c_str());
-
-                        int frameY = frame / sheetTilesX;
-                        int frameX = frame - (frameY * sheetTilesX);
-
-                        Rectangle rect = { frameX * sheetFrameX , frameY * sheetFrameY, sheetFrameX, sheetFrameY };
-                        sequence.Frames.back().insert_or_assign(angle, rect);
-                    }
-                }
-
-                character->Defintion.Sequences.insert_or_assign(sequenceName, sequence);
-            }
-            CharacterCache.insert_or_assign(key, character);
-
-            return character;
-        }
-
-        return nullptr;
+        return character;
     }
 
     static bool Preload = true;

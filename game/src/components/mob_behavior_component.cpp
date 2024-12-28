@@ -1,6 +1,7 @@
 #include "components/mob_behavior_component.h"
 
 #include "components/transform_component.h"
+#include "components/mobile_object_component.h"
 #include "systems/player_management_system.h"
 #include "systems/map_object_system.h"
 #include "services/game_time.h"
@@ -80,6 +81,8 @@ void MobBehaviorComponent::Process()
     if (!transform)
         return;
 
+    auto* mob = GetOwner()->GetComponent<MobComponent>();
+
     auto* world = GetOwner()->GetWorld();
     
     switch (State)
@@ -88,11 +91,21 @@ void MobBehaviorComponent::Process()
         if (!FollowPath || Path.empty())
         {
             State = AIState::Waiting;
+            if (mob)
+            {
+                mob->SetSpeedFactor(1);
+                mob->SetAnimationState(CharacterAnimationState::Idle);
+            }
         }
         else
         {
             DesiredPostion = Vector3{ Path[CurrentPathIndex].x, Path[CurrentPathIndex].y, 0 };
             State = AIState::Moving;
+            if (mob)
+            {
+                mob->SetSpeedFactor(MoveSpeed);
+                mob->SetAnimationState(CharacterAnimationState::Walking);
+            }
         }
         break;
 
@@ -117,6 +130,9 @@ void MobBehaviorComponent::Process()
 
         transform->Position += desiredMotion;
 
+        if (mob)
+            mob->SetSpeedFactor(MoveSpeed);
+
         GetOwner()->GetWorld()->GetSystem<MapObjectSystem>()->CheckTriggers(GetOwner(), 0.25f, hitSomething);
 
         if (done)
@@ -140,6 +156,11 @@ void MobBehaviorComponent::Process()
                 {
                     State = AIState::Waiting;
                     WaitTime = float(GetRandomValue(1, 3));
+                    if (mob)
+                    {
+                        mob->SetSpeedFactor(1);
+                        mob->SetAnimationState(CharacterAnimationState::Idle);
+                    }
                 }
             }
         }
@@ -149,10 +170,17 @@ void MobBehaviorComponent::Process()
     default:
     case MobBehaviorComponent::AIState::Waiting:
         WaitTime -= GameTime::GetDeltaTime();
+
         if (WaitTime <= 0)
         {
             WaitTime = 0;
             State = AIState::Moving;
+
+            if (mob)
+            {
+                mob->SetSpeedFactor(MoveSpeed);
+                mob->SetAnimationState(CharacterAnimationState::Walking);
+            }
 
             float angle = transform->GetFacing() + float(GetRandomValue(180 - 30, 180 + 30));
             Vector3 newVec = { cosf((angle + 90) * DEG2RAD), sinf((angle + 90) * DEG2RAD), 0 };

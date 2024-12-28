@@ -2,9 +2,21 @@
 #include "components/transform_component.h"
 #include "systems/mobile_object_system.h"
 #include "services/model_manager.h"
+#include "services/character_manager.h"
 
 #include "raylib.h"
 #include "rlgl.h"
+
+ModelInstance* MobComponent::GetModelInstance()
+{
+    return Instance.get();
+}
+
+void MobComponent::SetSpeedFactor(float value) 
+{ 
+    if (Instance)
+        Instance->SetAnimationFPSMultiplyer(value);
+}
 
 void MobComponent::OnAddedToObject()
 {
@@ -21,8 +33,6 @@ void MobComponent::Draw()
     {
         Instance->Advance(GetFrameTime());
         Instance->Draw(*transform);
-
-        DrawSphere(transform->Position, 0.5f, ColorAlpha(RED, 0.125f));
     }
     else
     {
@@ -39,7 +49,22 @@ void MobComponent::Draw()
 
 void MobComponent::OnCreate()
 {
-    Instance = ModelManager::GetAnimatedModel("Robot");
+    Character = CharacterManager::GetCharacter("guard");
 
-    Instance->SetSequence("Robot_Idle");
+    if (!Character)
+        return;
+
+    Instance = ModelManager::GetAnimatedModel(Character->ModelName);
+    Instance->Geometry->Geometry.transform = MatrixRotate(Vector3UnitZ, Character->RotationOffset * DEG2RAD);
+
+    SetAnimationState(CharacterAnimationState::Idle);
+}
+
+void MobComponent::SetAnimationState(CharacterAnimationState state)
+{
+    if (Character == nullptr || AnimationState == state || !Character->SequenceNames.contains(state))
+        return;
+
+    AnimationState = state;
+    Instance->SetSequence(Character->SequenceNames[state]);
 }

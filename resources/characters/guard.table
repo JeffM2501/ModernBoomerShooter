@@ -1,0 +1,7 @@
+type;model
+model;Robot
+idle;Robot_Idle
+walk;Robot_Walking
+run;Robot_Running
+turn;Robot_No
+rotation_offset;180

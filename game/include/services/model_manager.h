@@ -73,16 +73,20 @@ public:
 
     void SetAnimationFPS(int fps) { AnimationFPS = fps; }
 
+    void SetAnimationFPSMultiplyer(float value) { AnimationFPSMultiply = value; }
+
 protected:
     std::vector<Matrix> PoseMatricies;
 
-    int AnimationFPS = 30;
+    int AnimationFPS = 60;
 
     ModelAnimation* CurrentSequence = nullptr;
     int CurrentFrame = 0;
     float CurrentParam = 0;
 
     float AnimationAccumulator = 0;
+
+    float AnimationFPSMultiply = 1;
 };
 
 namespace ModelManager
