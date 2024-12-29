@@ -41,6 +41,81 @@ Transform ReadTransform(uint8_t* buffer, size_t& offset, size_t size)
     return xform;
 }
 
+void ReadMesh(Mesh& mesh, int& materialAssignment, uint8_t* buffer, size_t& offset, size_t size, bool useAnims)
+{
+    mesh.vertexCount = ReadData<int>(buffer, offset, size);
+    mesh.triangleCount = ReadData<int>(buffer, offset, size);
+    materialAssignment = ReadData<int>(buffer, offset, size);
+
+    bool hasTextureCoords = ReadData<int>(buffer, offset, size) != 0;
+    bool hasNormals = ReadData<int>(buffer, offset, size) != 0;
+    bool hasColors = ReadData<int>(buffer, offset, size) != 0;
+    bool hasIndecies = ReadData<int>(buffer, offset, size) != 0;
+
+    bool hasBoneWeights = false;
+    bool hasBoneIDs = false;
+    if (useAnims)
+    {
+        hasBoneWeights = ReadData<int>(buffer, offset, size) != 0;
+        hasBoneIDs = ReadData<int>(buffer, offset, size) != 0;
+    }
+
+    int bufferSize = 0;
+
+    bufferSize = mesh.vertexCount * 3 * sizeof(float);
+    mesh.vertices = (float*)MemAlloc(bufferSize);
+    memcpy(mesh.vertices, buffer + offset, bufferSize);
+    offset += bufferSize;
+
+    bufferSize = mesh.vertexCount * 2 * sizeof(float);
+    mesh.texcoords = (float*)MemAlloc(bufferSize);
+    if (hasTextureCoords)
+    {
+        memcpy(mesh.texcoords, buffer + offset, bufferSize);
+        offset += bufferSize;
+    }
+
+    if (hasNormals)
+    {
+        bufferSize = mesh.vertexCount * 3 * sizeof(float);
+        mesh.normals = (float*)MemAlloc(bufferSize);
+        memcpy(mesh.normals, buffer + offset, bufferSize);
+        offset += bufferSize;
+    }
+
+    if (hasColors)
+    {
+        bufferSize = mesh.vertexCount * 4 * sizeof(uint8_t);
+        mesh.colors = (uint8_t*)MemAlloc(bufferSize);
+        memcpy(mesh.colors, buffer + offset, bufferSize);
+        offset += bufferSize;
+    }
+
+    if (hasIndecies)
+    {
+        bufferSize = mesh.triangleCount * 3 * sizeof(uint16_t);
+        mesh.indices = (uint16_t*)MemAlloc(bufferSize);
+        memcpy(mesh.indices, buffer + offset, bufferSize);
+        offset += bufferSize;
+    }
+
+    if (hasBoneWeights)
+    {
+        bufferSize = mesh.vertexCount * 4 * sizeof(float);
+        mesh.boneWeights = (float*)MemAlloc(bufferSize);
+        memcpy(mesh.boneWeights, buffer + offset, bufferSize);
+        offset += bufferSize;
+    }
+
+    if (hasBoneIDs)
+    {
+        bufferSize = mesh.vertexCount * 4 * sizeof(unsigned char);
+        mesh.boneIds = (unsigned char*)MemAlloc(bufferSize);
+        memcpy(mesh.boneIds, buffer + offset, bufferSize);
+        offset += bufferSize;
+    }
+}
+
 void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimation)
 {
     model.transform = MatrixIdentity();
@@ -48,10 +123,11 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
 
     int version = ReadData<int>(buffer, offset, size);
 
-    if (version != 1 && version  != 2)
+    if (version < 1 || version > 3)
         return;
 
     bool useAnims = version >= 2;
+    bool hasTransform = version >= 3;
 
     model.meshCount = ReadData<int>(buffer, offset, size);
     model.materialCount = ReadData<int>(buffer, offset, size);
@@ -63,78 +139,7 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
     for (int meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
     {
         Mesh& mesh = model.meshes[meshIndex];
-
-        mesh.vertexCount = ReadData<int>(buffer, offset, size);
-        mesh.triangleCount = ReadData<int>(buffer, offset, size);
-        model.meshMaterial[meshIndex] = ReadData<int>(buffer, offset, size);
-
-        bool hasTextureCoords = ReadData<int>(buffer, offset, size) != 0;
-        bool hasNormals = ReadData<int>(buffer, offset, size) != 0;
-        bool hasColors = ReadData<int>(buffer, offset, size) != 0;
-        bool hasIndecies = ReadData<int>(buffer, offset, size) != 0;
-
-        bool hasBoneWeights = false;
-        bool hasBoneIDs = false;
-        if (useAnims)
-        {
-            hasBoneWeights = ReadData<int>(buffer, offset, size) != 0;
-            hasBoneIDs = ReadData<int>(buffer, offset, size) != 0;
-        }
-
-        int bufferSize = 0;
-
-        bufferSize = mesh.vertexCount * 3 * sizeof(float);
-        mesh.vertices = (float*)MemAlloc(bufferSize);
-        memcpy(mesh.vertices, buffer + offset, bufferSize);
-        offset += bufferSize;
-
-        bufferSize = mesh.vertexCount * 2 * sizeof(float);
-        mesh.texcoords = (float*)MemAlloc(bufferSize);
-        if (hasTextureCoords)
-        {
-            memcpy(mesh.texcoords, buffer + offset, bufferSize);
-            offset += bufferSize;
-        }
-
-        if (hasNormals)
-        {
-            bufferSize = mesh.vertexCount * 3 * sizeof(float);
-            mesh.normals = (float*)MemAlloc(bufferSize);
-            memcpy(mesh.normals, buffer + offset, bufferSize);
-            offset += bufferSize;
-        }
-
-        if (hasColors)
-        {
-            bufferSize = mesh.vertexCount * 4 * sizeof(uint8_t);
-            mesh.colors = (uint8_t*)MemAlloc(bufferSize);
-            memcpy(mesh.colors, buffer + offset, bufferSize);
-            offset += bufferSize;
-        }
-
-        if (hasIndecies)
-        {
-            bufferSize = mesh.triangleCount * 3 * sizeof(uint16_t);
-            mesh.indices = (uint16_t*)MemAlloc(bufferSize);
-            memcpy(mesh.indices, buffer + offset, bufferSize);
-            offset += bufferSize;
-        }
-
-        if (hasBoneWeights)
-        {
-            bufferSize = mesh.vertexCount * 4 * sizeof(float);
-            mesh.boneWeights = (float*)MemAlloc(bufferSize);
-            memcpy(mesh.boneWeights, buffer + offset, bufferSize);
-            offset += bufferSize;
-        }
-
-        if (hasBoneIDs)
-        {
-            bufferSize = mesh.vertexCount * 4 * sizeof(unsigned char);
-            mesh.boneIds = (unsigned char*)MemAlloc(bufferSize);
-            memcpy(mesh.boneIds, buffer + offset, bufferSize);
-            offset += bufferSize;
-        }
+        ReadMesh(mesh, model.meshMaterial[meshIndex], buffer, offset, size, useAnims);
     }
 
     for (int matIndex = 0; matIndex < model.materialCount; matIndex++)
@@ -200,6 +205,19 @@ void ReadModel(Model& model, uint8_t* buffer, size_t size, bool supportCPUAnimat
             }
         }
     }
+
+    if (hasTransform)
+    {
+        Transform temp = ReadTransform(buffer, offset, size);
+
+        Matrix matScale = MatrixScale(temp.scale.x, temp.scale.y, temp.scale.z);
+        Vector3 axis = Vector3Zeros;
+        float angle = 0;
+        QuaternionToAxisAngle(temp.rotation, &axis, &angle);
+        Matrix matRotation = MatrixRotate(axis, angle);
+        Matrix matTranslation = MatrixTranslate(temp.translation.x, temp.translation.y, temp.translation.z);
+        model.transform = MatrixMultiply(MatrixMultiply(matScale, matRotation), matTranslation);
+    }
 }
 
 ModelAnimation* ReadModelAnimations(const Model& model, size_t& count, uint8_t* buffer, size_t size)
@@ -243,4 +261,132 @@ ModelAnimation* ReadModelAnimations(const Model& model, size_t& count, uint8_t* 
     }
 
     return animations;
+}
+
+namespace Models
+{
+    void AnimationSet::Read(uint8_t* buffer, size_t size)
+    {
+        Sequences.clear();
+
+        size_t offset = 0;
+
+        int version = ReadData<int>(buffer, offset, size);
+
+        if (version != 1)
+            return;
+
+        size_t count = size_t(ReadData<uint32_t>(buffer, offset, size));
+
+        for (size_t animIndex = 0; animIndex < count; animIndex++)
+        {
+            char name[32] = { 0 };
+            memcpy(name, buffer + offset, 32);
+            offset += 32;
+
+            auto& anim = Sequences.try_emplace(std::string(name)).first->second;
+
+            int boneCount = ReadData<int>(buffer, offset, size);
+            int frameCount = ReadData<int>(buffer, offset, size);
+
+            for (size_t frameIndex = 0; frameIndex < frameCount; frameIndex++)
+            {
+                auto& frame = anim.Frames.emplace_back();
+
+                for (size_t boneIndex = 0; boneIndex < boneCount; boneIndex++)
+                {
+                    frame.GlobalTransforms.push_back(ReadTransform(buffer, offset, size));
+                }
+            }
+        }
+    }
+
+    void AnimateableModel::Read(uint8_t* buffer, size_t size)
+    {
+        RootTransform = MatrixIdentity();
+
+        size_t offset = 0;
+
+        int version = ReadData<int>(buffer, offset, size);
+
+        if (version < 1 || version > 3)
+            return;
+
+        bool useAnims = version >= 2;
+        bool hasTransform = version >= 3;
+
+        int meshCount = ReadData<int>(buffer, offset, size);
+        int materialCount = ReadData<int>(buffer, offset, size);
+        Meshes.clear();
+        Materials.clear();
+
+        for (int meshIndex = 0; meshIndex < meshCount; meshIndex++)
+        {
+            auto& mesh = Meshes.emplace_back();
+            int assignment = 0;
+            ReadMesh(mesh.Geometry, assignment, buffer, offset, size, useAnims);
+            mesh.MaterialIndex = assignment;
+        }
+
+        for (int matIndex = 0; matIndex < materialCount; matIndex++)
+        {
+            Material& mat = Materials.emplace_back();
+            mat = LoadMaterialDefault();
+
+            mat.maps[MATERIAL_MAP_ALBEDO].color = GetColor(ReadData<int>(buffer, offset, size));
+
+            int nameSize = ReadData<int>(buffer, offset, size);
+            char* name = new char[nameSize + 1];
+            name[nameSize] = '\0';
+            memcpy(name, buffer + offset, nameSize);
+            offset += nameSize;
+
+            if (TextureCallback)
+            {
+                mat.maps[MATERIAL_MAP_ALBEDO].texture = TextureCallback(name);
+            }
+        }
+
+        if (useAnims)
+        {
+            int boneCount = ReadData<int>(buffer, offset, size);
+            if (boneCount > 0)
+            {
+                for (int i = 0; i < boneCount; i++)
+                {
+                    auto& bone = Bones.emplace_back();
+                    // bone info
+                    bone.ParentBoneId = ReadData<int>(buffer, offset, size);
+                    char name[32] = { 0 };
+                    memcpy(name, buffer + offset, 32);
+                    offset += 32;
+
+                    bone.Name = name;
+                    bone.DefaultGlobalTransform = ReadTransform(buffer, offset, size);
+                }
+
+                // build the bone tree
+                for (auto& bone : Bones)
+                {
+                    if (bone.ParentBoneId == -1)
+                        RootBone = &bone;
+                    else
+                        Bones[bone.ParentBoneId].Children.push_back(&bone);
+                }
+            }
+        }
+
+        if (hasTransform)
+        {
+            Transform temp = ReadTransform(buffer, offset, size);
+
+            Matrix matScale = MatrixScale(temp.scale.x, temp.scale.y, temp.scale.z);
+            Vector3 axis = Vector3Zeros;
+            float angle = 0;
+            QuaternionToAxisAngle(temp.rotation, &axis, &angle);
+            Matrix matRotation = MatrixRotate(axis, angle);
+            Matrix matTranslation = MatrixTranslate(temp.translation.x, temp.translation.y, temp.translation.z);
+            RootTransform = MatrixMultiply(MatrixMultiply(matScale, matRotation), matTranslation);
+        }
+    }
 }

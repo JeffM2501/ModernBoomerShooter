@@ -187,16 +187,10 @@ namespace ModelManager
 
         auto modelRecord = std::make_shared<ModelRecord>();
 
-        Model tempModel = { 0 };
-        ReadModel(tempModel, resource->DataBuffer, resource->DataSize);
+        modelRecord->ModelGeometry.Read(resource->DataBuffer, resource->DataSize);
         ResourceManager::ReleaseResource(resource);
 
-        for (int mesh = 0; mesh < tempModel.meshCount; mesh++)
-        {
-            UploadMesh(&tempModel.meshes[mesh], true);
-        }
-
-        Models::LoadFromModel(modelRecord->ModelGeometry, tempModel);
+        modelRecord->ModelGeometry.Upload();
 
         ModelCache.insert_or_assign(nameRecord, modelRecord);
         return modelRecord.get();
@@ -223,33 +217,20 @@ namespace ModelManager
 
         auto modelRecord = std::make_shared<AnimatedModelRecord>();
 
-        Model tempModel = { 0 };
-        ReadModel(tempModel, resource->DataBuffer, resource->DataSize);
+        modelRecord->ModelGeometry.Read(resource->DataBuffer, resource->DataSize);
         ResourceManager::ReleaseResource(resource);
 
-        for (int mesh = 0; mesh < tempModel.meshCount; mesh++)
-        {
-            UploadMesh(&tempModel.meshes[mesh], true);
-        }
-
-        ModelAnimation* anims = nullptr;
-        size_t animCount = 0;
         if (!anim.empty())
         {
             resource = ResourceManager::OpenResource(anim);
             if (resource)
             {
-                anims = ReadModelAnimations(tempModel, animCount, resource->DataBuffer, resource->DataSize);
+                modelRecord->Animations.Read(resource->DataBuffer, resource->DataSize);
                 ResourceManager::ReleaseResource(resource);
             }
         }
 
-        Models::LoadFromModel(modelRecord->ModelGeometry, tempModel);
-        if (anims)
-        {
-            Models::LoadFromAnimation(modelRecord->Animations, modelRecord->ModelGeometry, anims, animCount);
-            MemFree(anims);
-        }
+        modelRecord->ModelGeometry.Upload();
 
         AnimatedModelCache.insert_or_assign(nameRecord, modelRecord);
         return modelRecord.get();

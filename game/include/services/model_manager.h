@@ -49,7 +49,6 @@ public:
 public:
     ModelRecord* Geometry;
     virtual void Draw(class TransformComponent& transform);
-
     ModelInstance(ModelRecord* geomeetry);
 
     void SetShader(Shader shader);

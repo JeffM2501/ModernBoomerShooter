@@ -1,6 +1,7 @@
 #pragma once
 
 #include "raylib.h"
+#include "raymath.h"
 
 #include <vector>
 #include <unordered_map>
@@ -60,6 +61,8 @@ namespace Models
     struct AnimationSet
     {
         std::unordered_map<std::string, AnimatableSequence> Sequences;
+
+        void Read(uint8_t* buffer, size_t size);
     };
 
     // a model that can be animated
@@ -80,6 +83,11 @@ namespace Models
 
         // the root bone of the skeleton tree
         AnimatableBoneInfo* RootBone = nullptr;
+
+        Matrix RootTransform = MatrixIdentity();
+
+        void Read(uint8_t* buffer, size_t size);
+        void Upload();
     };
 
     // loads an animated model from a raylib model, all the meshes and materials are transfered to the animateable model, and removed from the raylib model

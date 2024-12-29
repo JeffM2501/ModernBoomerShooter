@@ -1,5 +1,7 @@
 #include "model.h"
 
+#include "raymath.h"
+
 #include <cstring>
 #include <string>
 #include <stdio.h>
@@ -11,7 +13,9 @@ static void Write(FILE* fp, T value)
     fwrite(&value, sizeof(T), 1, fp);
 }
 
-static void WriteTransform(FILE* out, Transform& xform)
+static std::hash<std::string_view> Hasher;
+
+static void WriteTransform(FILE* out, const Transform& xform)
 {
     // translation
     Write(out, xform.translation.x);
@@ -30,6 +34,56 @@ static void WriteTransform(FILE* out, Transform& xform)
     Write(out, xform.scale.z);
 }
 
+static void WriteMaterial(FILE* out, const Material mat)
+{
+    Image texture = LoadImageFromTexture(mat.maps[MATERIAL_MAP_ALBEDO].texture);
+
+    int bpp = texture.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 ? 4 : 3;
+
+    std::string_view view((const char*)texture.data, texture.width * texture.height * bpp);
+    size_t hash = Hasher(view);
+
+    const char* textureName = TextFormat("textures/models/%d.png", hash);
+    ExportImage(texture, textureName);
+
+    Write(out, ColorToInt(mat.maps[MATERIAL_MAP_ALBEDO].color));
+    Write(out, int(strlen(textureName)));
+    fwrite(textureName, strlen(textureName), 1, out);
+}
+
+static void WriteMesh(FILE* out, const Mesh& mesh, int materialAssignment)
+{
+    Write(out, mesh.vertexCount);
+    Write(out, mesh.triangleCount);
+    Write(out, materialAssignment);
+
+    Write(out, mesh.texcoords ? int(1) : int(0));
+    Write(out, mesh.normals ? int(1) : int(0));
+    Write(out, mesh.colors ? int(1) : int(0));
+    Write(out, mesh.indices ? int(1) : int(0));
+    Write(out, mesh.boneWeights ? int(1) : int(0));
+    Write(out, mesh.boneIds ? int(1) : int(0));
+
+    fwrite(mesh.vertices, sizeof(float) * mesh.vertexCount * 3, 1, out);
+    if (mesh.texcoords)
+        fwrite(mesh.texcoords, sizeof(float) * mesh.vertexCount * 2, 1, out);
+
+    if (mesh.normals)
+        fwrite(mesh.normals, sizeof(float) * mesh.vertexCount * 3, 1, out);
+
+    if (mesh.colors)
+        fwrite(mesh.colors, sizeof(char) * mesh.vertexCount * 4, 1, out);
+
+    if (mesh.indices)
+        fwrite(mesh.indices, sizeof(unsigned short) * mesh.triangleCount * 3, 1, out);
+
+    if (mesh.boneWeights)
+        fwrite(mesh.boneWeights, sizeof(float) * mesh.vertexCount * 4, 1, out);
+
+    if (mesh.boneIds)
+        fwrite(mesh.boneIds, sizeof(unsigned char) * mesh.vertexCount * 4, 1, out);
+}
+
 using bytes = std::span<const std::byte>;
 
 void WriteModel(Model& model, std::string_view file)
@@ -43,66 +97,18 @@ void WriteModel(Model& model, std::string_view file)
     if (!out)
         return;
 
-    int temp = 1;
-
-    Write(out, 2);
+    Write(out, 3);
     Write(out, model.meshCount);
     Write(out, model.materialCount);
 
     for (int meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
     {
         Mesh& mesh = model.meshes[meshIndex];
-        Write(out, mesh.vertexCount);
-        Write(out, mesh.triangleCount);
-        Write(out, model.meshMaterial[meshIndex]);
-
-        Write(out, mesh.texcoords ? int(1) : int(0));
-        Write(out, mesh.normals ? int(1) : int(0));
-        Write(out, mesh.colors ? int(1) : int(0));
-        Write(out, mesh.indices ? int(1) : int(0));
-        Write(out, mesh.boneWeights ? int(1) : int(0));
-        Write(out, mesh.boneIds ? int(1) : int(0));
-
-        fwrite(mesh.vertices, sizeof(float) * mesh.vertexCount * 3, 1, out);
-        if (mesh.texcoords)
-            fwrite(mesh.texcoords, sizeof(float) * mesh.vertexCount * 2, 1, out);
-
-        if (mesh.normals)
-            fwrite(mesh.normals, sizeof(float) * mesh.vertexCount * 3, 1, out);
-
-        if (mesh.colors)
-            fwrite(mesh.colors, sizeof(char) * mesh.vertexCount * 4, 1, out);
-
-        if (mesh.indices)
-            fwrite(mesh.indices, sizeof(unsigned short) * mesh.triangleCount * 3, 1, out);
-        
-        if (mesh.boneWeights)
-            fwrite(mesh.boneWeights, sizeof(float) * mesh.vertexCount * 4, 1, out);
-
-        if (mesh.boneIds)
-            fwrite(mesh.boneIds, sizeof(unsigned char) * mesh.vertexCount * 4, 1, out);
+        WriteMesh(out, mesh, model.meshMaterial[meshIndex]);
     }
-
-    std::hash<std::string_view> hasher;
 
     for (int matIndex = 0; matIndex < model.materialCount; matIndex++)
-    { 
-        Material& mat = model.materials[matIndex];
-
-        Image texture = LoadImageFromTexture(mat.maps[MATERIAL_MAP_ALBEDO].texture);
-
-        int bpp = texture.format == PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 ? 4 : 3;
-
-        std::string_view view((const char*)texture.data, texture.width * texture.height * bpp);
-        size_t hash = hasher(view);
-
-        const char* textureName = TextFormat("textures/models/%d.png", hash);
-        ExportImage(texture, textureName);
-
-        Write(out, ColorToInt(mat.maps[MATERIAL_MAP_ALBEDO].color));
-        Write(out, int(strlen(textureName)));
-        fwrite(textureName, strlen(textureName), 1, out);
-    }
+        WriteMaterial(out, model.materials[matIndex]);
 
     Write(out, model.boneCount);
     if (model.boneCount > 0)
@@ -118,6 +124,11 @@ void WriteModel(Model& model, std::string_view file)
         }
     }
 
+    Transform modelTransform = { 0 };
+
+    MatrixDecompose(model.transform, &modelTransform.translation, &modelTransform.rotation, &modelTransform.scale);
+    WriteTransform(out, modelTransform);
+    
     fclose(out);
 }
 

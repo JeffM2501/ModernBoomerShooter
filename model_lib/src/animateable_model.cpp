@@ -15,6 +15,12 @@ namespace Models
             UnloadMaterial(material);
     }
 
+    void AnimateableModel::Upload()
+    {
+        for (auto& mesh : Meshes)
+            UploadMesh(&mesh.Geometry, false); // we only do GPU animation here
+    }
+
     void LoadFromModel(AnimateableModel& animModel, const Model& model)
     {
         animModel.Meshes.clear();
