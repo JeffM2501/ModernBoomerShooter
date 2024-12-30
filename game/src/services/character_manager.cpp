@@ -46,6 +46,9 @@ namespace CharacterManager
         if (characterTable->HasField("y_up"))
             character->IsYUp = characterTable->GetField("y_up") != "0";
 
+        if (characterTable->HasField("shadow"))
+            character->ShadowTexture = characterTable->GetField("shadow");
+
         CharacterCache.insert_or_assign(key, character);
 
         return character;

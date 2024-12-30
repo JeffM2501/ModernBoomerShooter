@@ -49,13 +49,13 @@ void MobComponent::Draw()
 
     rlPushMatrix();
     rlTranslatef(transform->Position.x, transform->Position.y, transform->Position.z + 0.01f);
-
+    rlRotatef(transform->GetFacing(), 0, 0, 1);
     if (IsTextureValid(ShadowTexture))
     {
         rlBegin(RL_QUADS);
 
         float shadowSize = 0.45f;
-        float shadowAlpha = 0.5f;
+        float shadowAlpha = 0.25f;
 
         rlSetTexture(ShadowTexture.id);
 
@@ -83,7 +83,7 @@ void MobComponent::Draw()
 
 void MobComponent::OnCreate()
 {
-    Character = CharacterManager::GetCharacter("guard");
+    Character = CharacterManager::GetCharacter("walker");
 
     if (!Character)
         return;
@@ -97,8 +97,8 @@ void MobComponent::OnCreate()
         Instance->Geometry->OrientationTransform = MatrixMultiply(Instance->Geometry->OrientationTransform, MatrixRotate(Vector3UnitX, -90 * DEG2RAD));
 
     SetAnimationState(CharacterAnimationState::Idle);
-
-    ShadowTexture = TextureManager::GetTexture("textures/simple_shadow.png");
+    if (!Character->ShadowTexture.empty())
+        ShadowTexture = TextureManager::GetTexture(Character->ShadowTexture);
 }
 
 void MobComponent::SetAnimationState(CharacterAnimationState state)

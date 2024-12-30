@@ -28,6 +28,7 @@ struct CharacterInfo
     float RotationOffset = 0;
     bool IsYUp = false;
     std::unordered_map<CharacterAnimationState, std::string> SequenceNames;
+    std::string ShadowTexture;
 };
 
 namespace CharacterManager

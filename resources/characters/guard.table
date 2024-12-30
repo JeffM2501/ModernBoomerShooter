@@ -5,3 +5,4 @@ walk;Robot_Walking
 run;Robot_Running
 turn;Robot_No
 rotation_offset;180
+shadow;textures/simple_shadow.png
