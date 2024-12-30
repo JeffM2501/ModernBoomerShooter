@@ -67,10 +67,10 @@ namespace App
     void InitRender()
     {
         ViewCamera.fovy = 45;
-        ViewCamera.up.z = 1;
+        ViewCamera.up.y = 1;
 
-        ViewCamera.position.z = 2;
-        ViewCamera.position.y = -2;
+        ViewCamera.position.y = 2;
+        ViewCamera.position.z = -2;
 
         LightingShader = LoadShader("resources/shaders/world.vs", "resources/shaders/world.fs");
     
@@ -160,10 +160,12 @@ namespace App
         BeginMode3D(ViewCamera);
 
         rlPushMatrix();
-        rlRotatef(90, 1, 0, 0);
+        //rlRotatef(90, 1, 0, 0);
         DrawGrid(20, 1);
         rlPopMatrix();
-        DrawLine3D(Vector3Zeros, Vector3{ 0, 0, 10 }, DARKGREEN);
+        DrawLine3D(Vector3Zeros, Vector3{ 0, 10, 0 }, DARKBLUE);
+        DrawLine3D(Vector3Zeros, Vector3{ 1, 0, 0 }, MAROON);
+        DrawLine3D(Vector3Zeros, Vector3{ 0, 0, 1 }, DARKGREEN);
 
         DrawModel(GetModel(), Vector3Zeros, 1, WHITE);
 

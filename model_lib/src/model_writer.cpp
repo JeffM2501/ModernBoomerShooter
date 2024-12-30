@@ -43,8 +43,9 @@ static void WriteMaterial(FILE* out, const Material mat)
     std::string_view view((const char*)texture.data, texture.width * texture.height * bpp);
     size_t hash = Hasher(view);
 
-    const char* textureName = TextFormat("textures/models/%d.png", hash);
-    ExportImage(texture, textureName);
+    const char* textureFileName = TextFormat("resources/textures/models/%zu.png", hash);
+    const char* textureName = TextFormat("textures/models/%zu.png", hash);
+    ExportImage(texture, textureFileName);
 
     Write(out, ColorToInt(mat.maps[MATERIAL_MAP_ALBEDO].color));
     Write(out, int(strlen(textureName)));

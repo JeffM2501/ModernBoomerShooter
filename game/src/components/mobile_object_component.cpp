@@ -3,6 +3,7 @@
 #include "systems/mobile_object_system.h"
 #include "services/model_manager.h"
 #include "services/character_manager.h"
+#include "services/texture_manager.h"
 
 #include "raylib.h"
 #include "rlgl.h"
@@ -45,6 +46,39 @@ void MobComponent::Draw()
         DrawCube(Vector3UnitX * 0.3f + Vector3UnitY * 0.125f, 0.125f, 0.4f, 0.125f, PURPLE);
         rlPopMatrix();
     }
+
+    rlPushMatrix();
+    rlTranslatef(transform->Position.x, transform->Position.y, transform->Position.z + 0.01f);
+
+    if (IsTextureValid(ShadowTexture))
+    {
+        rlBegin(RL_QUADS);
+
+        float shadowSize = 0.45f;
+        float shadowAlpha = 0.5f;
+
+        rlSetTexture(ShadowTexture.id);
+
+        rlNormal3f(0, 0, 1);
+        rlColor4f(1, 1, 1, shadowAlpha);
+
+        rlTexCoord2f(0, 0);
+        rlVertex3f(-shadowSize, -shadowSize, 0);
+
+        rlTexCoord2f(1, 0);
+        rlVertex3f(shadowSize, -shadowSize, 0);
+
+        rlTexCoord2f(1, 1);
+        rlVertex3f(shadowSize, shadowSize, 0);
+
+        rlTexCoord2f(0, 1);
+        rlVertex3f(-shadowSize, shadowSize, 0);
+
+        rlEnd();
+        rlSetTexture(-1);
+
+        rlPopMatrix();
+    }
 }
 
 void MobComponent::OnCreate()
@@ -55,9 +89,16 @@ void MobComponent::OnCreate()
         return;
 
     Instance = ModelManager::GetAnimatedModel(Character->ModelName);
+
+    Instance->Geometry->OrientationTransform = MatrixIdentity();
+
     Instance->Geometry->OrientationTransform = MatrixRotate(Vector3UnitZ, Character->RotationOffset * DEG2RAD);
+    if (Character->IsYUp)
+        Instance->Geometry->OrientationTransform = MatrixMultiply(Instance->Geometry->OrientationTransform, MatrixRotate(Vector3UnitX, -90 * DEG2RAD));
 
     SetAnimationState(CharacterAnimationState::Idle);
+
+    ShadowTexture = TextureManager::GetTexture("textures/simple_shadow.png");
 }
 
 void MobComponent::SetAnimationState(CharacterAnimationState state)

@@ -35,4 +35,6 @@ protected:
 
     std::shared_ptr<CharacterInfo> Character = nullptr;
     CharacterAnimationState AnimationState = CharacterAnimationState::None;
+
+    Texture ShadowTexture = { 0 };
 };

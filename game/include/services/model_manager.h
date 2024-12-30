@@ -54,8 +54,6 @@ public:
     void SetShader(Shader shader);
 
 protected:
-    Shader ModelShader = { 0 };
-
     std::vector<Material> MaterialOverrides;
 };
 
@@ -86,7 +84,6 @@ protected:
     Models::AnimateablePose CurrentPose;
 
     float AnimationAccumulator = 0;
-
     float AnimationFPSMultiply = 1;
 };
 

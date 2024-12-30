@@ -42,6 +42,9 @@ namespace CharacterManager
 
         if (characterTable->HasField("turn"))
             character->SequenceNames.insert_or_assign(CharacterAnimationState::Turning, std::string(characterTable->GetField("turn")));
+        
+        if (characterTable->HasField("y_up"))
+            character->IsYUp = characterTable->GetField("y_up") != "0";
 
         CharacterCache.insert_or_assign(key, character);
 

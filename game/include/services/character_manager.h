@@ -26,6 +26,7 @@ struct CharacterInfo
     std::string Name;
     std::string ModelName;
     float RotationOffset = 0;
+    bool IsYUp = false;
     std::unordered_map<CharacterAnimationState, std::string> SequenceNames;
 };
 
