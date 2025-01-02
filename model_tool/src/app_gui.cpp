@@ -41,18 +41,38 @@ namespace App
                 LoadModel(fileName);
     }
 
+    void ImportFBX()
+    {
+        const char* fileName = tinyfd_openFileDialog(
+            "Import FBX",
+            "../*.fbx",
+            2,
+            lFilterPatterns,
+            "*.fbx",
+            1);
+
+        if (fileName != nullptr)
+            ImportFBX(fileName);
+    }
+
     void SetupMenu()
     {
         Menus::SubMenu& fileMenu = MainMenu.Add<Menus::SubMenu>("File");
 
         auto& readGroup = fileMenu.Add<Commands::CommandContainer>("ReadGroup");
 
-        readGroup.Add<Commands::SimpleTriggerCommand>("Open"
+        readGroup.Add<Commands::SimpleTriggerCommand>("Import..."
             , ICON_FA_UPLOAD
-            , "Open File"
+            , "Import Interchange File"
             , ImGuiKey_O | ImGuiKey_ModCtrl
             , []() { OpenModel(); });
 
+      /*  readGroup.Add<Commands::SimpleTriggerCommand>("Import FBX..."
+            , ICON_FA_UPLOAD
+            , "Import FBX File"
+            , ImGuiKey_O | ImGuiKey_ModCtrl | ImGuiKey_ModShift
+            , []() { ImportFBX(); });
+       */
 
         auto& writeGroup = fileMenu.Add<Commands::CommandContainer>("WriteGroup");
 

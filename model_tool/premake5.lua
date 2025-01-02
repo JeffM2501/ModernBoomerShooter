@@ -39,7 +39,7 @@ project (baseName)
     includedirs { "./" }
     includedirs { "src" }
     includedirs { "include" }
-    includedirs { "src/external/tmxlite/include" }
+    includedirs { "src/external/tOpenFBX" }
 	
     link_raylib()
     link_to("model_lib")

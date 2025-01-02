@@ -304,6 +304,13 @@ namespace Models
     void AnimateableModel::Read(uint8_t* buffer, size_t size)
     {
         RootTransform = MatrixIdentity();
+//         for (auto& group : Groups)
+//         {
+//             for (auto& mesh : group.Meshes)
+//                 UnloadMesh(mesh.Geometry);
+//             UnloadMaterial(group.GroupMaterial);
+//         }
+        Groups.clear();
 
         size_t offset = 0;
 
@@ -317,23 +324,24 @@ namespace Models
 
         int meshCount = ReadData<int>(buffer, offset, size);
         int materialCount = ReadData<int>(buffer, offset, size);
-        Meshes.clear();
-        Materials.clear();
+
+        Groups.resize(materialCount);
 
         for (int meshIndex = 0; meshIndex < meshCount; meshIndex++)
         {
-            auto& mesh = Meshes.emplace_back();
+            Mesh newMesh = { 0 };
             int assignment = 0;
-            ReadMesh(mesh.Geometry, assignment, buffer, offset, size, useAnims);
-            mesh.MaterialIndex = assignment;
+            ReadMesh(newMesh, assignment, buffer, offset, size, useAnims);
+
+            Groups[assignment].Meshes.push_back(AnimateableMesh{ newMesh });
         }
 
         for (int matIndex = 0; matIndex < materialCount; matIndex++)
         {
-            Material& mat = Materials.emplace_back();
-            mat = LoadMaterialDefault();
+            auto& group = Groups[matIndex];
+            group.GroupMaterial = LoadMaterialDefault();
 
-            mat.maps[MATERIAL_MAP_ALBEDO].color = GetColor(ReadData<int>(buffer, offset, size));
+            group.GroupMaterial.maps[MATERIAL_MAP_ALBEDO].color = GetColor(ReadData<int>(buffer, offset, size));
 
             int nameSize = ReadData<int>(buffer, offset, size);
             char* name = new char[nameSize + 1];
@@ -343,7 +351,7 @@ namespace Models
 
             if (TextureCallback)
             {
-                mat.maps[MATERIAL_MAP_ALBEDO].texture = TextureCallback(name);
+                group.GroupMaterial.maps[MATERIAL_MAP_ALBEDO].texture = TextureCallback(name);
             }
         }
 

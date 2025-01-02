@@ -8,44 +8,55 @@ namespace Models
 {
     AnimateableModel::~AnimateableModel()
     {
-        for (auto& mesh : Meshes)
-            UnloadMesh(mesh.Geometry);
-
-        for (auto& material : Materials)
-            UnloadMaterial(material);
+        for (auto& group : Groups)
+        {
+            for (auto& mesh : group.Meshes)
+                UnloadMesh(mesh.Geometry);
+            UnloadMaterial(group.GroupMaterial);
+        }
     }
 
     void AnimateableModel::Upload()
     {
-        for (auto& mesh : Meshes)
-            UploadMesh(&mesh.Geometry, false); // we only do GPU animation here
+        for (auto& group : Groups)
+        {
+            for (auto& mesh : group.Meshes)
+                UploadMesh(&mesh.Geometry, false); // we only do GPU animation here so no dynamics
+        }
     }
 
     void LoadFromModel(AnimateableModel& animModel, const Model& model)
     {
-        animModel.Meshes.clear();
-        animModel.Materials.clear();
-
-        // copy the meshes
-        for (int i = 0; i < model.meshCount; i++)
+        for (auto& group : animModel.Groups)
         {
-            animModel.Meshes.emplace_back();
-            animModel.Meshes.back().Geometry = model.meshes[i];
-            animModel.Meshes.back().MaterialIndex = model.meshMaterial[i];
-
-            // forcibly clear the bone matricides since we are going to handle them externally
-            MemFree(animModel.Meshes.back().Geometry.boneMatrices);
-            animModel.Meshes.back().Geometry.boneMatrices = nullptr;
+            for (auto& mesh : group.Meshes)
+                UnloadMesh(mesh.Geometry);
+            UnloadMaterial(group.GroupMaterial);
         }
 
-        MemFree(model.meshes);
+        animModel.Groups.clear();
 
         // copy the materials
         for (int i = 0; i < model.materialCount; i++)
         {
-            animModel.Materials.push_back(model.materials[i]);
+            animModel.Groups.emplace_back();
+            animModel.Groups.back().GroupMaterial = model.materials[i];
         }
 
+        // copy the meshes
+        for (int i = 0; i < model.meshCount; i++)
+        {
+            animModel.Groups[model.meshMaterial[i]].Meshes.emplace_back();
+            auto& mesh = animModel.Groups[model.meshMaterial[i]].Meshes.back();
+
+            mesh.Geometry = model.meshes[i];
+
+            // forcibly clear the bone matricides since we are going to handle them externally
+            MemFree(mesh.Geometry.boneMatrices);
+            mesh.Geometry.boneMatrices = nullptr;
+        }
+
+        MemFree(model.meshes);
         MemFree(model.materials);
 
         // make the bone list
@@ -162,26 +173,23 @@ namespace Models
 
     void DrawAnimatableModel(const AnimateableModel& model, Matrix transform, AnimateablePose* pose, const std::vector<Material>* materialOverrides)
     {
-        std::set<int> shaderFlags;
+        size_t matId = 0;
 
-        for (auto& mesh : model.Meshes)
+        for (auto& group : model.Groups)
         {
-            const Material* materialToUse = &model.Materials[mesh.MaterialIndex];
+            const Material* materialToUse = &group.GroupMaterial;
             if (materialOverrides)
-                materialToUse = &(*materialOverrides)[mesh.MaterialIndex];
+                materialToUse = &(*materialOverrides)[matId];
 
-            if (pose && !shaderFlags.contains(materialToUse->shader.id))
+            if (materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES] != -1)
             {
-                if (materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES] != -1)
-                {
-                    rlEnableShader(materialToUse->shader.id);
-                    rlSetUniformMatrices(materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES], &pose->BoneTransforms[0], int(model.Bones.size()));
-                }
-
-                shaderFlags.insert(materialToUse->shader.id);
+                rlEnableShader(materialToUse->shader.id);
+                rlSetUniformMatrices(materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES], &pose->BoneTransforms[0], int(model.Bones.size()));
             }
+            for (auto &mesh : group.Meshes)
+                DrawMesh(mesh.Geometry, *materialToUse, transform);
 
-            DrawMesh(mesh.Geometry, *materialToUse, transform);
+            matId++;
         }
     }
 }

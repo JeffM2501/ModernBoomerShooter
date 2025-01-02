@@ -8,6 +8,8 @@
 
 #include "imgui.h"
 
+#include "external/OpenFBX/ofbx.h"
+
 #include <string>
 
 void ProcessModel(const char* name);
@@ -63,18 +65,6 @@ namespace App
     {
         UpdateRender();
 
-        if (!ImGui::GetIO().WantCaptureKeyboard)
-        {
-//             if (IsKeyPressed(KEY_R))
-//                 RotateMesh(90, Vector3UnitX);
-// 
-//             if (IsKeyPressed(KEY_F))
-//                 FloorMesh();
-// 
-//             if (IsKeyPressed(KEY_O))
-//                 WriteModel(TheModel, ModelName);
-        }
-
         BeginDrawing();
         ClearBackground(DARKGRAY);
 
@@ -129,6 +119,41 @@ namespace App
             {
                 for (int i = 0; i < AnimCount; i++)
                     TheAnimations.Animations.push_back(AnimPtr + i);
+            }
+        }
+    }
+
+    void ImportFBX(const char* filename)
+    {
+        ofbx::IScene* scene = nullptr;
+
+        ofbx::LoadFlags flags = ofbx::LoadFlags::NONE;
+
+        int fileSize = 0;
+        unsigned char* data = LoadFileData(filename, &fileSize);
+        scene = ofbx::load((ofbx::u8*)data, fileSize, (ofbx::u16)flags);
+        UnloadFileData(data);
+
+
+        for (int i = 0; i < scene->getMeshCount(); i++)
+        {
+            const ofbx::Mesh& mesh = *scene->getMesh(i);
+            const ofbx::GeometryData& geom = mesh.getGeometryData();
+
+            const ofbx::Vec3Attributes positions = geom.getPositions();
+            const ofbx::Vec3Attributes normals = geom.getNormals();
+            const ofbx::Vec2Attributes uvs = geom.getUVs();
+
+            for (int materaialGroup = 0; materaialGroup < geom.getPartitionCount(); materaialGroup++)
+            {
+                const ofbx::GeometryPartition& partition = geom.getPartition(materaialGroup);
+
+                for (int polygonIndex = 0; polygonIndex < partition.polygon_count; polygonIndex++)
+                {
+                    const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygonIndex];
+
+                    // todo read the geometry
+                }
             }
         }
     }

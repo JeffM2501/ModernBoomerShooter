@@ -58,6 +58,8 @@ namespace App
 
     void LoadModel(const char* filename);
 
+    void ImportFBX(const char* filename);
+
     void SaveStandardResource();
 
     void RequestQuit();

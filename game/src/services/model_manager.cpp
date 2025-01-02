@@ -10,6 +10,7 @@
 
 #include "rlgl.h"
 #include "raymath.h"
+#include "config.h"
 
 #include <unordered_map>
 #include <string>
@@ -43,26 +44,29 @@ void ModelRecord::CheckBounds()
     if (BoundsValid)
         return;
 
-    if (!ModelGeometry.Meshes.empty())
+    if (!ModelGeometry.Groups.empty())
     {
         BoundsValid = true;
 
         Vector3 temp = { 0 };
-        Bounds = GetMeshBoundingBox(ModelGeometry.Meshes[0].Geometry);
+        Bounds = GetMeshBoundingBox(ModelGeometry.Groups[0].Meshes[0].Geometry);
 
-        for (size_t i = 1; i < ModelGeometry.Meshes.size(); i++)
+        for (auto& group : ModelGeometry.Groups)
         {
-            BoundingBox tempBounds = GetMeshBoundingBox(ModelGeometry.Meshes[i].Geometry);
+            for (auto& mesh : group.Meshes)
+            {
+                BoundingBox tempBounds = GetMeshBoundingBox(mesh.Geometry);
 
-            temp.x = (Bounds.min.x < tempBounds.min.x) ? Bounds.min.x : tempBounds.min.x;
-            temp.y = (Bounds.min.y < tempBounds.min.y) ? Bounds.min.y : tempBounds.min.y;
-            temp.z = (Bounds.min.z < tempBounds.min.z) ? Bounds.min.z : tempBounds.min.z;
-            Bounds.min = temp;
+                temp.x = (Bounds.min.x < tempBounds.min.x) ? Bounds.min.x : tempBounds.min.x;
+                temp.y = (Bounds.min.y < tempBounds.min.y) ? Bounds.min.y : tempBounds.min.y;
+                temp.z = (Bounds.min.z < tempBounds.min.z) ? Bounds.min.z : tempBounds.min.z;
+                Bounds.min = temp;
 
-            temp.x = (Bounds.max.x > tempBounds.max.x) ? Bounds.max.x : tempBounds.max.x;
-            temp.y = (Bounds.max.y > tempBounds.max.y) ? Bounds.max.y : tempBounds.max.y;
-            temp.z = (Bounds.max.z > tempBounds.max.z) ? Bounds.max.z : tempBounds.max.z;
-            Bounds.max = temp;
+                temp.x = (Bounds.max.x > tempBounds.max.x) ? Bounds.max.x : tempBounds.max.x;
+                temp.y = (Bounds.max.y > tempBounds.max.y) ? Bounds.max.y : tempBounds.max.y;
+                temp.z = (Bounds.max.z > tempBounds.max.z) ? Bounds.max.z : tempBounds.max.z;
+                Bounds.max = temp;
+            }
         }
     }
 }
@@ -97,7 +101,14 @@ ModelInstance::ModelInstance(ModelRecord* geometry)
 {
     if (geometry)
     {
-        MaterialOverrides = geometry->ModelGeometry.Materials;
+        for (auto& group : geometry->ModelGeometry.Groups)
+        {
+            MaterialOverrides.push_back(LoadMaterialDefault());
+            MaterialOverrides.back().shader = group.GroupMaterial.shader;
+
+            for (int i = 0; i < MAX_MATERIAL_MAPS; i++)
+                MaterialOverrides.back().maps[MAX_MATERIAL_MAPS] = group.GroupMaterial.maps[MAX_MATERIAL_MAPS];
+        }
     }
 }
 
@@ -105,7 +116,6 @@ AnimatedModelInstance::AnimatedModelInstance(AnimatedModelRecord* geometry)
     : ModelInstance(geometry)
     , AnimatedModel(geometry)
 {
-    MaterialOverrides = Geometry->ModelGeometry.Materials;
     CurrentPose = Models::GetDefaultPose(Geometry->ModelGeometry);
 }
 
@@ -243,7 +253,7 @@ namespace ModelManager
 
         Model tempModel = LoadModelFromMesh(GenMeshCube(0.5f, 0.5f, 0.5f));
         Models::LoadFromModel(DefaultModel->ModelGeometry, tempModel);
-        DefaultModel->ModelGeometry.Materials[0].maps[MATERIAL_MAP_ALBEDO].color = MAGENTA;
+        DefaultModel->ModelGeometry.Groups[0].GroupMaterial.maps[MATERIAL_MAP_ALBEDO].color = MAGENTA;
 
         ModelManifestTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("model_manifest");
 
