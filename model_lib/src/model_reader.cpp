@@ -317,23 +317,26 @@ namespace Models
 
         int meshCount = ReadData<int>(buffer, offset, size);
         int materialCount = ReadData<int>(buffer, offset, size);
-        Meshes.clear();
-        Materials.clear();
+        Groups.clear();
+
+        Groups.resize(materialCount);
 
         for (int meshIndex = 0; meshIndex < meshCount; meshIndex++)
         {
-            auto& mesh = Meshes.emplace_back();
+            Mesh tempMesh = { 0 };
             int assignment = 0;
-            ReadMesh(mesh.Geometry, assignment, buffer, offset, size, useAnims);
-            mesh.MaterialIndex = assignment;
+            ReadMesh(tempMesh, assignment, buffer, offset, size, useAnims);
+
+            Groups[assignment].Meshes.emplace_back();
+            Groups[assignment].Meshes.back().Geometry = tempMesh;
         }
 
         for (int matIndex = 0; matIndex < materialCount; matIndex++)
         {
-            Material& mat = Materials.emplace_back();
-            mat = LoadMaterialDefault();
+            auto& mat = Groups[matIndex];
+            mat.GroupMaterial = LoadMaterialDefault();
 
-            mat.maps[MATERIAL_MAP_ALBEDO].color = GetColor(ReadData<int>(buffer, offset, size));
+            mat.GroupMaterial.maps[MATERIAL_MAP_ALBEDO].color = GetColor(ReadData<int>(buffer, offset, size));
 
             int nameSize = ReadData<int>(buffer, offset, size);
             char* name = new char[nameSize + 1];
@@ -343,7 +346,7 @@ namespace Models
 
             if (TextureCallback)
             {
-                mat.maps[MATERIAL_MAP_ALBEDO].texture = TextureCallback(name);
+                mat.GroupMaterial.maps[MATERIAL_MAP_ALBEDO].texture = TextureCallback(name);
             }
         }
 

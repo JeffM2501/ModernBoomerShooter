@@ -25,7 +25,6 @@ namespace Models
     struct AnimateableMesh
     {
         Mesh Geometry;
-        size_t MaterialIndex = 0;
     };
 
     // A bone with it's binding transform, and pointers to it's children
@@ -65,6 +64,12 @@ namespace Models
         void Read(uint8_t* buffer, size_t size);
     };
 
+    struct AnimatableMeshGroup
+    {
+        Material GroupMaterial;
+        std::vector<AnimateableMesh> Meshes;
+    };
+
     // a model that can be animated
     struct AnimateableModel
     {
@@ -76,8 +81,8 @@ namespace Models
         AnimateableModel(const AnimateableModel&) = delete;
         AnimateableModel& operator = (const AnimateableModel&) = delete;
 
-        std::vector<AnimateableMesh> Meshes;
-        std::vector<Material> Materials;
+        
+        std::vector<AnimatableMeshGroup> Groups;
 
         std::vector<AnimatableBoneInfo> Bones;
 
