@@ -10,13 +10,13 @@ Each system is updated in order as defined by how it's registered.
 */
 
 class GameObject;
-class World;
+class Scene;
 
 
 using SystemHash = std::hash<std::string_view>;
 
 #define DEFINE_SYSTEM(T) \
-    T(World* world) : System(world){} \
+    T() : System(){} \
     static size_t GUID() { static std::hash<std::string_view> hasher; return hasher(#T);} \
     size_t GetGUID() const override {return T::GUID();} 
 
@@ -27,7 +27,7 @@ using SystemHash = std::hash<std::string_view>;
 class System
 {
 public:
-    System(World* world) : WorldPtr(world) { Token = ObjectLifetimeToken::Create(this); }
+    System() { Token = ObjectLifetimeToken::Create(this); }
     virtual ~System() { Token->Invalidate(); }
 
     void Init();    // called when the system is created
@@ -55,7 +55,6 @@ protected:
 
 protected:
     std::set<GameObject*> Objects;
-    World* WorldPtr = nullptr;
 
     ObjectLifetimeToken::Ptr Token;
 };

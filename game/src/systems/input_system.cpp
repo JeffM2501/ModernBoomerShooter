@@ -3,7 +3,7 @@
 #include "services/global_vars.h"
 
 #include "raylib.h"
-#include "world.h"
+#include "scene.h"
 
 AxisActionDef::AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mouseAxis, float mouseAxisScale, int gamepadAxis, float gamepadAxisScale)
 {
@@ -239,7 +239,7 @@ void InputSystem::OnInit()
 
 void InputSystem::OnSetup()
 {
-    ConsoleSystem = WorldPtr->GetSystem<ConsoleRenderSystem>();
+    ConsoleSystem = App::GetSystem<ConsoleRenderSystem>();
 
     AddCommandAction(Actions::Reload, KEY_F5, ConsoleCommands::Reload);
 }
@@ -247,7 +247,7 @@ void InputSystem::OnSetup()
 void InputSystem::OnUpdate()
 {
     if (WindowShouldClose())
-        WorldPtr->Quit();  
+        App::Quit();
 
     bool allowKeys = true;
     if (ConsoleSystem)

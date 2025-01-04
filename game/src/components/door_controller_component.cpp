@@ -2,7 +2,7 @@
 #include "components/trigger_component.h"
 #include "systems/map_object_system.h"
 #include "services/game_time.h"
-#include "world.h"
+#include "scene.h"
 
 void DoorControllerComponent::OnAddedToObject()
 {
@@ -29,8 +29,7 @@ void DoorControllerComponent::OnAddedToObject()
 void DoorControllerComponent::SetDoorParams(float param)
 {
     GameObject* owner = GetOwner();
-    World* world = owner->GetWorld();
-    Map& map = world->GetMap();
+    Map& map = App::GetScene().GetMap();
 
     if (param > 1)
         param = 1;
@@ -47,8 +46,7 @@ void DoorControllerComponent::SetDoorParams(float param)
 void DoorControllerComponent::SetDoorBlocked(bool blocked)
 {
     GameObject* owner = GetOwner();
-    World* world = owner->GetWorld();
-    Map& map = world->GetMap();
+    Map& map = App::GetScene().GetMap();
 
     for (auto doorId : Doors)
     {

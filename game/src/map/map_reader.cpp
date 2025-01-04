@@ -1,5 +1,5 @@
 #include "map/map_reader.h"
-#include "world.h"
+#include "scene.h"
 #include "map/map.h"
 
 #include "services/texture_manager.h"
@@ -22,12 +22,12 @@
 class MapReader
 {
 public:
-    MapReader(World& world) :TheWorld(world), TheMap(world.GetMap()) {}
+    MapReader(Scene& world) :TheWorld(world), TheMap(world.GetMap()) {}
 
     virtual bool Read(std::string_view filename) = 0;
 
 protected:
-    World& TheWorld;
+    Scene& TheWorld;
     Map& TheMap;
 };
 
@@ -346,7 +346,7 @@ private:
     }
 
 public:
-    LDTKMapReader(World& world) : MapReader(world) {}
+    LDTKMapReader(Scene& world) : MapReader(world) {}
 
     bool Read(std::string_view filename) override
     {
@@ -399,9 +399,9 @@ public:
     }
 };
 
-void ReadWorld(const char* fileName, World& world)
+void ReadWorld(const char* fileName, Scene& world)
 {
-    world.GetState() = WorldState::Loading;
+    App::GetState() = GameState::Loading;
     auto& map = world.GetMap();
     map.Clear();
     map.LightZones.clear();
@@ -410,6 +410,6 @@ void ReadWorld(const char* fileName, World& world)
 
     reader.Read(fileName);
 
-    world.GetState() = WorldState::Playing;
+    App::GetState() = GameState::Playing;
 }
 

@@ -29,7 +29,7 @@ class ConsoleRenderSystem : public System
 {
 public:
     DEFINE_SYSTM_NO_CONSTRUCTOR(ConsoleRenderSystem);
-    ConsoleRenderSystem(World* world);
+    ConsoleRenderSystem();
     ~ConsoleRenderSystem();
 
     bool WantKeyInput() const { return ConsoleState != State::Stowed; }

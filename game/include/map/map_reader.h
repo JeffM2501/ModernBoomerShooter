@@ -1,5 +1,5 @@
 #pragma once
 
-class World;
+class Scene;
 
-void ReadWorld(const char* fileName, World& world);
+void ReadWorld(const char* fileName, Scene& world);

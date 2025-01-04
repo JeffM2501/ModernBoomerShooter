@@ -12,7 +12,7 @@
 #include "component.h"
 #include "object_lifetime_token.h"
 
-class World;
+class Scene;
 class GameObject;
 
 using GameObjectEventHandler = std::function<void(size_t, GameObject*, GameObject*)>;
@@ -30,13 +30,10 @@ public:
     std::unordered_map<size_t, std::unique_ptr<Component>> Components;
 
 public:
-    GameObject(World* world);
+    GameObject();
     ~GameObject();
 
     GameObject* AddChild();
-
-    World* GetWorld();
-    const World* GetWorld() const;
 
     template<class T, typename... Args>
     inline T* AddComponent(Args&&... args)
@@ -113,8 +110,6 @@ public:
     bool HasFlag(void* flag) const { return HasFlag(reinterpret_cast<size_t>(flag)); }
 
 protected:
-    friend World;
-    World* WorldPtr = nullptr;
     GameObject* ParentPtr = nullptr;
     std::set<size_t> LinkedSystems;
 

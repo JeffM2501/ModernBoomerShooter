@@ -207,22 +207,22 @@ namespace Models
         int groupId = 0;
         for (auto& group : model.Groups)
         {
-            if (group.Meshes.empty())
-                continue;
-
-            const Material* materialToUse = &group.GroupMaterial;
-            if (materialOverrides)
-                materialToUse = &(*materialOverrides)[groupId];
-
-            if (pose && materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES] != -1)
+            if (!group.Meshes.empty())
             {
-                rlEnableShader(materialToUse->shader.id);
-                rlSetUniformMatrices(materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES], &pose->BoneTransforms[0], int(model.Bones.size()));
-            }
+                const Material* materialToUse = &group.GroupMaterial;
+                if (materialOverrides)
+                    materialToUse = &(*materialOverrides)[groupId];
 
-            for (auto& mesh : group.Meshes)
-            {
-                DrawMesh(mesh.Geometry, *materialToUse, transform);
+                if (pose && materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES] != -1)
+                {
+                    rlEnableShader(materialToUse->shader.id);
+                    rlSetUniformMatrices(materialToUse->shader.locs[SHADER_LOC_BONE_MATRICES], &pose->BoneTransforms[0], int(model.Bones.size()));
+                }
+
+                for (auto& mesh : group.Meshes)
+                {
+                    DrawMesh(mesh.Geometry, *materialToUse, transform);
+                }
             }
             groupId++;
         }

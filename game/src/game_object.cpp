@@ -1,6 +1,8 @@
 #include "game_object.h"
-#include "world.h"
+#include "scene.h"
 #include "system.h"
+
+#include "game.h"
 
 static std::hash<std::string_view> StringHasher;
 
@@ -8,12 +10,9 @@ GameObject::~GameObject()
 {
     Token->Invalidate();
 
-    if (!WorldPtr)
-        return;
-
     for (auto guid : LinkedSystems)
     {
-        auto* system = WorldPtr->GetSystem(guid);
+        auto* system = App::GetSystem(guid);
         if (system)
             system->RemoveObject(this);
     }
@@ -21,13 +20,12 @@ GameObject::~GameObject()
 
 GameObject* GameObject::AddChild()
 {
-    GameObject* object = Children.emplace_back(std::make_unique<GameObject>(WorldPtr)).get();
+    GameObject* object = Children.emplace_back(std::make_unique<GameObject>()).get();
     object->ParentPtr = this;
     return object;
 }
 
-GameObject::GameObject(World* world)
-    :WorldPtr(world)
+GameObject::GameObject()
 {
     Token = ObjectLifetimeToken::Create(this);
 }
@@ -37,22 +35,9 @@ GameObject* GameObject::GetParent() const
     return ParentPtr;
 }
 
-World* GameObject::GetWorld()
-{
-    return WorldPtr;
-}
-
-const World* GameObject::GetWorld() const
-{
-    return WorldPtr;
-}
-
 void GameObject::AddToSystem(size_t systemGUID)
 {
-    if (!WorldPtr)
-        return;
-
-    auto* system = WorldPtr->GetSystem(systemGUID);
+    auto* system = App::GetSystem(systemGUID);
     if (!system)
         return;
 
@@ -79,8 +64,7 @@ void GameObject::AddEventHandler(std::string_view name, GameObjectEventHandler h
 
 void GameObject::CallEvent(size_t hash, GameObject* target)
 {
-    if (WorldPtr)
-        WorldPtr->CallEvent(hash, this, target);
+    App::CallEvent(hash, this, target);
 
     auto itr = EventHandlers.find(hash);
     if (itr == EventHandlers.end())

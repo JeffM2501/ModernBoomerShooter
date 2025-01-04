@@ -15,7 +15,7 @@ class SceneRenderSystem : public System
 public:
     DEFINE_SYSTM_NO_CONSTRUCTOR(SceneRenderSystem);
 
-    SceneRenderSystem(World* world);
+    SceneRenderSystem();
     void MapObjectAdded(class MapObjectComponent* object);
 
 protected:

@@ -3,7 +3,7 @@
 #include "services/texture_manager.h"
 #include "utilities/collision_utils.h"
 #include "utilities/string_utils.h"
-#include "world.h"
+#include "scene.h"
 
 static constexpr char CharacterManifest[] = "character_manifest";
 

@@ -21,13 +21,13 @@
 #include "utilities/debug_draw_utility.h"
 
 #include "game_object.h"
-#include "world.h"
+#include "scene.h"
 #include "map/map.h"
 
 
-SceneRenderSystem::SceneRenderSystem(World* world)
-    : System(world)
-    , Render(world->GetMap(), world->GetRaycaster())
+SceneRenderSystem::SceneRenderSystem()
+    : System()
+    , Render(App::GetScene().GetMap(), App::GetScene().GetRaycaster())
 {
 }
 
@@ -41,16 +41,13 @@ void SceneRenderSystem::MapObjectAdded(class MapObjectComponent* object)
 
 void SceneRenderSystem::OnSetup()
 {
-    if (!WorldPtr)
-        return;
-
     Render.Reset();
 
-    PlayerManager = WorldPtr->GetSystem<PlayerManagementSystem>();
-    MapObjects = WorldPtr->GetSystem<MapObjectSystem>();
-    Mobs = WorldPtr->GetSystem<MobSystem>();
+    PlayerManager = App::GetSystem<PlayerManagementSystem>();
+    MapObjects = App::GetSystem<MapObjectSystem>();
+    Mobs = App::GetSystem<MobSystem>();
 
-    std::string skyboxName = WorldPtr->GetMap().LightInfo.SkyboxTextureName;
+    std::string skyboxName = App::GetScene().GetMap().LightInfo.SkyboxTextureName;
     if (skyboxName.empty())
         skyboxName = TableManager::GetTable(BootstrapTable)->GetField("default_skybox").data();
 
@@ -104,19 +101,19 @@ float GetFOVX(float fovY)
 
 void SceneRenderSystem::OnUpdate()
 {
-    if (!WorldPtr || WorldPtr->GetState() != WorldState::Playing)
+    if (App::GetState() != GameState::Playing)
         return;
 
-    for (auto& zone : WorldPtr->GetMap().LightZones)
+    for (auto& zone : App::GetScene().GetMap().LightZones)
         zone.Advance();
 
     if (PlayerManager)
         Render.SetViewpoint(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerPitch(), PlayerManager->GetPlayerFacing());
 
-    WorldPtr->GetRaycaster().SetOutputSize(GetScreenWidth(), GetFOVX(Render.Viepoint.fovy));
+    App::GetScene().GetRaycaster().SetOutputSize(GetScreenWidth(), GetFOVX(Render.Viepoint.fovy));
 
     if (PlayerManager)
-        WorldPtr->GetRaycaster().StartFrame(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerFacing());
+        App::GetScene().GetRaycaster().StartFrame(PlayerManager->GetPlayerPos(), PlayerManager->GetPlayerFacing());
 
     if (IsTextureValid(SkyboxTexture))
     {

@@ -1,6 +1,6 @@
 #include "component.h"
 #include "game_object.h"
-#include "world.h"
+#include "scene.h"
 
 void Component::AddToSystem(size_t systemGUID)
 {

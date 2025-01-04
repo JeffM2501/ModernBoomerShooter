@@ -1,6 +1,6 @@
 #include "systems/map_object_system.h"
 
-#include "world.h"
+#include "scene.h"
 #include "systems/scene_render_system.h"
 #include "components/map_object_component.h"
 #include "components/transform_component.h"
@@ -16,20 +16,20 @@
 
 void MapObjectSystem::OnSetup()
 {
-    SceneRenderer = WorldPtr->GetSystem<SceneRenderSystem>();
+    SceneRenderer = App::GetSystem<SceneRenderSystem>();
 
-    Audio = WorldPtr->GetSystem<AudioSystem>();
+    Audio = App::GetSystem<AudioSystem>();
 
     OpenDoorSound = Audio->GetSound("door_open");
     CloseDoorSound = Audio->GetSound("door_close");
 
-    WorldPtr->AddEventHandler(DoorControllerComponent::DoorOpening, [this](size_t, GameObject*, GameObject*)
+    App::AddEventHandler(DoorControllerComponent::DoorOpening, [this](size_t, GameObject*, GameObject*)
         { 
             if (OpenDoorSound)
                 OpenDoorSound->Play();
         }, Token);
 
-    WorldPtr->AddEventHandler(DoorControllerComponent::DoorClosing, [this](size_t, GameObject*, GameObject*)
+    App::AddEventHandler(DoorControllerComponent::DoorClosing, [this](size_t, GameObject*, GameObject*)
         { 
             if (CloseDoorSound)
                 CloseDoorSound->Play();

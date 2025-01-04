@@ -2,14 +2,14 @@
 #include "systems/player_management_system.h"
 #include "services/texture_manager.h"
 #include "services/global_vars.h"
-#include "world.h"
+#include "scene.h"
 
 #include "raylib.h"
 
 void OverlayRenderSystem::OnUpdate()
 {
-    DrawText(TextFormat("Rays Cast %d", WorldPtr->GetRaycaster().GetCastCount()), 10, GetScreenHeight() - 50, 20, SKYBLUE);
-    DrawText(TextFormat("Cells Drawn %d of %d total cells", GlobalVars::UseVisCulling ? WorldPtr->GetRaycaster().GetHitCelList().size() : WorldPtr->GetMap().Cells.size(), WorldPtr->GetMap().Cells.size()), 10, GetScreenHeight() - 70, 20, YELLOW);
+    DrawText(TextFormat("Rays Cast %d", App::GetScene().GetRaycaster().GetCastCount()), 10, GetScreenHeight() - 50, 20, SKYBLUE);
+    DrawText(TextFormat("Cells Drawn %d of %d total cells", GlobalVars::UseVisCulling ? App::GetScene().GetRaycaster().GetHitCelList().size() : App::GetScene().GetMap().Cells.size(), App::GetScene().GetMap().Cells.size()), 10, GetScreenHeight() - 70, 20, YELLOW);
 
     float vram = TextureManager::GetUsedVRAM() / 1024.0f;
     const char* vramSuffix = "kb";
@@ -29,7 +29,7 @@ void OverlayRenderSystem::OnUpdate()
 
     if (GlobalVars::ShowCoordinates)
     {
-        auto playerPos = WorldPtr->GetSystem<PlayerManagementSystem>()->GetPlayerPos();
+        auto playerPos = App::GetSystem<PlayerManagementSystem>()->GetPlayerPos();
 
         DrawText(TextFormat("Player X%0.2f Y%0.2f", playerPos.x, playerPos.y), GetScreenWidth()-250, GetScreenHeight() - 30, 20, WHITE);
     }

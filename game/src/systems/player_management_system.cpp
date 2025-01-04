@@ -9,19 +9,16 @@
 #include "systems/input_system.h"
 #include "systems/map_object_system.h"
 
-#include "world.h"
+#include "scene.h"
 
 void PlayerManagementSystem::OnSetup()
 {
-    if (!WorldPtr)
-        return;
-
-    Input = WorldPtr->GetSystem<InputSystem>();
-    MapObjects = WorldPtr->GetSystem<MapObjectSystem>();
+    Input = App::GetSystem<InputSystem>();
+    MapObjects = App::GetSystem<MapObjectSystem>();
 
     if (PlayerObject == nullptr)
     {
-        PlayerObject = WorldPtr->AddObject();
+        PlayerObject = App::GetScene().AddObject();
         PlayerTransform = PlayerObject->AddComponent<TransformComponent>();
     }
 
@@ -36,7 +33,7 @@ void PlayerManagementSystem::OnSetup()
         PlayerTransform->Forward = transform.Forward;
     }
 
-    WorldPtr->GetSystem<AudioSystem>()->GetSound("spawn")->Play();
+    App::GetSystem<AudioSystem>()->GetSound("spawn")->Play();
 }
 
 Vector3 PlayerManagementSystem::GetPlayerPos() const
@@ -68,7 +65,7 @@ void PlayerManagementSystem::OnAddObject(GameObject* object)
 
 void PlayerManagementSystem::OnUpdate()
 {
-    if (!WorldPtr || !Input || !PlayerObject)
+    if (!Input || !PlayerObject)
         return;
     
     if (!GlobalVars::UseMouseDrag || IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
@@ -100,7 +97,7 @@ void PlayerManagementSystem::OnUpdate()
     bool hitObstacle = false;
     if (!GlobalVars::UseGhostMovement)
     {
-        hitWall = WorldPtr->GetMap().MoveEntity(PlayerTransform->Position, motion, playerRadius);
+        hitWall = App::GetScene().GetMap().MoveEntity(PlayerTransform->Position, motion, playerRadius);
         hitObstacle = MapObjects->MoveEntity(PlayerTransform->Position, motion, playerRadius);
 
         if (hitWall || hitObstacle)

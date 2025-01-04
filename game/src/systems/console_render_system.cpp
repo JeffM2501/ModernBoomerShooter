@@ -5,7 +5,7 @@
 #include "utilities/string_utils.h"
 #include "utilities/debug_draw_utility.h"
 
-#include "world.h"
+#include "scene.h"
 #include "raylib.h"
 
 #include <string>
@@ -32,7 +32,7 @@ inline const char* GetLogLevelName(int logLevel)
 
 static ConsoleRenderSystem* LastConsole = nullptr;
 
-ConsoleRenderSystem::ConsoleRenderSystem(World* world) : System(world)
+ConsoleRenderSystem::ConsoleRenderSystem() : System()
 {
     LastConsole = this;
 
@@ -101,7 +101,7 @@ void ConsoleRenderSystem::OnSetup()
 	RegisterCommand(ConsoleCommands::Reload,
         [this](std::string_view command, const std::vector<std::string>& args)
         {
-            WorldPtr->ReloadMap();
+            App::GetScene().ReloadMap();
             OutputMessage("Map Reloaded");
         });
 

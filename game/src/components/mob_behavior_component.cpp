@@ -9,7 +9,8 @@
 #include "utilities/collision_utils.h"
 #include "game_object.h"
 
-#include "world.h"
+#include "game.h"
+#include "scene.h"
 #include "map/map.h"
 
 #include "raylib.h"
@@ -82,8 +83,6 @@ void MobBehaviorComponent::Process()
         return;
 
     auto* mob = GetOwner()->GetComponent<MobComponent>();
-
-    auto* world = GetOwner()->GetWorld();
     
     switch (State)
     {
@@ -122,7 +121,7 @@ void MobBehaviorComponent::Process()
             done = true;
 
         bool hitSomething = false;
-        if (world->GetMap().MoveEntity(transform->Position, desiredMotion, 0.25f))
+        if (App::GetScene().GetMap().MoveEntity(transform->Position, desiredMotion, 0.25f))
         {
             hitSomething = true;
             done = !FollowPath;
@@ -133,7 +132,7 @@ void MobBehaviorComponent::Process()
         if (mob)
             mob->SetSpeedFactor(MoveSpeed);
 
-        GetOwner()->GetWorld()->GetSystem<MapObjectSystem>()->CheckTriggers(GetOwner(), 0.25f, hitSomething);
+        App::GetSystem<MapObjectSystem>()->CheckTriggers(GetOwner(), 0.25f, hitSomething);
 
         if (done)
         {
