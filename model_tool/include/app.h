@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "raylib.h"
+#include "model.h"
 
 enum class PanelDockingType
 {
@@ -37,8 +38,7 @@ protected:
 
 namespace App
 {
-    Model& GetModel();
-    void SetModel(Model& model);
+    Models::AnimateableModel& GetModel();
 
     void SetSeletedMesh(int mesh);
     int GetSelectedMesh();
@@ -48,13 +48,13 @@ namespace App
     
     struct AnimationState
     {
-        int Sequence = -1;
+        std::string Sequence;
         int Frame = -1;
-        std::vector<ModelAnimation*> Animations;
+        Models::AnimationSet Animations;
     };
     AnimationState& GetAnimations();
 
-    void RebuildAnimFrame();
+    void ModelUpdated();
 
     void LoadModel(const char* filename);
 

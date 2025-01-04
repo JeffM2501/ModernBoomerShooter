@@ -180,7 +180,7 @@ void AnimatedModelInstance::SetSequence(const std::string& name, int startFrame)
 
 namespace ModelManager
 {
-    static bool PreloadModels = true;
+    static bool PreloadModels = false;
 
     std::shared_ptr<AnimatedModelRecord> DefaultModel;
 

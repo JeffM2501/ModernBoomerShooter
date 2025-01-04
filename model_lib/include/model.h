@@ -56,13 +56,6 @@ namespace Models
         float FPS = 30;
     };
 
-    // a set of named animation sequences that can all be applied to the same skeleton
-    struct AnimationSet
-    {
-        std::unordered_map<std::string, AnimatableSequence> Sequences;
-
-        void Read(uint8_t* buffer, size_t size);
-    };
 
     struct AnimatableMeshGroup
     {
@@ -80,7 +73,6 @@ namespace Models
         // noncopyable to prevent early unload
         AnimateableModel(const AnimateableModel&) = delete;
         AnimateableModel& operator = (const AnimateableModel&) = delete;
-
         
         std::vector<AnimatableMeshGroup> Groups;
 
@@ -92,7 +84,22 @@ namespace Models
         Matrix RootTransform = MatrixIdentity();
 
         void Read(uint8_t* buffer, size_t size);
+        void Write( std::string_view file);
+
         void Upload();
+
+        BoundingBox GetBounds();
+
+        bool AutoUnload = true;
+    };
+
+    // a set of named animation sequences that can all be applied to the same skeleton
+    struct AnimationSet
+    {
+        std::unordered_map<std::string, AnimatableSequence> Sequences;
+
+        void Read(uint8_t* buffer, size_t size);
+        void Write(std::string_view file);
     };
 
     // loads an animated model from a raylib model, all the meshes and materials are transfered to the animateable model, and removed from the raylib model

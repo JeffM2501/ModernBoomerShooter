@@ -16,12 +16,9 @@ namespace App
 {
     bool Run = false;
 
-    Model TheModel = { 0 };
+    Models::AnimateableModel TheModel;
 
     AnimationState TheAnimations;
-
-    ModelAnimation* AnimPtr = nullptr;
-    int AnimCount = 0;
 
     const char* ModelName = nullptr;
 
@@ -33,14 +30,9 @@ namespace App
     void UpdateRender();
     void DrawRender();
 
-    Model& GetModel()
+    Models::AnimateableModel& GetModel()
     {
         return TheModel;
-    }
-
-    void SetModel(Model& model)
-    {
-        TheModel = model;
     }
 
     void RequestQuit()
@@ -65,14 +57,6 @@ namespace App
 
         if (!ImGui::GetIO().WantCaptureKeyboard)
         {
-//             if (IsKeyPressed(KEY_R))
-//                 RotateMesh(90, Vector3UnitX);
-// 
-//             if (IsKeyPressed(KEY_F))
-//                 FloorMesh();
-// 
-//             if (IsKeyPressed(KEY_O))
-//                 WriteModel(TheModel, ModelName);
         }
 
         BeginDrawing();
@@ -100,46 +84,36 @@ namespace App
 
     void LoadModel(const char* filename)
     {
-        if (IsModelValid(App::TheModel))
-            UnloadModel(App::TheModel);
-
         App::ModelName = GetFileNameWithoutExt(filename);
 
-        App::TheModel = ::LoadModel(filename);
+        Model tempModel = ::LoadModel(filename);
+
+        Models::LoadFromModel(App::TheModel, tempModel);
 
         SetSeletedMesh(-1);
         SetSeletedBone(-1);
 
-        if (AnimPtr)
+        TheAnimations.Frame = 0;
+        TheAnimations.Sequence.clear();
+
+        if (TheModel.RootBone != nullptr)
         {
-            UnloadModelAnimations(AnimPtr, AnimCount);
-            AnimPtr = nullptr;
-            AnimCount = 0;
+            int count = 0;
+            ModelAnimation* anims = ::LoadModelAnimations(filename, &count);
+            Models::LoadFromAnimation(App::TheAnimations.Animations, App::TheModel, anims, count);
+            MemFree(anims);
         }
 
-        TheAnimations.Frame = -1;
-        TheAnimations.Sequence = -1;
-        TheAnimations.Animations.clear();
+        TheModel.AutoUnload = false;
 
-        if (TheModel.boneCount > 0)
-        {
-            AnimPtr = LoadModelAnimations(filename, &AnimCount);
-
-            if (AnimPtr)
-            {
-                for (int i = 0; i < AnimCount; i++)
-                    TheAnimations.Animations.push_back(AnimPtr + i);
-            }
-        }
+        ModelUpdated();
     }
 
     void SaveStandardResource()
     {
-        WriteModel(App::TheModel, App::ModelName);
-        if (App::AnimPtr != nullptr)
-        {
-            WriteModelAnimations(AnimPtr, AnimCount, ModelName);
-        }
+        App::TheModel.Write(App::ModelName);
+        if (!App::TheAnimations.Animations.Sequences.empty())
+            App::TheAnimations.Animations.Write(App::ModelName);
     }
 
     AnimationState& GetAnimations()
@@ -152,7 +126,7 @@ void ProcessModel(const char* name)
 {
     App::LoadModel(name);
 
-    if (IsModelValid(App::TheModel))
+    if (!App::TheModel.Groups.empty())
     {
         TransformTools::CenterMesh();
         TransformTools::RotateMesh(90, Vector3UnitX);

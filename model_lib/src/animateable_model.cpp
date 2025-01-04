@@ -10,7 +10,8 @@ namespace Models
     {
         for (auto& group : Groups)
         {
-            UnloadMaterial(group.GroupMaterial);
+            MemFree(group.GroupMaterial.maps);
+
             for (auto& mesh : group.Meshes)
                 UnloadMesh(mesh.Geometry);
         }
@@ -23,6 +24,41 @@ namespace Models
             for (auto& mesh : group.Meshes)
                 UploadMesh(&mesh.Geometry, false); // we only do GPU animation here
         }
+    }
+
+    BoundingBox AnimateableModel::GetBounds()
+    {
+        BoundingBox bbox = { 0 };
+        bool valid = false;
+        if (!Groups.empty())
+        {
+            Vector3 temp = { 0 };
+            for (auto& group : Groups)
+            {
+                for (auto& mesh : group.Meshes)
+                {
+                    if (!valid)
+                    {
+                        bbox = GetMeshBoundingBox(mesh.Geometry);
+                        valid = true;
+                        break;
+                    }
+                    BoundingBox tempBounds = GetMeshBoundingBox(mesh.Geometry);
+
+                    temp.x = (bbox.min.x < tempBounds.min.x) ? bbox.min.x : tempBounds.min.x;
+                    temp.y = (bbox.min.y < tempBounds.min.y) ? bbox.min.y : tempBounds.min.y;
+                    temp.z = (bbox.min.z < tempBounds.min.z) ? bbox.min.z : tempBounds.min.z;
+                    bbox.min = temp;
+
+                    temp.x = (bbox.max.x > tempBounds.max.x) ? bbox.max.x : tempBounds.max.x;
+                    temp.y = (bbox.max.y > tempBounds.max.y) ? bbox.max.y : tempBounds.max.y;
+                    temp.z = (bbox.max.z > tempBounds.max.z) ? bbox.max.z : tempBounds.max.z;
+                    bbox.max = temp;
+                }
+            }
+        }
+
+        return bbox;
     }
 
     void LoadFromModel(AnimateableModel& animModel, const Model& model)
@@ -143,7 +179,7 @@ namespace Models
 
     void UpdatePoseToFrame(const AnimateableModel& model, AnimateablePose& pose, const AnimateableKeyFrame& frame)
     {
-        for (size_t boneId = 0; model.Bones.size(); boneId++)
+        for (size_t boneId = 0; boneId < model.Bones.size(); boneId++)
         {
             const auto& bone = model.Bones[boneId];
             pose.BoneTransforms[boneId] = GetBoneMatrix(bone.DefaultGlobalTransform, frame.GlobalTransforms[boneId]);
@@ -168,11 +204,12 @@ namespace Models
 
     void DrawAnimatableModel(const AnimateableModel& model, Matrix transform, AnimateablePose* pose, const std::vector<Material>* materialOverrides)
     {
-        std::set<int> shaderFlags;
-
         int groupId = 0;
         for (auto& group : model.Groups)
         {
+            if (group.Meshes.empty())
+                continue;
+
             const Material* materialToUse = &group.GroupMaterial;
             if (materialOverrides)
                 materialToUse = &(*materialOverrides)[groupId];

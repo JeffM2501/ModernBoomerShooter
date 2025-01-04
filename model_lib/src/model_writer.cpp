@@ -170,3 +170,100 @@ void WriteModelAnimations(ModelAnimation* animations, size_t count, std::string_
     }
     fclose(out);
 }
+
+namespace Models
+{
+    void AnimateableModel::Write(std::string_view file)
+    {
+        std::string outputPath = "resources/models/";
+        outputPath += file.data();
+        outputPath += ".mesh";
+
+        FILE* out = fopen(outputPath.c_str(), "wb");
+
+        if (!out)
+            return;
+
+        int meshCount = 0;
+        for (const auto& group : Groups)
+            meshCount += int(group.Meshes.size());
+
+        ::Write(out, 3);
+        ::Write(out, meshCount);
+        ::Write(out, int(Groups.size()));
+
+        int groupId = 0;
+        for (const auto& group : Groups)
+        {
+            for (const auto& mesh : group.Meshes)
+            {
+                WriteMesh(out, mesh.Geometry, groupId);
+            }
+            groupId++;
+        }
+
+        for (const auto& group : Groups)
+            WriteMaterial(out, group.GroupMaterial);
+
+        ::Write(out, int(Bones.size()));
+        for (const auto & bone : Bones)
+        {
+            // bone info
+            ::Write(out, bone.ParentBoneId);
+            char name[32] = { 0 };
+            strcpy(name, bone.Name.c_str());
+
+            fwrite(name, 32, 1, out);
+
+            // bind pose transform
+            WriteTransform(out, bone.DefaultGlobalTransform);
+        }
+
+
+        Transform modelTransform = { 0 };
+
+        MatrixDecompose(RootTransform, & modelTransform.translation, & modelTransform.rotation, & modelTransform.scale);
+        WriteTransform(out, modelTransform);
+
+        fclose(out);
+    }
+
+    void AnimationSet::Write(std::string_view file)
+    {
+        std::string outputPath = "resources/models/";
+        outputPath += file.data();
+        outputPath += ".anim";
+
+        FILE* out = fopen(outputPath.c_str(), "wb");
+
+        if (!out)
+            return;
+
+        int temp = 1;
+
+        ::Write(out, 1);
+        ::Write(out, uint32_t(Sequences.size()));
+
+        for (const auto & [name, sequence] : Sequences)
+        {
+            if (sequence.Frames.size() == 0)
+                continue;
+
+            char temp[32] = { 0 };
+            strcpy(temp, name.c_str());
+
+            fwrite(temp, 32, 1, out);
+            ::Write(out, int(sequence.Frames.begin()->GlobalTransforms.size()));
+            ::Write(out, int(sequence.Frames.size()));
+
+            for (const auto & frame : sequence.Frames)
+            {
+                for (const auto& bone : frame.GlobalTransforms)
+                {
+                    WriteTransform(out, bone);
+                }
+            }
+        }
+        fclose(out);
+    }
+}

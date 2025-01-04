@@ -1,5 +1,11 @@
 # Stuff left to do
 
+Move services and systems to App
+Rename world to scene
+add IsReady to systems, when all systems are ready, call OnReady on all systems.
+
+Make audio system init audio in a thread
+
  * !Objects
     * !Object Collisions
  * !Triggers

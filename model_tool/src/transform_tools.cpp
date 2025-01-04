@@ -14,35 +14,58 @@
 
 #include <vector>
 #include <map>
+#include <functional>
 
 namespace TransformTools
 {
+
+    void DoForEachMesh(Models::AnimateableModel& model, std::function<void(Mesh&)> func)
+    {
+        for (auto& group : model.Groups)
+        {
+            for (auto& mesh : group.Meshes)
+            {
+                func(mesh.Geometry);
+            }
+        }
+    }
+
     void CenterMesh()
     {
         auto& model = App::GetModel();
-        if (!IsModelValid(model))
+        if (model.Groups.empty())
             return;
 
-        BoundingBox bbox = GetModelBoundingBox(model);
+        BoundingBox bbox = model.GetBounds();
 
         Vector3 center = (bbox.max - bbox.min) / 2 + bbox.min;
 
-        for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
-        {
-            Mesh& mesh = model.meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
+        DoForEachMesh(model, [center](Mesh& mesh)
             {
-                mesh.vertices[vertIndex * 3 + 0] -= center.x;
-                mesh.vertices[vertIndex * 3 + 1] -= center.y;
-                mesh.vertices[vertIndex * 3 + 2] -= center.z;
-            }
+                for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
+                {
+                    mesh.vertices[vertIndex * 3 + 0] -= center.x;
+                    mesh.vertices[vertIndex * 3 + 1] -= center.y;
+                    mesh.vertices[vertIndex * 3 + 2] -= center.z;
+                }
 
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
+                UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
+            });
+
+        for (auto &bone : model.Bones)
+        {
+            bone.DefaultGlobalTransform.translation -= center;
         }
 
-        for (int i = 0; i < model.boneCount; i++)
+        for (auto & [name, sequence] : App::GetAnimations().Animations.Sequences)
         {
-            model.bindPose[i].translation -= center;
+            for (auto& keyframe : sequence.Frames)
+            {
+                for (auto & transform : keyframe.GlobalTransforms)
+                {
+                    transform.translation -= center;
+                }
+            }
         }
 
         App::SetSeletedMesh(App::GetSelectedMesh());
@@ -51,34 +74,33 @@ namespace TransformTools
     void FloorMesh()
     {
         auto& model = App::GetModel();
-        if (!IsModelValid(model))
+        if (model.Groups.empty())
             return;
 
-        BoundingBox bbox = GetModelBoundingBox(model);
+        BoundingBox bbox = model.GetBounds();
 
-        for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
-        {
-            Mesh& mesh = model.meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
+        DoForEachMesh(model, [bbox](Mesh& mesh)
             {
-                mesh.vertices[vertIndex * 3 + 2] -= bbox.min.z;
-            }
-
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
-        }
-
-        for (int i = 0; i < model.boneCount; i++)
-        {
-            model.bindPose[i].translation.z -= bbox.min.z;
-        }
-
-        for (auto anim : App::GetAnimations().Animations)
-        {
-            for (int f = 0; f < anim->frameCount; f++)
-            {
-                for (int i = 0; i < model.boneCount; i++)
+                for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
                 {
-                    anim->framePoses[f][i].translation.z -= bbox.min.z;
+                    mesh.vertices[vertIndex * 3 + 1] -= bbox.min.y;
+                }
+
+                UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
+            });
+
+        for (auto& bone : model.Bones)
+        {
+            bone.DefaultGlobalTransform.translation.y -= bbox.min.y;
+        }
+
+        for (auto& [name, sequence] : App::GetAnimations().Animations.Sequences)
+        {
+            for (auto& keyframe : sequence.Frames)
+            {
+                for (auto& transform : keyframe.GlobalTransforms)
+                {
+                    transform.translation.y -= bbox.min.y;
                 }
             }
         }
@@ -92,52 +114,65 @@ namespace TransformTools
         Quaternion rot = QuaternionFromAxisAngle(axis, angle * DEG2RAD);
 
         auto& model = App::GetModel();
-        if (!IsModelValid(model))
+        if (model.Groups.empty())
             return;
 
-        for (size_t meshIndex = 0; meshIndex < model.meshCount; meshIndex++)
-        {
-            Mesh& mesh = model.meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
+        model.RootTransform = MatrixRotate(axis, angle * DEG2RAD);
+        return;
+    }
+
+    void ScaleMeshes(Vector3 scale)
+    {
+        auto& model = App::GetModel();
+        if (model.Groups.empty())
+            return;
+
+        DoForEachMesh(model, [scale](Mesh& mesh)
             {
-                Vector3 vert = { mesh.vertices[vertIndex * 3 + 0] , mesh.vertices[vertIndex * 3 + 1] , mesh.vertices[vertIndex * 3 + 2] };
-                Vector3 norm = { mesh.normals[vertIndex * 3 + 0] , mesh.normals[vertIndex * 3 + 1] , mesh.normals[vertIndex * 3 + 2] };
-
-                vert = vert * mat;
-                norm = norm * mat;
-
-                mesh.vertices[vertIndex * 3 + 0] = vert.x;
-                mesh.vertices[vertIndex * 3 + 1] = vert.y;
-                mesh.vertices[vertIndex * 3 + 2] = vert.z;
-
-                mesh.normals[vertIndex * 3 + 0] = norm.x;
-                mesh.normals[vertIndex * 3 + 1] = norm.y;
-                mesh.normals[vertIndex * 3 + 2] = norm.z;
-            }
-
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
-            UpdateMeshBuffer(mesh, 2, mesh.normals, mesh.vertexCount * 3 * sizeof(float), 0);
-        }
-
-        for (int i = 0; i < model.boneCount; i++)
-        {
-            model.bindPose[i].translation *= mat;
-            model.bindPose[i].rotation = QuaternionMultiply(model.bindPose[i].rotation, rot);
-        }
-
-        for (auto anim : App::GetAnimations().Animations)
-        {
-            for (int f = 0; f < anim->frameCount; f++)
-            {
-                for (int i = 0; i < anim->boneCount; i++)
+                for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
                 {
-                    anim->framePoses[f][i].translation *= mat;
-                    anim->framePoses[f][i].rotation = QuaternionMultiply(anim->framePoses[f][i].rotation, rot);
+                    mesh.vertices[vertIndex * 3 + 0] *= scale.x;
+                    mesh.vertices[vertIndex * 3 + 1] *= scale.y;
+                    mesh.vertices[vertIndex * 3 + 2] *= scale.z;
+                }
+
+                UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
+            });
+
+        for (auto& bone : model.Bones)
+        {
+            bone.DefaultGlobalTransform.translation *= scale;
+
+        }
+
+        for (auto& [name, sequence] : App::GetAnimations().Animations.Sequences)
+        {
+            for (auto& keyframe : sequence.Frames)
+            {
+                for (auto& transform : keyframe.GlobalTransforms)
+                {
+                    transform.translation *= scale;
                 }
             }
         }
 
         App::SetSeletedMesh(App::GetSelectedMesh());
+    }
+
+    void ScaleZTo(float z)
+    {
+        auto& model = App::GetModel();
+        if (model.Groups.empty())
+            return;
+
+        BoundingBox bbox = model.GetBounds();
+
+        if (bbox.max.z < z)
+            return;
+
+        float scale = z / bbox.max.z;
+
+        ScaleMeshes(Vector3{ scale, scale, scale });
     }
 
     static std::hash<std::string_view> Hasher;
@@ -182,54 +217,86 @@ namespace TransformTools
     void BakeMaterialColors()
     {
         auto& model = App::GetModel();
-        if (!IsModelValid(model))
+        if (model.Groups.empty())
             return;
 
-        for (int i = 0; i < model.meshCount; i++)
+        for (auto & group : model.Groups)
         {
-            Mesh& mesh = model.meshes[i];
-
-            Material& mat = model.materials[model.meshMaterial[i]];
-
-            Color diffuseColor = mat.maps[MATERIAL_MAP_ALBEDO].color;
-
-            if (mesh.colors == nullptr)
+            Material& mat = group.GroupMaterial;
+            for (auto& mesh : group.Meshes)
             {
-                rlEnableVertexArray(mesh.vaoId);
+                Color diffuseColor = mat.maps[MATERIAL_MAP_ALBEDO].color;
 
-                mesh.colors = (uint8_t*)MemAlloc(4 * mesh.vertexCount);
+                if (mesh.Geometry.colors == nullptr)
+                {
+                    rlEnableVertexArray(mesh.Geometry.vaoId);
 
-                mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR] = 0;        // Vertex buffer: colors
-                // Enable vertex attribute: color (shader-location = 3)
-                mesh.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR] = rlLoadVertexBuffer(mesh.colors, mesh.vertexCount * 4 * sizeof(unsigned char), true);
-                rlSetVertexAttribute(RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR, 4, RL_UNSIGNED_BYTE, 1, 0, 0);
-                rlEnableVertexAttribute(RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR);
+                    mesh.Geometry.colors = (uint8_t*)MemAlloc(4 * mesh.Geometry.vertexCount);
+
+                    mesh.Geometry.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR] = 0;        // Vertex buffer: colors
+                    // Enable vertex attribute: color (shader-location = 3)
+                    mesh.Geometry.vboId[RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR] = rlLoadVertexBuffer(mesh.Geometry.colors, mesh.Geometry.vertexCount * 4 * sizeof(unsigned char), true);
+                    rlSetVertexAttribute(RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR, 4, RL_UNSIGNED_BYTE, 1, 0, 0);
+                    rlEnableVertexAttribute(RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR);
+                }
+
+                for (int c = 0; c < mesh.Geometry.vertexCount; c++)
+                {
+                    mesh.Geometry.colors[c * 4 + 0] = diffuseColor.r;
+                    mesh.Geometry.colors[c * 4 + 1] = diffuseColor.g;
+                    mesh.Geometry.colors[c * 4 + 2] = diffuseColor.b;
+                    mesh.Geometry.colors[c * 4 + 3] = diffuseColor.a;
+                }
+
+                UpdateMeshBuffer(mesh.Geometry, RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR, mesh.Geometry.colors, 4 * mesh.Geometry.vertexCount, 0);
             }
 
-            for (int c = 0; c < mesh.vertexCount; c++)
-            {
-                mesh.colors[c * 4 + 0] = diffuseColor.r;
-                mesh.colors[c * 4 + 1] = diffuseColor.g;
-                mesh.colors[c * 4 + 2] = diffuseColor.b;
-                mesh.colors[c * 4 + 3] = diffuseColor.a;
-            }
-
-            UpdateMeshBuffer(mesh, RL_DEFAULT_SHADER_ATTRIB_LOCATION_COLOR, mesh.colors, 4 * mesh.vertexCount, 0);
-        }
-
-        for (int i = 0; i < model.materialCount; i++)
-        {
-            model.materials[i].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+            mat.maps[MATERIAL_MAP_ALBEDO].color = WHITE;
         }
     }
 
     void CombineIdenticalMaterials()
     {
         auto& model = App::GetModel();
-        if (!IsModelValid(model))
+        if (model.Groups.empty())
             return;
 
-        std::map<int, Material> matLib;
+
+        for (size_t groupId = 0; groupId < model.Groups.size(); groupId++)
+        {
+            for (size_t otherGroupId = 0; otherGroupId < model.Groups.size(); otherGroupId++)
+            {
+                if (groupId == otherGroupId)
+                    continue;
+
+                auto& group = model.Groups[groupId];
+                auto& otherGroup = model.Groups[otherGroupId];
+
+                if (group.Meshes.empty() || otherGroup.Meshes.empty())
+                    continue;
+
+                if (IsSameMaterial(group.GroupMaterial, otherGroup.GroupMaterial))
+                {
+                    group.Meshes.insert(group.Meshes.end(), otherGroup.Meshes.begin(), otherGroup.Meshes.end());
+                    otherGroup.Meshes.clear();
+                }
+            }
+        }
+
+        for (auto itr = model.Groups.begin(); itr != model.Groups.end();)
+        {
+            if (itr->Meshes.empty())
+            {
+                MemFree(itr->GroupMaterial.maps);
+                itr = model.Groups.erase(itr);
+            }
+            else
+            {
+                itr++;
+            }
+        }
+
+        /* std::map<int, Material> matLib;
         for (int i = 0; i < model.materialCount; i++)
         {
             matLib.insert_or_assign(i, model.materials[i]);
@@ -284,10 +351,12 @@ namespace TransformTools
             model.materials[count] = mat;
             count++;
         }
+        */
     }
 
     void MergeMeshes()
     {
+        /*
         auto& model = App::GetModel();
         if (!IsModelValid(model))
             return;
@@ -394,60 +463,7 @@ namespace TransformTools
 
         App::SetModel(newModel);
         App::SetSeletedMesh(-1);
-    }
-
-    void ScaleMeshes(Vector3 scale)
-    {
-        auto& model = App::GetModel();
-        if (!IsModelValid(model))
-            return;
-
-        for (size_t meshIndex = 0; meshIndex < App::GetModel().meshCount; meshIndex++)
-        {
-            Mesh& mesh = App::GetModel().meshes[meshIndex];
-            for (size_t vertIndex = 0; vertIndex < mesh.vertexCount; vertIndex++)
-            {
-                mesh.vertices[vertIndex * 3 + 0] *= scale.x;
-                mesh.vertices[vertIndex * 3 + 1] *= scale.y;
-                mesh.vertices[vertIndex * 3 + 2] *= scale.z;
-            }
-
-            UpdateMeshBuffer(mesh, 0, mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
-        }
-
-        for (int i = 0; i < model.boneCount; i++)
-        {
-            model.bindPose[i].translation *= scale;
-        }
-
-        for (auto anim : App::GetAnimations().Animations)
-        {
-            for (int f = 0; f < anim->frameCount; f++)
-            {
-                for (int i = 0; i < model.boneCount; i++)
-                {
-                    anim->framePoses[f][i].translation *= scale;
-                }
-            }
-        }
-
-        App::SetSeletedMesh(App::GetSelectedMesh());
-    }
-
-    void ScaleZTo(float z)
-    {
-        auto& model = App::GetModel();
-        if (!IsModelValid(model))
-            return;
-
-        BoundingBox bbox = GetModelBoundingBox(model);
-
-        if (bbox.max.z < z)
-            return;
-
-        float scale = z / bbox.max.z;
-
-        ScaleMeshes(Vector3{ scale, scale, scale });
+        */
     }
 }
 
@@ -464,25 +480,32 @@ TransformPanel::TransformPanel()
 
 void TransformPanel::OnShowContents()
 {
-    if (ImGui::Button("Center"))
+    float spacing = 2;
+    if (ImGui::Button(ICON_FA_BORDER_NONE))
         TransformTools::CenterMesh();
+    ImGui::SetItemTooltip("Center");
 
-    if (ImGui::Button("Floor"))
+    ImGui::SameLine(0, spacing);
+    if (ImGui::Button(ICON_FA_ARROWS_DOWN_TO_LINE))
         TransformTools::FloorMesh();
-
-    if (ImGui::Button("Y -> Z"))
-        TransformTools::RotateMesh(90, Vector3UnitX);
-
-    if (ImGui::Button("Combine Materials"))
-        TransformTools::CombineIdenticalMaterials();
-
-    if (ImGui::Button("Bake Material Colors"))
-        TransformTools::BakeMaterialColors();
+    ImGui::SetItemTooltip("Floor");
     
-    if (ImGui::Button("Merge"))
-        TransformTools::MergeMeshes();
+    ImGui::SameLine(0, spacing);
+    if (ImGui::Button("Z" ICON_FA_ARROW_UP))
+        TransformTools::RotateMesh(90, Vector3UnitX);
+    ImGui::SetItemTooltip("Set Z Up");
+    
+    ImGui::SameLine(0, spacing);
+    if (ImGui::Button(ICON_FA_DROPLET_SLASH))
+        TransformTools::BakeMaterialColors();
+    ImGui::SetItemTooltip("Bake Material Colors");
 
-    ImGui::TextUnformatted("Scale Z To");
+    ImGui::SameLine(0, spacing);
+    if (ImGui::Button(ICON_FA_OBJECT_GROUP))
+        TransformTools::CombineIdenticalMaterials();
+    ImGui::SetItemTooltip("Combine Identical Materials");
+
+    ImGui::TextUnformatted("Fit Y");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(50);
     ImGui::InputFloat("###ScaleTo", &ZSize);

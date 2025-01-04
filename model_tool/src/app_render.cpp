@@ -29,15 +29,15 @@ namespace App
     {
         SelectedMeshIndex = mesh;
 
-        auto& model = GetModel();
-        if (IsModelValid(model) && mesh >= 0 && mesh < model.meshCount)
-        {
-            SelectedMeshBBox = GetMeshBoundingBox(model.meshes[mesh]);
-        }
-        else
-        {
-            SelectedMeshIndex = -1;
-        }
+//         auto& model = GetModel();
+//         if (IsModelValid(model) && mesh >= 0 && mesh < model.meshCount)
+//         {
+//             SelectedMeshBBox = GetMeshBoundingBox(model.meshes[mesh]);
+//         }
+//         else
+//         {
+//             SelectedMeshIndex = -1;
+//         }
     }
 
     int GetSelectedMesh()
@@ -55,13 +55,10 @@ namespace App
         return SelectedBoneIndex;
     }
 
-    void RebuildAnimFrame()
+    void ModelUpdated()
     {
-        auto& anim = GetAnimations();
-        if (anim.Animations.empty() || anim.Frame < 0 || anim.Sequence < 0)
-            return;
-
-        UpdateModelAnimation(GetModel(), *anim.Animations[anim.Sequence], anim.Frame);
+        for (auto& g : App::GetModel().Groups)
+            g.GroupMaterial.shader = LightingShader;
     }
 
     void InitRender()
@@ -73,9 +70,9 @@ namespace App
         ViewCamera.position.z = -2;
 
         LightingShader = LoadShader("resources/shaders/world.vs", "resources/shaders/world.fs");
-    
+
         LightingShader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(LightingShader, ViewPosName);
-    
+
         AmbientLoc = GetShaderLocation(LightingShader, AmbientName);
 
         float ambientScale = 0.125f;
@@ -89,7 +86,7 @@ namespace App
         float backFillColor[4] = { 0.75f, 0.75f, 0.75f, 1 };
         SetShaderValue(LightingShader, GetShaderLocation(LightingShader, "gloablBackfillLightColor"), backFillColor, SHADER_UNIFORM_VEC4);
 
-        float ambientAngle =  -45;
+        float ambientAngle = -45;
 
         Vector3 lightVec = {
             sinf(DEG2RAD * ambientAngle),
@@ -119,28 +116,35 @@ namespace App
         }
     }
 
-    void DrawPose(Transform* pose)
+    void DrawPose(Models::AnimateableModel& model, Models::AnimateableKeyFrame *pose)
     {
-        auto& model = GetModel();
-
-        for (int boneId = 0; boneId < model.boneCount; boneId++)
+        for (size_t i = 0; i < model.Bones.size(); i++)
         {
-            Transform& bone = pose[boneId];
-            int boneParent = model.bones[boneId].parent;
+            auto& bone = model.Bones[i];
+            Transform* transform = &bone.DefaultGlobalTransform;
+            if (pose)
+            {
+                transform = &pose->GlobalTransforms[i];
+            }
 
-            Vector3 pos = bone.translation;
+            Vector3 pos = transform->translation;
 
-            DrawSphere(pos, 0.01f, boneId == SelectedBoneIndex ? YELLOW : MAROON);
+            DrawSphere(pos, 0.01f, i == SelectedBoneIndex ? YELLOW : MAROON);
 
-            Vector3 vec = Vector3RotateByQuaternion(Vector3{ 0, 0.125f, 0 }, bone.rotation);
+            Vector3 vec = Vector3RotateByQuaternion(Vector3{ 0, 0.125f, 0 }, transform->rotation);
             DrawLine3D(pos, Vector3Add(vec, pos), BLUE);
 
-            if (boneParent >= 0)
+            if (bone.ParentBoneId < model.Bones.size())
             {
-                Transform& parentBone = pose[boneParent];
-                Vector3 parentPos = parentBone.translation;
+                Transform* parentTransform = &model.Bones[bone.ParentBoneId].DefaultGlobalTransform;
+                if (pose)
+                {
+                    parentTransform = &pose->GlobalTransforms[bone.ParentBoneId];
+                }
 
-                DrawLine3D(pos, parentPos, boneId == SelectedBoneIndex ? ORANGE : PURPLE);
+                Vector3 parentPos = parentTransform->translation;
+
+                DrawLine3D(pos, parentPos, i == SelectedBoneIndex ? ORANGE : PURPLE);
             }
         }
     }
@@ -149,10 +153,9 @@ namespace App
     {
         auto& model = GetModel();
 
-        for (int i = 0; i < model.materialCount; i++)
-        {
-            model.materials[i].shader = LightingShader;
-        }
+        int animationShaderLocation = GetShaderLocation(LightingShader, "animate");
+        int val = 1;
+        SetShaderValue(LightingShader, animationShaderLocation, &val, SHADER_UNIFORM_INT);
 
         SetShaderValue(LightingShader, AmbientLoc, Ambient, SHADER_UNIFORM_VEC4);
         SetShaderValue(LightingShader, LightingShader.locs[SHADER_LOC_VECTOR_VIEW], &ViewCamera.position, SHADER_UNIFORM_VEC3);
@@ -167,24 +170,32 @@ namespace App
         DrawLine3D(Vector3Zeros, Vector3{ 1, 0, 0 }, MAROON);
         DrawLine3D(Vector3Zeros, Vector3{ 0, 0, 1 }, DARKGREEN);
 
-        DrawModel(GetModel(), Vector3Zeros, 1, WHITE);
+        auto& anims = GetAnimations();
+        Models::AnimateableKeyFrame* keyFrame = nullptr;
+        if (!anims.Animations.Sequences.empty() && anims.Frame >= 0 && !anims.Sequence.empty())
+            keyFrame = &anims.Animations.Sequences[anims.Sequence].Frames[anims.Frame];
+
+        auto pose = Models::GetDefaultPose(model);
+
+        if (keyFrame)
+            Models::UpdatePoseToFrame(model, pose, *keyFrame);
+
+        Models::DrawAnimatableModel(model, MatrixIdentity(), &pose, nullptr);
+
+     //   DrawModel(GetModel(), Vector3Zeros, 1, WHITE);
 
         if (SelectedMeshIndex >= 0)
         {
             DrawBoundingBox(SelectedMeshBBox, BLUE);
         }
 
-        if (model.boneCount > 0 && ShowBones)
+        if (!model.Bones.empty() && ShowBones)
         {
             rlDrawRenderBatchActive();
             rlDisableDepthTest();
 
-            auto& anims = GetAnimations();
-            if (anims.Animations.empty() || anims.Frame < 0 || anims.Sequence < 0)
-                DrawPose(model.bindPose);
-            else
-                DrawPose(anims.Animations[anims.Sequence]->framePoses[anims.Frame]);
-            
+            DrawPose(model, keyFrame);
+
             rlDrawRenderBatchActive();
             rlEnableDepthTest();
         }
