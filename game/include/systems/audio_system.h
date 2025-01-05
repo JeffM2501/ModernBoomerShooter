@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <thread>
 
 #include "raylib.h"
 
@@ -39,11 +40,15 @@ public:
 
     SoundInstance::Ptr GetSound(const std::string& name);
     Music GetMusic(const std::string& name);
+
+    bool IsReady() override { return AudioReady; }
     
 protected:
     void OnInit() override;
     void OnSetup() override;
     void OnUpdate() override;
+
+    void OnCleaup() override;
 
 private:
     Sound* LoadSound(const std::string& name, const std::string_view& file);
@@ -51,4 +56,7 @@ private:
 private:
     std::unordered_map<std::string, SoundInstance::Ptr> LoadedSounds;
     const Table* AudioManifestTable = nullptr;
+    std::thread AudioLoaderThread;
+
+    bool AudioReady = false;
 };

@@ -37,6 +37,8 @@ public:
 
     void Update();  // called when the system is updated
 
+    virtual bool IsReady() { return true; }
+
     void AddObject(GameObject* object);     // called when an object is added to the system,
     void RemoveObject(GameObject* object);  // called when an object is removed
 

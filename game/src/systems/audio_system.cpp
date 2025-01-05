@@ -10,10 +10,16 @@
 void AudioSystem::OnInit()
 {
     if (!IsAudioDeviceReady())
-        InitAudioDevice();
-
-    SetMasterVolume(GlobalVars::MasterVolume);
-    AudioManifestTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("audio_manifest");
+    {
+        AudioReady = false;
+        AudioLoaderThread = std::thread([]()
+            {
+                InitAudioDevice();
+                SetMasterVolume(GlobalVars::MasterVolume);
+            });
+    }
+      
+    
 }
 
 void AudioSystem::OnSetup()
@@ -22,7 +28,31 @@ void AudioSystem::OnSetup()
 
 void AudioSystem::OnUpdate()
 {
+    if (!AudioReady)
+    {
+        if (!AudioManifestTable)
+            AudioManifestTable = TableManager::GetTable(BootstrapTable)->GetFieldAsTable("audio_manifest");
+
+        if (AudioLoaderThread.joinable())
+        {
+            AudioLoaderThread.join();
+            AudioReady = true;
+        }
+    }
+
+    if (!AudioReady)
+        return;
+
     // TODO handle music updates
+}
+
+void AudioSystem::OnCleaup()
+{
+    if (!AudioReady)
+    {
+        AudioLoaderThread.join();
+        AudioReady = true;
+    }
 }
 
 SoundInstance::Ptr AudioSystem::GetSound(const std::string& name)

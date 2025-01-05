@@ -8,6 +8,9 @@
 
 void OverlayRenderSystem::OnUpdate()
 {
+    if (App::GetState() != GameState::Playing)
+        return;
+
     DrawText(TextFormat("Rays Cast %d", App::GetScene().GetRaycaster().GetCastCount()), 10, GetScreenHeight() - 50, 20, SKYBLUE);
     DrawText(TextFormat("Cells Drawn %d of %d total cells", GlobalVars::UseVisCulling ? App::GetScene().GetRaycaster().GetHitCelList().size() : App::GetScene().GetMap().Cells.size(), App::GetScene().GetMap().Cells.size()), 10, GetScreenHeight() - 70, 20, YELLOW);
 

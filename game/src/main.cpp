@@ -146,22 +146,6 @@ namespace App
         // tell the resource manager where the game resources are
         ResourceManager::Init("resources");
 
-        // load the bootstrap table, all game data runs from this
-        auto* table = TableManager::GetTable(BootstrapTable);
-
-        if (!table)
-        {
-            Run = false;
-            TraceLog(LOG_FATAL, "Unable to locate bootstrap table at %s, exiting", BootstrapTable);
-            return;
-        }
-
-
-        // initialize the GPU shared resource managers
-        TextureManager::Init();
-        ModelManager::Init();
-        CharacterManager::Init();
-
         // Setup all systems
         SetupSystems();
 
@@ -170,21 +154,54 @@ namespace App
             system->Init();
         }
 
-        // setup scene
-        GameWorld.Init();
-
-        // find the boot level
-        GameWorld.Load(table->GetField("boot_level"));
-
-        GlobalVars::Paused = false;
-        for (auto& [id, system] : Systems)
-        {
-            system->Setup();
-        }
+        AppState = GameState::Loading;
     }
 
     void NewFrame()
     {
+        if (AppState == GameState::Loading)
+        {
+            bool ready = true;
+            for (auto& [id, system] : Systems)
+            {
+                if (!system->IsReady())
+                {
+                    ready = false;
+                }
+            }
+
+            if (ready)
+            {
+                // load the bootstrap table, all game data runs from this
+                auto* table = TableManager::GetTable(BootstrapTable);
+ 
+                if (!table)
+                {
+                    Run = false;
+                    TraceLog(LOG_FATAL, "Unable to locate bootstrap table at %s, exiting", BootstrapTable);
+                    return;
+                }
+ 
+                // initialize the GPU shared resource managers
+                TextureManager::Init();
+                ModelManager::Init();
+                CharacterManager::Init();
+
+                // setup scene
+                GameWorld.Init();
+
+                GameWorld.Load(table->GetField("boot_level"));
+                
+                for (auto& [id, system] : Systems)
+                {
+                    system->Setup();
+                }
+
+                AppState = GameState::Playing;
+                GlobalVars::Paused = false;
+            }
+        }
+
         // have all systems update
         for (auto& system : PreUpdateSystems)
             system->Update();

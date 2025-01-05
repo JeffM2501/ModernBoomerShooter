@@ -11,4 +11,6 @@ protected:
 
 protected:
     bool InMenu = false;
+
+    float LoadingSpinnerAngle = 0;
 };

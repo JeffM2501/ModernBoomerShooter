@@ -1,9 +1,5 @@
 # Stuff left to do
 
-add IsReady to systems, when all systems are ready, call OnReady on all systems.
-
-Make audio system init audio in a thread
-
  * !Objects
     * !Object Collisions
  * !Triggers
