@@ -76,9 +76,8 @@ void MobComponent::Draw()
 
         rlEnd();
         rlSetTexture(-1);
-
-        rlPopMatrix();
     }
+    rlPopMatrix();
 }
 
 void MobComponent::OnCreate()
