@@ -22,10 +22,10 @@ Run the premake-VisualStudio.bat to generate the .sln, then open it.
 Run the premake-mingw.bat to generate the makefile, then run make in the folder. If you get shell errors then run make SHELL=cmd
 
 ## Building for Linux
-Run run ./premake5 gmake2, then run make in the folder
+Run run ./premake5 gmake, then run make in the folder
 
 ## Building for MacOS
-Run run ./premake5.osx gmake2, then run make in the folder
+Run run ./premake5.osx gmake, then run make in the folder
 
 ## Building with VSCode
 Open the folder in vscode and build
