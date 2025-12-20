@@ -5,6 +5,8 @@
 #include "raylib.h"
 #include "scene.h"
 
+#include <vector>
+
 AxisActionDef::AxisActionDef(KeyboardKey positive, KeyboardKey negative, int mouseAxis, float mouseAxisScale, int gamepadAxis, float gamepadAxisScale)
 {
     Type = ActionType::Axis;

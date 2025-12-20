@@ -25,7 +25,8 @@ project (baseName)
     filter "action:vs*"
         debugdir "$(SolutionDir)"
 
-
+    filter "system:windows"
+        links {"Comdlg32", "ole32"}
 
     filter{}
 

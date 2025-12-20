@@ -13,6 +13,7 @@
 
 #include "raymath.h"
 
+#include <limits>
 
 void MapObjectSystem::OnSetup()
 {
@@ -129,7 +130,7 @@ bool MapObjectSystem::MoveEntity(Vector3& position, Vector3& desiredMotion, floa
             continue;
 
         float motionVecLen = Vector3Length(desiredMotion);
-        if (motionVecLen < FLT_MIN)
+        if (motionVecLen < std::numeric_limits<float>::min())
             break;
 
         BoundingBox bbox = object->Instance->Geometry->GetBounds();

@@ -3,6 +3,7 @@
 #include "system.h"
 #include "raylib.h"
 
+#include <vector>
 #include <string>
 #include <memory>
 #include <unordered_map>

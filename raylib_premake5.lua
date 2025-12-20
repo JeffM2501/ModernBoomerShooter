@@ -71,7 +71,7 @@ function link_raylib()
 
     raylib_dir = get_raylib_dir();
     includedirs {"../" .. raylib_dir .. "/src" }
-    includedirs {"../" .. raylib_dir .."/src/external" }
+
     includedirs {"../" .. raylib_dir .."/src/external/glfw/include" }
     platform_defines()
 
@@ -86,6 +86,7 @@ function link_raylib()
         defines{"_WIN32"}
         links {"winmm", "gdi32"}
         libdirs {"../bin/%{cfg.buildcfg}"}
+    includedirs {"../" .. raylib_dir .."/src/external" }
 
     filter "system:linux"
         links {"pthread", "m", "dl", "rt", "X11"}
